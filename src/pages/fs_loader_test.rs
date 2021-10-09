@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::fs_loader::FsLoader;
-    use crate::pages::{Loader, Metadata, Page};
+    use crate::pages::test_page::TestPage;
+    use crate::pages::Loader;
     use rustassert::assert;
     use rustassert::fs::{FileNode, TmpTestFolder};
-    use std::io::Read;
 
     #[test]
     fn should_load_from_empty_folder() {
@@ -182,24 +182,5 @@ mod tests {
                 content: "file content fr2".to_string(),
             },
         ]);
-    }
-
-    #[derive(PartialOrd, PartialEq)]
-    struct TestPage {
-        path: Vec<String>,
-        metadata: Option<Metadata>,
-        content: String,
-    }
-
-    impl From<&Box<dyn Page>> for TestPage {
-        fn from(p: &Box<dyn Page>) -> Self {
-            let mut content: String = "".to_string();
-            p.open().unwrap().read_to_string(&mut content).unwrap();
-            TestPage {
-                path: p.path().to_vec(),
-                metadata: p.metadata().map(|m| m.clone()),
-                content,
-            }
-        }
     }
 }
