@@ -1,7 +1,7 @@
 use crate::pages::{Metadata, Page};
 use std::error::Error;
 use std::io::{Cursor, Read};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(PartialOrd, PartialEq, Debug)]
 pub(crate) struct TestPage {
@@ -10,8 +10,8 @@ pub(crate) struct TestPage {
     pub(crate) content: String,
 }
 
-impl From<&Rc<dyn Page>> for TestPage {
-    fn from(p: &Rc<dyn Page>) -> Self {
+impl From<&Arc<dyn Page>> for TestPage {
+    fn from(p: &Arc<dyn Page>) -> Self {
         let mut content: String = "".to_string();
         p.open().unwrap().read_to_string(&mut content).unwrap();
         TestPage {

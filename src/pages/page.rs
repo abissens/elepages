@@ -2,7 +2,7 @@ use std::error;
 use std::error::Error;
 use std::fmt::Debug;
 use std::io::Read;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone, PartialOrd, PartialEq, Debug)]
 pub struct Author {
@@ -18,7 +18,7 @@ pub struct Metadata {
     pub tags: Vec<String>,
 }
 
-pub trait Page: Debug {
+pub trait Page: Debug + Send + Sync {
     fn path(&self) -> &[String];
     fn metadata(&self) -> Option<&Metadata>;
     fn open(&self) -> Result<Box<dyn Read>, Box<dyn error::Error>>;
@@ -28,7 +28,7 @@ pub trait Page: Debug {
 pub(crate) struct PageProxy {
     pub(crate) new_path: Option<Vec<String>>,
     pub(crate) new_metadata: Option<Metadata>,
-    pub(crate) inner: Rc<dyn Page>,
+    pub(crate) inner: Arc<dyn Page>,
 }
 
 impl Page for PageProxy {
@@ -51,16 +51,16 @@ impl Page for PageProxy {
     }
 }
 
-pub trait PageBundle {
-    fn pages(&self) -> &[Rc<dyn Page>];
+pub trait PageBundle: Send + Sync {
+    fn pages(&self) -> &[Arc<dyn Page>];
 }
 
 pub struct VecBundle {
-    pub p: Vec<Rc<dyn Page>>,
+    pub p: Vec<Arc<dyn Page>>,
 }
 
 impl PageBundle for VecBundle {
-    fn pages(&self) -> &[Rc<dyn Page>] {
+    fn pages(&self) -> &[Arc<dyn Page>] {
         &self.p
     }
 }

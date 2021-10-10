@@ -7,6 +7,7 @@ mod tests {
     use crate::stages::union_stage::UnionStage;
     use rustassert::fs::{FileNode, TmpTestFolder};
     use std::borrow::Borrow;
+    use std::sync::Arc;
 
     #[test]
     fn copy_stage_should_copy_all_bundle_paths_to_another_root_path() {
@@ -38,7 +39,7 @@ mod tests {
         };
 
         let union_stage = UnionStage {
-            stages: &[&copy_stage_1, &copy_stage_2],
+            stages: vec![Arc::new(copy_stage_1), Arc::new(copy_stage_2)],
         };
 
         let result_bundle = union_stage.process(bundle.borrow());

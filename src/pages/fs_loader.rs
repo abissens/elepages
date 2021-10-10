@@ -6,7 +6,7 @@ use crate::pages::VecBundle;
 use std::fs;
 use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct FsLoader {
     dir_or_file: PathBuf,
@@ -36,17 +36,17 @@ impl FsLoader {
 }
 
 impl Loader for FsLoader {
-    fn load(&self) -> Result<Box<dyn PageBundle>, LoaderError> {
+    fn load(&self) -> Result<Arc<dyn PageBundle>, LoaderError> {
         if self.dir_or_file.is_file() {
-            return Ok(Box::new(VecBundle {
-                p: vec![Rc::new(FsPage::new(&self.dir_or_file, self.dir_or_file.to_path_buf())?)],
+            return Ok(Arc::new(VecBundle {
+                p: vec![Arc::new(FsPage::new(&self.dir_or_file, self.dir_or_file.to_path_buf())?)],
             }));
         }
-        let mut pages: Vec<Rc<dyn Page>> = Vec::new();
+        let mut pages: Vec<Arc<dyn Page>> = Vec::new();
         FsLoader::visit_dirs(&self.dir_or_file, &mut |entry| {
-            pages.push(Rc::new(FsPage::new(&self.dir_or_file, entry.path())?));
+            pages.push(Arc::new(FsPage::new(&self.dir_or_file, entry.path())?));
             Ok(())
         })?;
-        Ok(Box::new(VecBundle { p: pages }))
+        Ok(Arc::new(VecBundle { p: pages }))
     }
 }

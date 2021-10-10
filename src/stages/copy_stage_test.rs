@@ -5,7 +5,6 @@ mod tests {
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
     use rustassert::fs::{FileNode, TmpTestFolder};
-    use std::borrow::Borrow;
 
     #[test]
     fn copy_stage_should_copy_all_bundle_paths_to_another_root_path() {
@@ -30,7 +29,7 @@ mod tests {
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
-        let result_bundle = copy_stage.process(bundle.borrow());
+        let result_bundle = copy_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
