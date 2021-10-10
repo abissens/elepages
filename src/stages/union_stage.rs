@@ -5,10 +5,11 @@ use std::thread;
 
 pub struct UnionStage {
     pub stages: Vec<Arc<dyn Stage>>,
+    pub parallel: bool,
 }
 
-impl Stage for UnionStage {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+impl UnionStage {
+    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
         let mut vec_bundle = VecBundle { p: vec![] };
 
         let (tx, rx) = mpsc::channel();
@@ -25,6 +26,27 @@ impl Stage for UnionStage {
         for mut r_pages in rx {
             vec_bundle.p.append(&mut r_pages);
         }
+
         Arc::new(vec_bundle)
+    }
+
+    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        let mut vec_bundle = VecBundle { p: vec![] };
+
+        for stage in &self.stages {
+            let mut stage_pages = stage.process(&bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
+            vec_bundle.p.append(&mut stage_pages);
+        }
+
+        Arc::new(vec_bundle)
+    }
+}
+
+impl Stage for UnionStage {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        match self.parallel {
+            true => self.parallel_process(bundle),
+            false => self.sequential_process(bundle),
+        }
     }
 }
