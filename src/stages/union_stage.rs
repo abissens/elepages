@@ -34,7 +34,7 @@ impl UnionStage {
         let mut vec_bundle = VecBundle { p: vec![] };
 
         for stage in &self.stages {
-            let mut stage_pages = stage.process(&bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
+            let mut stage_pages = stage.process(bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
             vec_bundle.p.append(&mut stage_pages);
         }
 
