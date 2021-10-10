@@ -14,12 +14,12 @@ impl UnionStage {
 
         let (tx, rx) = mpsc::channel();
         for stage in &self.stages {
-            let tx = tx.clone();
+            let c_tx = tx.clone();
             let c_stage = Arc::clone(stage);
             let c_bundle = Arc::clone(bundle);
             thread::spawn(move || {
                 let stage_pages = c_stage.process(&c_bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
-                tx.send(stage_pages).unwrap();
+                c_tx.send(stage_pages).unwrap();
             });
         }
         std::mem::drop(tx);
