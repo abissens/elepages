@@ -1,13 +1,20 @@
 use crate::pages::{Metadata, Page};
+use std::cmp::Ordering;
 use std::error::Error;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-#[derive(PartialOrd, PartialEq, Debug)]
+#[derive(PartialEq, Debug)]
 pub(crate) struct TestPage {
     pub(crate) path: Vec<String>,
     pub(crate) metadata: Option<Metadata>,
     pub(crate) content: String,
+}
+
+impl PartialOrd for TestPage {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.path.partial_cmp(&other.path)
+    }
 }
 
 impl From<&Arc<dyn Page>> for TestPage {

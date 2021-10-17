@@ -1,5 +1,5 @@
-use crate::pages::loader_error::LoaderError;
 use crate::pages::page::{Metadata, Page};
+use crate::pages::pages_error::PagesError;
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;
@@ -12,7 +12,7 @@ pub(super) struct FsPage {
 }
 
 impl FsPage {
-    pub(super) fn new(base_path: &Path, file_path: PathBuf) -> Result<Self, LoaderError> {
+    pub(super) fn new(base_path: &Path, file_path: PathBuf) -> Result<Self, PagesError> {
         let rel_path = file_path
             .strip_prefix(base_path)?
             .components()
