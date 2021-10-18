@@ -4,6 +4,7 @@ use std::path::StripPrefixError;
 
 #[derive(Debug)]
 pub enum PagesError {
+    MsgError(String),
     IoError(std::io::Error),
     StripPrefixError(StripPrefixError),
     AuthorMerge,
@@ -12,6 +13,7 @@ pub enum PagesError {
 impl Display for PagesError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            PagesError::MsgError(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::IoError(e) => f.write_fmt(format_args!("IO error occurred : {}", e.to_string())),
             PagesError::StripPrefixError(e) => f.write_fmt(format_args!("Strip prefix error : {}", e.to_string())),
             PagesError::AuthorMerge => f.write_fmt(format_args!("cannot merge authors with different names")),

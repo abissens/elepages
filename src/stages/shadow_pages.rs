@@ -1,8 +1,8 @@
 use crate::pages::{Metadata, Page, PageBundle, PageProxy, VecBundle};
 use crate::stages::stage::Stage;
 
+use crate::pages_error::PagesError;
 use crate::stages::metadata_tree::MetadataTree;
-use crate::str_error::StrError;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -61,7 +61,10 @@ impl Stage for ShadowPages {
             let c_loader = Arc::clone(metadata_candidate.1);
             let c_path = path.clone();
             thread::spawn(move || {
-                let result = c_loader.load(c_page).map(|metadata| LoadedMetadata { path: c_path, metadata }).map_err(|err| StrError(err.to_string()));
+                let result = c_loader
+                    .load(c_page)
+                    .map(|metadata| LoadedMetadata { path: c_path, metadata })
+                    .map_err(|err| PagesError::MsgError(err.to_string()));
                 c_tx.send(result).unwrap();
             });
         }

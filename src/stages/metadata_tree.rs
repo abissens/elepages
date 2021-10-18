@@ -1,5 +1,5 @@
 use crate::pages::Metadata;
-use crate::str_error::StrError;
+use crate::pages_error::PagesError;
 use std::collections::HashMap;
 use std::error;
 
@@ -51,7 +51,7 @@ impl MetadataTree {
         return match self {
             MetadataTree::Root { sub } => {
                 if path.is_empty() {
-                    return Err(StrError::boxed("path cannot be empty on root node"));
+                    return Err(Box::new(PagesError::MsgError("path cannot be empty on root node".to_string())));
                 }
                 if !sub.contains_key(&path[0]) {
                     let mut node = MetadataTree::Node { metadata: None, sub: HashMap::new() };

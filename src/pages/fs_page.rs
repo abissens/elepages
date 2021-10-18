@@ -1,5 +1,5 @@
 use crate::pages::page::{Metadata, Page};
-use crate::pages::pages_error::PagesError;
+use crate::pages_error::PagesError;
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;

@@ -1,4 +1,4 @@
-use crate::pages::PagesError;
+use crate::pages_error::PagesError;
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::error;

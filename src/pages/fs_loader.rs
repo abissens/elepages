@@ -1,8 +1,8 @@
 use crate::pages::fs_page::FsPage;
 use crate::pages::loader::Loader;
 use crate::pages::page::{Page, PageBundle};
-use crate::pages::pages_error::PagesError;
 use crate::pages::VecBundle;
+use crate::pages_error::PagesError;
 use std::fs;
 use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
