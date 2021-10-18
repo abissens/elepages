@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn metadata_merge_should_ignore_title_and_summary_attributes() {
+    fn metadata_merge_title_and_summary_attributes() {
         let m1 = Metadata {
             title: None,
             summary: None,
@@ -116,7 +116,7 @@ mod tests {
 
         let result = m1.merge(&m2).unwrap();
 
-        assert_eq!(result, m1);
+        assert_eq!(result, m2);
     }
 
     #[test]

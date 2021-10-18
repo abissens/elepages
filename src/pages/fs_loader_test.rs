@@ -3,7 +3,6 @@ mod tests {
     use crate::pages::fs_loader::FsLoader;
     use crate::pages::test_page::TestPage;
     use crate::pages::Loader;
-    use rustassert::assert;
     use rustassert::fs::{FileNode, TmpTestFolder};
 
     #[test]
@@ -25,11 +24,14 @@ mod tests {
         let bundle = loader.load().unwrap();
 
         assert_eq!(bundle.pages().len(), 1);
-        assert::that(bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>()).eq_each(&[TestPage {
-            path: vec![],
-            metadata: None,
-            content: "this is a test file".to_string(),
-        }]);
+        assert_eq!(
+            bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>(),
+            &[TestPage {
+                path: vec![],
+                metadata: None,
+                content: "this is a test file".to_string(),
+            }]
+        );
     }
 
     #[test]
@@ -40,11 +42,14 @@ mod tests {
         let bundle = loader.load().unwrap();
 
         assert_eq!(bundle.pages().len(), 1);
-        assert::that(bundle.pages().iter().collect::<Vec<_>>()).map(|p| TestPage::from(*p)).eq_each(&[TestPage {
-            path: vec!["file".to_string()],
-            metadata: None,
-            content: "this is a test file".to_string(),
-        }]);
+        assert_eq!(
+            bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>(),
+            &[TestPage {
+                path: vec!["file".to_string()],
+                metadata: None,
+                content: "this is a test file".to_string(),
+            }]
+        );
     }
 
     #[test]
@@ -75,23 +80,26 @@ mod tests {
 
         let mut actual = bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
-        assert::that(actual).eq_each(&[
-            TestPage {
-                path: vec!["f1".to_string()],
-                metadata: None,
-                content: "file content 1".to_string(),
-            },
-            TestPage {
-                path: vec!["f2".to_string()],
-                metadata: None,
-                content: "file content 2".to_string(),
-            },
-            TestPage {
-                path: vec!["f3".to_string()],
-                metadata: None,
-                content: "file content 3".to_string(),
-            },
-        ]);
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: None,
+                    content: "file content 1".to_string(),
+                },
+                TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: None,
+                    content: "file content 2".to_string(),
+                },
+                TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: None,
+                    content: "file content 3".to_string(),
+                },
+            ]
+        );
     }
 
     #[test]
@@ -150,37 +158,40 @@ mod tests {
 
         let mut actual = bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
-        assert::that(actual).eq_each(&[
-            TestPage {
-                path: vec!["d1".to_string(), "d11".to_string(), "f11".to_string()],
-                metadata: None,
-                content: "file content 11".to_string(),
-            },
-            TestPage {
-                path: vec!["d1".to_string(), "f1".to_string()],
-                metadata: None,
-                content: "file content 1".to_string(),
-            },
-            TestPage {
-                path: vec!["d1".to_string(), "f2".to_string()],
-                metadata: None,
-                content: "file content 2".to_string(),
-            },
-            TestPage {
-                path: vec!["d1".to_string(), "f3".to_string()],
-                metadata: None,
-                content: "file content 3".to_string(),
-            },
-            TestPage {
-                path: vec!["fr1".to_string()],
-                metadata: None,
-                content: "".to_string(),
-            },
-            TestPage {
-                path: vec!["fr2".to_string()],
-                metadata: None,
-                content: "file content fr2".to_string(),
-            },
-        ]);
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["d1".to_string(), "d11".to_string(), "f11".to_string()],
+                    metadata: None,
+                    content: "file content 11".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "file content 1".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "file content 2".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f3".to_string()],
+                    metadata: None,
+                    content: "file content 3".to_string(),
+                },
+                TestPage {
+                    path: vec!["fr1".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                },
+                TestPage {
+                    path: vec!["fr2".to_string()],
+                    metadata: None,
+                    content: "file content fr2".to_string(),
+                },
+            ]
+        );
     }
 }

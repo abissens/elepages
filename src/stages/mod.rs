@@ -7,6 +7,5 @@ mod metadata_tree_test;
 pub mod shadow_pages;
 mod shadow_pages_test;
 pub mod stage;
-mod stage_test;
 pub mod union_stage;
 mod union_stage_test;

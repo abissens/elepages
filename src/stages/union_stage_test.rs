@@ -1,34 +1,29 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{FsLoader, Loader};
+    use crate::pages::{PageBundle, VecBundle};
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
     use crate::stages::union_stage::UnionStage;
-    use rustassert::fs::{FileNode, TmpTestFolder};
     use std::borrow::Borrow;
     use std::sync::Arc;
 
     #[test]
     fn parallel_union_stage_should_merge_two_copy_sub_stages() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let copy_stage_1 = CopyStage {
             prefix: vec!["root".to_string(), "sub_root".to_string()],
@@ -76,24 +71,20 @@ mod tests {
 
     #[test]
     fn sequential_union_stage_should_merge_two_copy_sub_stages() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let copy_stage_1 = CopyStage {
             prefix: vec!["root".to_string(), "sub_root".to_string()],

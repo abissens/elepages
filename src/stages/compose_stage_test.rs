@@ -1,42 +1,36 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{FsLoader, Loader};
+    use crate::pages::{PageBundle, VecBundle};
     use crate::stages::compose_stage::ComposeUnit::{CreateNewSet, ReplaceSubSet};
     use crate::stages::compose_stage::{ComposeStage, PrefixSelector};
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
-    use rustassert::fs::{FileNode, TmpTestFolder};
-    use std::borrow::Borrow;
     use std::sync::Arc;
 
     #[test]
     fn compose_stage_should_create_new_page_set() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let compose_stage = ComposeStage {
             units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage { prefix: vec!["copied".to_string()] })))],
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(bundle.borrow());
+        let result_bundle = compose_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -69,37 +63,30 @@ mod tests {
 
     #[test]
     fn compose_stage_should_replace_sub_page_set() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                    FileNode::Dir {
-                        name: "d2".to_string(),
-                        sub: vec![
-                            FileNode::File {
-                                name: "f3".to_string(),
-                                content: "".to_string().into_bytes(),
-                            },
-                            FileNode::File {
-                                name: "f4".to_string(),
-                                content: vec![],
-                            },
-                        ],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f3".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f4".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let compose_stage = ComposeStage {
             units: vec![Arc::new(ReplaceSubSet(
@@ -109,7 +96,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(bundle.borrow());
+        let result_bundle = compose_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -142,37 +129,30 @@ mod tests {
 
     #[test]
     fn compose_stage_should_create_and_replace_sub_page_set() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                    FileNode::Dir {
-                        name: "d2".to_string(),
-                        sub: vec![
-                            FileNode::File {
-                                name: "f3".to_string(),
-                                content: "".to_string().into_bytes(),
-                            },
-                            FileNode::File {
-                                name: "f4".to_string(),
-                                content: vec![],
-                            },
-                        ],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f3".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f4".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let compose_stage = ComposeStage {
             units: vec![
@@ -187,7 +167,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(bundle.borrow());
+        let result_bundle = compose_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -240,31 +220,27 @@ mod tests {
 
     #[test]
     fn parallel_compose_stage_should_create_new_page_set() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let compose_stage = ComposeStage {
             units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage { prefix: vec!["copied".to_string()] })))],
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(bundle.borrow());
+        let result_bundle = compose_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -297,37 +273,30 @@ mod tests {
 
     #[test]
     fn parallel_compose_stage_should_replace_sub_page_set() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                    FileNode::Dir {
-                        name: "d2".to_string(),
-                        sub: vec![
-                            FileNode::File {
-                                name: "f3".to_string(),
-                                content: "".to_string().into_bytes(),
-                            },
-                            FileNode::File {
-                                name: "f4".to_string(),
-                                content: vec![],
-                            },
-                        ],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f3".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f4".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let compose_stage = ComposeStage {
             units: vec![Arc::new(ReplaceSubSet(
@@ -337,7 +306,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(bundle.borrow());
+        let result_bundle = compose_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -370,37 +339,30 @@ mod tests {
 
     #[test]
     fn parallel_compose_stage_should_create_and_replace_sub_page_set() {
-        let test_folder = TmpTestFolder::new().unwrap();
-        test_folder
-            .write(&FileNode::Dir {
-                name: "d1".to_string(),
-                sub: vec![
-                    FileNode::File {
-                        name: "f1".to_string(),
-                        content: "test content".to_string().into_bytes(),
-                    },
-                    FileNode::File {
-                        name: "f2".to_string(),
-                        content: vec![],
-                    },
-                    FileNode::Dir {
-                        name: "d2".to_string(),
-                        sub: vec![
-                            FileNode::File {
-                                name: "f3".to_string(),
-                                content: "".to_string().into_bytes(),
-                            },
-                            FileNode::File {
-                                name: "f4".to_string(),
-                                content: vec![],
-                            },
-                        ],
-                    },
-                ],
-            })
-            .unwrap();
-
-        let bundle = FsLoader::new(test_folder.get_path().to_path_buf()).load().unwrap();
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f3".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f4".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+            ],
+        });
 
         let compose_stage = ComposeStage {
             units: vec![
@@ -415,7 +377,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(bundle.borrow());
+        let result_bundle = compose_stage.process(&bundle);
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
