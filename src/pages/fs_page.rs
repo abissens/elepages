@@ -1,6 +1,5 @@
 use crate::pages::page::{Metadata, Page};
 use crate::pages_error::PagesError;
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -31,7 +30,7 @@ impl Page for FsPage {
         None
     }
 
-    fn open(&self) -> Result<Box<dyn Read>, Box<dyn Error>> {
+    fn open(&self) -> Result<Box<dyn Read>, PagesError> {
         Ok(Box::new(File::open(self.file_path.as_path())?))
     }
 }

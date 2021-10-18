@@ -1,8 +1,6 @@
 use crate::pages_error::PagesError;
 use serde::Deserialize;
 use std::collections::HashSet;
-use std::error;
-use std::error::Error;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
 use std::io::Read;
@@ -87,7 +85,7 @@ impl Metadata {
 pub trait Page: Debug + Send + Sync {
     fn path(&self) -> &[String];
     fn metadata(&self) -> Option<&Metadata>;
-    fn open(&self) -> Result<Box<dyn Read>, Box<dyn error::Error>>;
+    fn open(&self) -> Result<Box<dyn Read>, PagesError>;
 }
 
 #[derive(Debug)]
@@ -112,7 +110,7 @@ impl Page for PageProxy {
         }
     }
 
-    fn open(&self) -> Result<Box<dyn Read>, Box<dyn Error>> {
+    fn open(&self) -> Result<Box<dyn Read>, PagesError> {
         self.inner.open()
     }
 }
