@@ -1,7 +1,6 @@
 use crate::pages::Metadata;
 use crate::pages_error::PagesError;
 use std::collections::HashMap;
-use std::error;
 
 #[derive(PartialEq, Debug)]
 pub(crate) enum MetadataTree {
@@ -47,11 +46,11 @@ impl MetadataTree {
         }
     }
 
-    pub(crate) fn push(&mut self, path: &[String], metadata: Metadata) -> Result<(), Box<dyn error::Error>> {
+    pub(crate) fn push(&mut self, path: &[String], metadata: Metadata) -> anyhow::Result<()> {
         return match self {
             MetadataTree::Root { sub } => {
                 if path.is_empty() {
-                    return Err(Box::new(PagesError::MsgError("path cannot be empty on root node".to_string())));
+                    return Err(PagesError::MetadataTree("path cannot be empty on root node".to_string()).into());
                 }
                 if !sub.contains_key(&path[0]) {
                     let mut node = MetadataTree::Node { metadata: None, sub: HashMap::new() };

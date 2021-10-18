@@ -1,17 +1,14 @@
 use crate::pages::{Metadata, Page, PageBundle, PageProxy, VecBundle};
-use crate::stages::stage::Stage;
-
-use crate::pages_error::PagesError;
 use crate::stages::metadata_tree::MetadataTree;
+use crate::stages::stage::Stage;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
-use std::error::Error;
 use std::option::Option::Some;
 use std::sync::{mpsc, Arc};
-use std::{error, thread};
+use std::thread;
 
 pub trait ShadowLoader: Send + Sync {
-    fn load(&self, page: Arc<dyn Page>) -> Result<Metadata, Box<dyn error::Error>>;
+    fn load(&self, page: Arc<dyn Page>) -> anyhow::Result<Metadata>;
 }
 
 pub struct ShadowPages {
@@ -61,10 +58,7 @@ impl Stage for ShadowPages {
             let c_loader = Arc::clone(metadata_candidate.1);
             let c_path = path.clone();
             thread::spawn(move || {
-                let result = c_loader
-                    .load(c_page)
-                    .map(|metadata| LoadedMetadata { path: c_path, metadata })
-                    .map_err(|err| PagesError::MsgError(err.to_string()));
+                let result = c_loader.load(c_page).map(|metadata| LoadedMetadata { path: c_path, metadata });
                 c_tx.send(result).unwrap();
             });
         }
@@ -161,14 +155,14 @@ struct JsonShadowLoader();
 struct YamlShadowLoader();
 
 impl ShadowLoader for JsonShadowLoader {
-    fn load(&self, page: Arc<dyn Page>) -> Result<Metadata, Box<dyn Error>> {
-        serde_json::from_reader(page.open()?).map_err(|err| Box::new(err) as Box<dyn Error>)
+    fn load(&self, page: Arc<dyn Page>) -> anyhow::Result<Metadata> {
+        Ok(serde_json::from_reader(page.open()?)?)
     }
 }
 
 impl ShadowLoader for YamlShadowLoader {
-    fn load(&self, page: Arc<dyn Page>) -> Result<Metadata, Box<dyn Error>> {
-        serde_yaml::from_reader(page.open()?).map_err(|err| Box::new(err) as Box<dyn Error>)
+    fn load(&self, page: Arc<dyn Page>) -> anyhow::Result<Metadata> {
+        Ok(serde_yaml::from_reader(page.open()?)?)
     }
 }
 

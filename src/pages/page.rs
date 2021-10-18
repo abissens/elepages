@@ -23,9 +23,9 @@ impl Hash for Author {
 }
 
 impl Author {
-    pub fn merge(&self, parent: &Self) -> Result<Self, PagesError> {
+    pub fn merge(&self, parent: &Self) -> anyhow::Result<Self> {
         if self.name != parent.name {
-            return Err(PagesError::AuthorMerge);
+            return Err(PagesError::AuthorMerge("cannot merge authors with different names".to_string()).into());
         }
         let mut result = Author {
             name: self.name.clone(),
@@ -59,7 +59,7 @@ impl Metadata {
         None
     }
 
-    pub fn merge(&self, parent: &Self) -> Result<Self, PagesError> {
+    pub fn merge(&self, parent: &Self) -> anyhow::Result<Self> {
         let mut result = Metadata {
             title: self.title.clone().or_else(|| parent.title.clone()),
             summary: self.summary.clone().or_else(|| parent.summary.clone()),
@@ -85,7 +85,7 @@ impl Metadata {
 pub trait Page: Debug + Send + Sync {
     fn path(&self) -> &[String];
     fn metadata(&self) -> Option<&Metadata>;
-    fn open(&self) -> Result<Box<dyn Read>, PagesError>;
+    fn open(&self) -> anyhow::Result<Box<dyn Read>>;
 }
 
 #[derive(Debug)]
@@ -110,7 +110,7 @@ impl Page for PageProxy {
         }
     }
 
-    fn open(&self) -> Result<Box<dyn Read>, PagesError> {
+    fn open(&self) -> anyhow::Result<Box<dyn Read>> {
         self.inner.open()
     }
 }

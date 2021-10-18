@@ -1,5 +1,4 @@
 use crate::pages::page::{Metadata, Page};
-use crate::pages_error::PagesError;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -11,7 +10,7 @@ pub(super) struct FsPage {
 }
 
 impl FsPage {
-    pub(super) fn new(base_path: &Path, file_path: PathBuf) -> Result<Self, PagesError> {
+    pub(super) fn new(base_path: &Path, file_path: PathBuf) -> anyhow::Result<Self> {
         let rel_path = file_path
             .strip_prefix(base_path)?
             .components()
@@ -30,7 +29,7 @@ impl Page for FsPage {
         None
     }
 
-    fn open(&self) -> Result<Box<dyn Read>, PagesError> {
+    fn open(&self) -> anyhow::Result<Box<dyn Read>> {
         Ok(Box::new(File::open(self.file_path.as_path())?))
     }
 }

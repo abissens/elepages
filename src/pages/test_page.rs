@@ -1,5 +1,4 @@
 use crate::pages::{Metadata, Page};
-use crate::pages_error::PagesError;
 use std::cmp::Ordering;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -38,7 +37,7 @@ impl Page for TestPage {
         self.metadata.as_ref()
     }
 
-    fn open(&self) -> Result<Box<dyn Read>, PagesError> {
+    fn open(&self) -> anyhow::Result<Box<dyn Read>> {
         Ok(Box::new(Cursor::new(self.content.clone())))
     }
 }
