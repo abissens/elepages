@@ -26,7 +26,7 @@ mod tests {
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
-        let result_bundle = copy_stage.process(&bundle);
+        let result_bundle = copy_stage.process(&bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));

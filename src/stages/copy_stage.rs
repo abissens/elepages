@@ -7,7 +7,7 @@ pub struct CopyStage {
 }
 
 impl Stage for CopyStage {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let p = bundle
             .pages()
             .iter()
@@ -19,7 +19,7 @@ impl Stage for CopyStage {
                 }) as Arc<dyn Page>
             })
             .collect::<Vec<Arc<dyn Page>>>();
-        Arc::new(VecBundle { p })
+        Ok(Arc::new(VecBundle { p }))
     }
 }
 

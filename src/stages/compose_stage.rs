@@ -32,7 +32,7 @@ impl SubSetSelector for PrefixSelector {
     }
 }
 impl ComposeStage {
-    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
 
@@ -46,14 +46,16 @@ impl ComposeStage {
             let c_bundle = Arc::clone(bundle);
             thread::spawn(move || match c_unit.borrow() {
                 ComposeUnit::CreateNewSet(stage) => {
-                    let stage_pages = stage.process(&c_bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
-                    c_tx_result.send(stage_pages).unwrap();
+                    let stage_pages_result = stage.process(&c_bundle).map(|bundle| bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>());
+                    c_tx_result.send(stage_pages_result).unwrap();
                 }
                 ComposeUnit::ReplaceSubSet(selector, stage) => {
                     let sub_set_bundle = selector.select(&c_bundle);
                     c_tx_replaced_set.send(Arc::clone(&sub_set_bundle)).unwrap();
-                    let stage_pages = stage.process(&sub_set_bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
-                    c_tx_result.send(stage_pages).unwrap();
+                    let stage_pages_result = stage
+                        .process(&sub_set_bundle)
+                        .map(|bundle| bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>());
+                    c_tx_result.send(stage_pages_result).unwrap();
                 }
             });
         }
@@ -61,7 +63,8 @@ impl ComposeStage {
         std::mem::drop(tx_result);
         std::mem::drop(tx_replaced_set);
 
-        for mut r_pages in rx_result {
+        for r_pages_result in rx_result {
+            let mut r_pages = r_pages_result?;
             vec_bundle.p.append(&mut r_pages);
         }
 
@@ -76,17 +79,17 @@ impl ComposeStage {
                 vec_bundle.p.push(Arc::clone(p))
             }
         }
-        Arc::new(vec_bundle)
+        Ok(Arc::new(vec_bundle))
     }
 
-    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
 
         for unit in &self.units {
             match unit.borrow() {
                 ComposeUnit::CreateNewSet(stage) => {
-                    let mut stage_pages = stage.process(bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
+                    let mut stage_pages = stage.process(bundle)?.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
                     vec_bundle.p.append(&mut stage_pages);
                 }
                 ComposeUnit::ReplaceSubSet(selector, stage) => {
@@ -94,7 +97,7 @@ impl ComposeStage {
                     for p in sub_set_bundle.pages() {
                         replaced_set.insert(p.path().to_vec());
                     }
-                    let mut stage_pages = stage.process(&sub_set_bundle).pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
+                    let mut stage_pages = stage.process(&sub_set_bundle)?.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
                     vec_bundle.p.append(&mut stage_pages);
                 }
             }
@@ -105,15 +108,15 @@ impl ComposeStage {
                 vec_bundle.p.push(Arc::clone(p))
             }
         }
-        Arc::new(vec_bundle)
+        Ok(Arc::new(vec_bundle))
     }
 }
 
 impl Stage for ComposeStage {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        match self.parallel {
-            true => self.parallel_process(bundle),
-            false => self.sequential_process(bundle),
-        }
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+        Ok(match self.parallel {
+            true => self.parallel_process(bundle)?,
+            false => self.sequential_process(bundle)?,
+        })
     }
 }

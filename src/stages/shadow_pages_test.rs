@@ -28,7 +28,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default();
 
-        let result_bundle = shadow_stage.process(&vec_bundle);
+        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -100,7 +100,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default();
 
-        let result_bundle = shadow_stage.process(&vec_bundle);
+        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -192,7 +192,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default();
 
-        let result_bundle = shadow_stage.process(&vec_bundle);
+        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -274,7 +274,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default();
 
-        let result_bundle = shadow_stage.process(&vec_bundle);
+        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -383,7 +383,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default();
 
-        let result_bundle = shadow_stage.process(&vec_bundle);
+        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));

@@ -6,5 +6,5 @@ pub struct Pipeline {
 }
 
 pub trait Stage: Send + Sync {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle>;
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>>;
 }

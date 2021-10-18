@@ -38,7 +38,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = union_stage.process(bundle.borrow());
+        let result_bundle = union_stage.process(bundle.borrow()).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -99,7 +99,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = union_stage.process(bundle.borrow());
+        let result_bundle = union_stage.process(bundle.borrow()).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));

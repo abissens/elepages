@@ -16,7 +16,7 @@ pub struct ShadowPages {
 }
 
 impl Stage for ShadowPages {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
 
         let mut metadata_candidates: HashMap<Vec<String>, MetadataCandidate> = HashMap::new();
@@ -69,15 +69,8 @@ impl Stage for ShadowPages {
         let mut metadata_tree = MetadataTree::Root { sub: HashMap::new() };
 
         for r in rx {
-            match r {
-                Ok(loaded_metadata) => {
-                    metadata_tree.push(&loaded_metadata.path, loaded_metadata.metadata).unwrap();
-                    // TODO: handle this
-                }
-                Err(err) => {
-                    panic!("{:?}", err); // TODO: handle this
-                }
-            }
+            let loaded_metadata = r?;
+            metadata_tree.push(&loaded_metadata.path, loaded_metadata.metadata)?
         }
 
         let metadata_pages_set = metadata_candidates.iter().map(|(_, mc)| mc.0.path().to_vec()).collect::<HashSet<Vec<String>>>();
@@ -120,7 +113,7 @@ impl Stage for ShadowPages {
 
                 while let Some(metadata_node) = metadata_vec.pop() {
                     if let Some(m) = metadata_node.metadata {
-                        current_metadata = current_metadata.merge(m).unwrap(); // TODO: handle this
+                        current_metadata = current_metadata.merge(m)?;
                     }
                 }
                 vec_bundle.p.push(Arc::new(PageProxy {
@@ -131,7 +124,7 @@ impl Stage for ShadowPages {
             }
         }
 
-        Arc::new(vec_bundle)
+        Ok(Arc::new(vec_bundle))
     }
 }
 
