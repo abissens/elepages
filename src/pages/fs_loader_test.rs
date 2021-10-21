@@ -62,14 +62,17 @@ mod tests {
                     FileNode::File {
                         name: "f1".to_string(),
                         content: "file content 1".as_bytes().to_vec(),
+                        open_options: None,
                     },
                     FileNode::File {
                         name: "f2".to_string(),
                         content: "file content 2".as_bytes().to_vec(),
+                        open_options: None,
                     },
                     FileNode::File {
                         name: "f3".to_string(),
                         content: "file content 3".as_bytes().to_vec(),
+                        open_options: None,
                     },
                 ],
             })
@@ -109,6 +112,7 @@ mod tests {
             .write(&FileNode::File {
                 name: "fr1".to_string(),
                 content: Vec::new(),
+                open_options: None,
             })
             .unwrap();
 
@@ -116,6 +120,7 @@ mod tests {
             .write(&FileNode::File {
                 name: "fr2".to_string(),
                 content: "file content fr2".as_bytes().to_vec(),
+                open_options: None,
             })
             .unwrap();
 
@@ -133,20 +138,24 @@ mod tests {
                     FileNode::File {
                         name: "f1".to_string(),
                         content: "file content 1".as_bytes().to_vec(),
+                        open_options: None,
                     },
                     FileNode::File {
                         name: "f2".to_string(),
                         content: "file content 2".as_bytes().to_vec(),
+                        open_options: None,
                     },
                     FileNode::File {
                         name: "f3".to_string(),
                         content: "file content 3".as_bytes().to_vec(),
+                        open_options: None,
                     },
                     FileNode::Dir {
                         name: "d11".to_string(),
                         sub: vec![FileNode::File {
                             name: "f11".to_string(),
                             content: "file content 11".as_bytes().to_vec(),
+                            open_options: None,
                         }],
                     },
                 ],
@@ -190,6 +199,95 @@ mod tests {
                     path: vec!["fr2".to_string()],
                     metadata: None,
                     content: "file content fr2".to_string(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn should_ignore_hidden_entries() {
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::File {
+                name: "fr1".to_string(),
+                content: Vec::new(),
+                open_options: None,
+            })
+            .unwrap();
+
+        test_folder
+            .write(&FileNode::File {
+                name: ".fr2".to_string(),
+                content: "file content fr2".as_bytes().to_vec(),
+                open_options: None,
+            })
+            .unwrap();
+
+        test_folder
+            .write(&FileNode::Dir {
+                name: "empty_dir".to_string(),
+                sub: vec![],
+            })
+            .unwrap();
+
+        test_folder
+            .write(&FileNode::Dir {
+                name: "d1".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "f1".to_string(),
+                        content: "file content 1".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "f2".to_string(),
+                        content: "file content 2".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "f3".to_string(),
+                        content: "file content 3".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::Dir {
+                        name: ".d11".to_string(),
+                        sub: vec![FileNode::File {
+                            name: "f11".to_string(),
+                            content: "file content 11".as_bytes().to_vec(),
+                            open_options: None,
+                        }],
+                    },
+                ],
+            })
+            .unwrap();
+
+        let loader = FsLoader::new(test_folder.get_path().to_path_buf());
+        let bundle = loader.load().unwrap();
+
+        let mut actual = bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        actual.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "file content 1".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: None,
+                    content: "file content 2".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f3".to_string()],
+                    metadata: None,
+                    content: "file content 3".to_string(),
+                },
+                TestPage {
+                    path: vec!["fr1".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
                 },
             ]
         );

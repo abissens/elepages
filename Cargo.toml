@@ -12,4 +12,5 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.8"
 anyhow = "1.0"
+git2 = "0.13"
 indoc = "1.0"

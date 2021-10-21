@@ -22,6 +22,10 @@ impl FsLoader {
         if dir.is_dir() {
             for entry in fs::read_dir(dir)? {
                 let entry = entry?;
+                let is_hidden = entry.file_name().to_str().map(|s| s.starts_with('.')).unwrap_or(false);
+                if is_hidden {
+                    continue;
+                }
                 let path = entry.path();
                 if path.is_dir() {
                     FsLoader::visit_dirs(&path, callback)?;
