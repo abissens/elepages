@@ -1,9 +1,10 @@
 use crate::pages::{Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
+use rayon::prelude::*;
 use std::borrow::Borrow;
 use std::collections::HashSet;
-use std::sync::{mpsc, Arc};
-use std::thread;
+use std::sync::Arc;
+
 pub struct ComposeStage {
     pub units: Vec<Arc<ComposeUnit>>,
     pub parallel: bool,
@@ -31,46 +32,46 @@ impl SubSetSelector for PrefixSelector {
         Arc::new(vec_bundle)
     }
 }
+
+struct CompositionResult {
+    result: Arc<dyn PageBundle>,
+    selected_set: Option<Arc<dyn PageBundle>>,
+}
+
 impl ComposeStage {
     fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
 
-        let (tx_result, rx_result) = mpsc::channel();
-        let (tx_replaced_set, rx_replaced_set) = mpsc::channel();
+        let result: Vec<CompositionResult> = self
+            .units
+            .par_iter()
+            .map(|unit: &Arc<ComposeUnit>| {
+                let result = match unit.borrow() {
+                    ComposeUnit::CreateNewSet(stage) => CompositionResult {
+                        result: stage.process(&bundle)?,
+                        selected_set: None,
+                    },
+                    ComposeUnit::ReplaceSubSet(selector, stage) => {
+                        let sub_set_bundle = selector.select(&bundle);
+                        CompositionResult {
+                            result: stage.process(&sub_set_bundle)?,
+                            selected_set: Some(sub_set_bundle),
+                        }
+                    }
+                };
+                Ok(result)
+            })
+            .collect::<anyhow::Result<Vec<CompositionResult>>>()?;
 
-        for unit in &self.units {
-            let c_tx_result = tx_result.clone();
-            let c_tx_replaced_set = tx_replaced_set.clone();
-            let c_unit = Arc::clone(unit);
-            let c_bundle = Arc::clone(bundle);
-            thread::spawn(move || match c_unit.borrow() {
-                ComposeUnit::CreateNewSet(stage) => {
-                    let stage_pages_result = stage.process(&c_bundle).map(|bundle| bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>());
-                    c_tx_result.send(stage_pages_result).unwrap();
+        for r in result {
+            for page in r.result.pages() {
+                vec_bundle.p.push(Arc::clone(page));
+            }
+            if let Some(s) = r.selected_set {
+                for page in s.pages() {
+                    replaced_set.insert(page.path().to_vec());
                 }
-                ComposeUnit::ReplaceSubSet(selector, stage) => {
-                    let sub_set_bundle = selector.select(&c_bundle);
-                    c_tx_replaced_set.send(Arc::clone(&sub_set_bundle)).unwrap();
-                    let stage_pages_result = stage
-                        .process(&sub_set_bundle)
-                        .map(|bundle| bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>());
-                    c_tx_result.send(stage_pages_result).unwrap();
-                }
-            });
-        }
-
-        std::mem::drop(tx_result);
-        std::mem::drop(tx_replaced_set);
-
-        for r_pages_result in rx_result {
-            let mut r_pages = r_pages_result?;
-            vec_bundle.p.append(&mut r_pages);
-        }
-
-        for sub_set in rx_replaced_set {
-            for p in sub_set.pages() {
-                replaced_set.insert(p.path().to_vec());
             }
         }
 

@@ -10,5 +10,7 @@ pub mod sequence_stage;
 pub mod shadow_pages;
 mod shadow_pages_test;
 pub mod stage;
+#[cfg(test)]
+mod test_stage;
 pub mod union_stage;
 mod union_stage_test;

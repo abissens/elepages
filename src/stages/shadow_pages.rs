@@ -1,11 +1,11 @@
 use crate::pages::{Metadata, Page, PageBundle, PageProxy, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
+use rayon::prelude::*;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::option::Option::Some;
-use std::sync::{mpsc, Arc};
-use std::thread;
+use std::sync::Arc;
 
 pub trait ShadowLoader: Send + Sync {
     fn load(&self, page: Arc<dyn Page>) -> anyhow::Result<Metadata>;
@@ -19,7 +19,7 @@ impl Stage for ShadowPages {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
 
-        let mut metadata_candidates: HashMap<Vec<String>, MetadataCandidate> = HashMap::new();
+        let mut metadata_candidates = vec![];
         let mut all_paths = HashSet::new();
 
         // select metadata candidates
@@ -27,8 +27,9 @@ impl Stage for ShadowPages {
             let path = page.path();
             for (ext, loader) in &self.loaders {
                 if path[path.len() - 1].ends_with(ext) {
-                    metadata_candidates.insert(
-                        page.path()
+                    metadata_candidates.push(MetadataCandidate {
+                        path: page
+                            .path()
                             .iter()
                             .enumerate()
                             .map(|(pos, p)| {
@@ -38,8 +39,9 @@ impl Stage for ShadowPages {
                                 p.to_string()
                             })
                             .collect(),
-                        MetadataCandidate(page, loader),
-                    );
+                        page,
+                        loader,
+                    })
                 }
             }
             for i in 0..path.len() {
@@ -48,32 +50,26 @@ impl Stage for ShadowPages {
         }
 
         // retain only shadow pages
-        metadata_candidates.retain(|k, _| all_paths.contains(k.as_slice()));
+        metadata_candidates.retain(|c| all_paths.contains(c.path.as_slice()));
 
-        // process metadata pages
-        let (tx, rx) = mpsc::channel();
-        for (path, metadata_candidate) in &metadata_candidates {
-            let c_tx = tx.clone();
-            let c_page = Arc::clone(metadata_candidate.0);
-            let c_loader = Arc::clone(metadata_candidate.1);
-            let c_path = path.clone();
-            thread::spawn(move || {
-                let result = c_loader.load(c_page).map(|metadata| LoadedMetadata { path: c_path, metadata });
-                c_tx.send(result).unwrap();
-            });
-        }
-
-        std::mem::drop(tx);
+        let loaded_metadata_vec: Vec<LoadedMetadata> = metadata_candidates
+            .par_iter()
+            .map(|metadata_candidate: &MetadataCandidate| {
+                let c_page = Arc::clone(metadata_candidate.page);
+                let path = metadata_candidate.path.clone();
+                metadata_candidate.loader.load(c_page).map(|metadata| LoadedMetadata { path, metadata })
+            })
+            .collect::<anyhow::Result<Vec<LoadedMetadata>>>()?;
 
         // feed metadata tree
         let mut metadata_tree = MetadataTree::Root { sub: HashMap::new() };
 
-        for r in rx {
-            let loaded_metadata = r?;
+        for loaded_metadata in loaded_metadata_vec {
             metadata_tree.push(&loaded_metadata.path, loaded_metadata.metadata)?
         }
 
-        let metadata_pages_set = metadata_candidates.iter().map(|(_, mc)| mc.0.path().to_vec()).collect::<HashSet<Vec<String>>>();
+        let metadata_pages_set = metadata_candidates.iter().map(|c| c.page.path().to_vec()).collect::<HashSet<Vec<String>>>();
+
         // push non metadata pages to result bundle
         for page in bundle.pages() {
             if !metadata_pages_set.contains(page.path()) {
@@ -89,7 +85,7 @@ impl Stage for ShadowPages {
                     // page has already metadata
                     current_metadata = page_metadata.clone();
                 } else if metadata_vec.len() == page.path().len() {
-                    // dedicated metadata page for current page
+                    // dedicated metadata for current page
                     current_metadata = metadata_vec
                         .pop()
                         .unwrap()
@@ -159,7 +155,11 @@ impl ShadowLoader for YamlShadowLoader {
     }
 }
 
-struct MetadataCandidate<'a>(&'a Arc<dyn Page>, &'a Arc<dyn ShadowLoader>);
+struct MetadataCandidate<'a> {
+    path: Vec<String>,
+    page: &'a Arc<dyn Page>,
+    loader: &'a Arc<dyn ShadowLoader>,
+}
 
 struct LoadedMetadata {
     path: Vec<String>,
