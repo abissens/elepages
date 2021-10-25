@@ -1,12 +1,12 @@
 use crate::pages_error::PagesError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
 use std::io::Read;
 use std::sync::Arc;
 
-#[derive(Clone, PartialEq, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, Debug)]
 pub struct Author {
     pub name: String,
     #[serde(default = "HashSet::default")]
@@ -39,7 +39,7 @@ impl Author {
     }
 }
 
-#[derive(Clone, PartialEq, Deserialize, Debug)]
+#[derive(Clone, PartialEq, Deserialize, Serialize, Debug)]
 pub struct Metadata {
     pub title: Option<String>,
     pub summary: Option<String>,

@@ -4,6 +4,8 @@ pub mod copy_stage;
 pub mod copy_stage_test;
 pub mod git_authors;
 mod git_authors_test;
+pub mod indexes_stage;
+mod indexes_stage_test;
 pub mod md_stage;
 mod md_stage_test;
 mod metadata_tree;

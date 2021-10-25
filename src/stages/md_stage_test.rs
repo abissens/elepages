@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-    use crate::pages::{PageBundle, VecBundle};
     use crate::pages::test_page::TestPage;
+    use crate::pages::{PageBundle, VecBundle};
     use crate::stages::md_stage::MdStage;
     use crate::stages::stage::Stage;
     use indoc::indoc;
+    use std::sync::Arc;
 
     #[test]
     fn transform_md_pages_to_html_ones() {
@@ -19,7 +19,8 @@ mod tests {
                         paragraph 1
 
                         paragraph 2
-                    "}.to_string()
+                    "}
+                    .to_string(),
                 }),
                 Arc::new(TestPage {
                     path: vec!["f2.md".to_string()],
@@ -30,7 +31,8 @@ mod tests {
 
                         An H2 Header
                         ------------
-                    "}.to_string()
+                    "}
+                    .to_string(),
                 }),
                 Arc::new(TestPage {
                     path: vec!["dir".to_string(), "f3".to_string()],
@@ -42,7 +44,8 @@ mod tests {
                             line 1 of code
                             line 2 of code
                             line 3 of code
-                    "}.to_string()
+                    "}
+                    .to_string(),
                 }),
             ],
         });
@@ -65,7 +68,8 @@ mod tests {
                         line 2 of code
                         line 3 of code
                         </code></pre>
-                        "}.to_string()
+                        "}
+                    .to_string()
                 },
                 TestPage {
                     path: vec!["f1.html".to_string()],
@@ -74,7 +78,8 @@ mod tests {
                         <p>paragraph 1
                         paragraph 1</p>
                         <p>paragraph 2</p>
-                    "}.to_string()
+                    "}
+                    .to_string()
                 },
                 TestPage {
                     path: vec!["f2.html".to_string()],
@@ -82,7 +87,8 @@ mod tests {
                     content: indoc! {"
                         <h1>An H1 Header</h1>
                         <h2>An H2 Header</h2>
-                    "}.to_string()
+                    "}
+                    .to_string()
                 },
             ]
         );

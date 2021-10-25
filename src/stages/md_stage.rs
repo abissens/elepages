@@ -9,19 +9,20 @@ pub struct MdStage {}
 impl Stage for MdStage {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let vec_bundle = VecBundle {
-            p: bundle.pages().iter().map(|p| {
-                let mut rel_path = p.path().to_vec();
-                let f_index=  rel_path.len();
-                if f_index > 0 {
-                    if let Some(ext_index) = rel_path[f_index - 1].rfind('.') {
-                        rel_path[f_index - 1] = format!("{}.html", &rel_path[f_index - 1][0..ext_index]);
+            p: bundle
+                .pages()
+                .iter()
+                .map(|p| {
+                    let mut rel_path = p.path().to_vec();
+                    let f_index = rel_path.len();
+                    if f_index > 0 {
+                        if let Some(ext_index) = rel_path[f_index - 1].rfind('.') {
+                            rel_path[f_index - 1] = format!("{}.html", &rel_path[f_index - 1][0..ext_index]);
+                        }
                     }
-                }
-                Arc::new(MdPage {
-                    source: Arc::clone(p),
-                    rel_path
-                }) as Arc<dyn Page>
-            }).collect(),
+                    Arc::new(MdPage { source: Arc::clone(p), rel_path }) as Arc<dyn Page>
+                })
+                .collect(),
         };
         Ok(Arc::new(vec_bundle))
     }
