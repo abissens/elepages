@@ -10,6 +10,7 @@ use std::sync::Arc;
 pub trait HandlebarsLookup: Sync + Send + Debug {
     fn init_registry(&self, registry: &mut handlebars::Handlebars);
     fn fetch(&self, page: &Arc<dyn Page>) -> Option<String>;
+    fn assets(&self) -> Vec<Arc<dyn Page>>;
 }
 
 pub struct HandlebarsStage {
@@ -51,6 +52,8 @@ impl Stage for HandlebarsStage {
                 RenderResult::Content { value, source } => result_bundle.p.push(Arc::new(CursorPage { value, source })),
             }
         }
+
+        result_bundle.p.append(&mut self.lookup.assets());
 
         Ok(Arc::new(result_bundle))
     }
