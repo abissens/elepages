@@ -9,5 +9,6 @@ mod page_test;
 pub(crate) mod test_page;
 
 pub use self::fs_loader::*;
+pub use self::fs_page::*;
 pub use self::loader::*;
 pub use self::page::*;

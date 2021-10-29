@@ -4,13 +4,13 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
-pub(super) struct FsPage {
+pub struct FsPage {
     file_path: PathBuf,
     rel_path: Vec<String>,
 }
 
 impl FsPage {
-    pub(super) fn new(base_path: &Path, file_path: PathBuf) -> anyhow::Result<Self> {
+    pub fn new(base_path: &Path, file_path: PathBuf) -> anyhow::Result<Self> {
         let rel_path = file_path
             .strip_prefix(base_path)?
             .components()
