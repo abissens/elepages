@@ -4,6 +4,7 @@ use rayon::prelude::*;
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::sync::Arc;
+use regex::Regex;
 
 pub struct ComposeStage {
     pub units: Vec<Arc<ComposeUnit>>,
@@ -26,6 +27,38 @@ impl SubSetSelector for PrefixSelector {
         let mut vec_bundle = VecBundle { p: vec![] };
         for p in bundle.pages() {
             if p.path().starts_with(&self.0) {
+                vec_bundle.p.push(Arc::clone(p))
+            }
+        }
+        Arc::new(vec_bundle)
+    }
+}
+pub struct RegexSelector(pub Regex);
+
+impl SubSetSelector for RegexSelector {
+    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        let mut vec_bundle = VecBundle { p: vec![] };
+        for p in bundle.pages() {
+            if self.0.is_match(&p.path().join("/")) {
+                vec_bundle.p.push(Arc::clone(p))
+            }
+        }
+        Arc::new(vec_bundle)
+    }
+}
+
+pub struct ExtSelector(pub String);
+
+impl SubSetSelector for ExtSelector {
+    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        let mut vec_bundle = VecBundle { p: vec![] };
+        for p in bundle.pages() {
+            let path = p.path();
+            if path.len() == 0 {
+                continue
+            }
+
+            if path[path.len()-1].ends_with(&self.0) {
                 vec_bundle.p.push(Arc::clone(p))
             }
         }
