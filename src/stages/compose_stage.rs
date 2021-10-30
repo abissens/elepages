@@ -1,10 +1,10 @@
 use crate::pages::{Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use rayon::prelude::*;
+use regex::Regex;
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::sync::Arc;
-use regex::Regex;
 
 pub struct ComposeStage {
     pub units: Vec<Arc<ComposeUnit>>,
@@ -54,11 +54,11 @@ impl SubSetSelector for ExtSelector {
         let mut vec_bundle = VecBundle { p: vec![] };
         for p in bundle.pages() {
             let path = p.path();
-            if path.len() == 0 {
-                continue
+            if path.is_empty() {
+                continue;
             }
 
-            if path[path.len()-1].ends_with(&self.0) {
+            if path[path.len() - 1].ends_with(&self.0) {
                 vec_bundle.p.push(Arc::clone(p))
             }
         }

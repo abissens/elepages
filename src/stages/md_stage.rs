@@ -4,7 +4,7 @@ use pulldown_cmark::{html, Parser};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-pub struct MdStage {}
+pub struct MdStage;
 
 impl Stage for MdStage {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {

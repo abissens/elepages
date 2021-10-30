@@ -3,7 +3,7 @@ mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{PageBundle, VecBundle};
     use crate::stages::compose_stage::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::compose_stage::{ComposeStage, PrefixSelector, RegexSelector, ExtSelector};
+    use crate::stages::compose_stage::{ComposeStage, ExtSelector, PrefixSelector, RegexSelector};
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
     use std::sync::Arc;
@@ -261,11 +261,15 @@ mod tests {
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(RegexSelector(regex::Regex::new(r"^.*?f\d$").unwrap())),
-                    Arc::new(CopyStage { prefix: vec!["copied regex".to_string()] }),
+                    Arc::new(CopyStage {
+                        prefix: vec!["copied regex".to_string()],
+                    }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(ExtSelector(".md".into())),
-                    Arc::new(CopyStage { prefix: vec!["copied ext".to_string()] }),
+                    Arc::new(CopyStage {
+                        prefix: vec!["copied ext".to_string()],
+                    }),
                 )),
             ],
             parallel: false,
@@ -595,11 +599,15 @@ mod tests {
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(RegexSelector(regex::Regex::new(r"^.*?f\d$").unwrap())),
-                    Arc::new(CopyStage { prefix: vec!["copied regex".to_string()] }),
+                    Arc::new(CopyStage {
+                        prefix: vec!["copied regex".to_string()],
+                    }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(ExtSelector(".md".into())),
-                    Arc::new(CopyStage { prefix: vec!["copied ext".to_string()] }),
+                    Arc::new(CopyStage {
+                        prefix: vec!["copied ext".to_string()],
+                    }),
                 )),
             ],
             parallel: true,

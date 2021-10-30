@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-pub struct IndexStage {}
+pub struct IndexStage;
 
 impl Stage for IndexStage {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {

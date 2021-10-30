@@ -5,6 +5,7 @@ use std::fmt::{Display, Formatter};
 pub enum PagesError {
     AuthorMerge(String),
     MetadataTree(String),
+    NamedValueNotFound(String),
 }
 
 impl Display for PagesError {
@@ -12,6 +13,7 @@ impl Display for PagesError {
         match self {
             PagesError::AuthorMerge(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::MetadataTree(s) => f.write_fmt(format_args!("{}", s)),
+            PagesError::NamedValueNotFound(s) => f.write_fmt(format_args!("{}", s)),
         }
     }
 }
