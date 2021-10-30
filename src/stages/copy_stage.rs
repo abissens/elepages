@@ -1,5 +1,6 @@
 use crate::pages::{Page, PageBundle, PageProxy, VecBundle};
 use crate::stages::stage::Stage;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct CopyStage {
@@ -20,6 +21,10 @@ impl Stage for CopyStage {
             })
             .collect::<Vec<Arc<dyn Page>>>();
         Ok(Arc::new(VecBundle { p }))
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::pages::{Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use pulldown_cmark::{html, Parser};
+use std::any::Any;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
@@ -25,6 +26,10 @@ impl Stage for MdStage {
                 .collect(),
         };
         Ok(Arc::new(vec_bundle))
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

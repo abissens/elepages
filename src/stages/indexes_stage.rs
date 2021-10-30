@@ -1,6 +1,7 @@
 use crate::pages::{Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use serde::Serialize;
+use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -64,6 +65,10 @@ impl Stage for IndexStage {
                 }),
             ],
         }))
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

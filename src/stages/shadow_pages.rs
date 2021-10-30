@@ -2,6 +2,7 @@ use crate::pages::{Metadata, Page, PageBundle, PageProxy, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
 use rayon::prelude::*;
+use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::option::Option::Some;
@@ -121,6 +122,10 @@ impl Stage for ShadowPages {
         }
 
         Ok(Arc::new(vec_bundle))
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

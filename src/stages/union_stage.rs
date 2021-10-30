@@ -1,6 +1,7 @@
 use crate::pages::{Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use rayon::prelude::*;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct UnionStage {
@@ -43,5 +44,9 @@ impl Stage for UnionStage {
             true => self.parallel_process(bundle)?,
             false => self.sequential_process(bundle)?,
         })
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

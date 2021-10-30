@@ -2,6 +2,7 @@ use crate::pages::{Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use rayon::prelude::*;
 use regex::Regex;
+use std::any::Any;
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -18,6 +19,9 @@ pub enum ComposeUnit {
 
 pub trait SubSetSelector: Send + Sync {
     fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle>;
+    fn as_any(&self) -> &dyn Any {
+        panic!("not implemented")
+    }
 }
 
 pub struct PrefixSelector(pub Vec<String>);
@@ -32,6 +36,10 @@ impl SubSetSelector for PrefixSelector {
         }
         Arc::new(vec_bundle)
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 pub struct RegexSelector(pub Regex);
 
@@ -44,6 +52,10 @@ impl SubSetSelector for RegexSelector {
             }
         }
         Arc::new(vec_bundle)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -63,6 +75,10 @@ impl SubSetSelector for ExtSelector {
             }
         }
         Arc::new(vec_bundle)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -152,5 +168,9 @@ impl Stage for ComposeStage {
             true => self.parallel_process(bundle)?,
             false => self.sequential_process(bundle)?,
         })
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

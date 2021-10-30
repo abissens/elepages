@@ -2,6 +2,7 @@ use crate::pages::{Author, Metadata, Page, PageBundle, PageProxy, VecBundle};
 use crate::stages::stage::Stage;
 use git2::{BlameOptions, Repository};
 use rayon::prelude::*;
+use std::any::Any;
 use std::array::IntoIter;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
@@ -113,6 +114,10 @@ impl Stage for GitAuthors {
         }
 
         Ok(Arc::new(vec_bundle))
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

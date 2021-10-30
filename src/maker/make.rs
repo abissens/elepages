@@ -10,17 +10,17 @@ use crate::stages::shadow_pages::ShadowPages;
 use crate::stages::stage::Stage;
 use crate::stages::union_stage::UnionStage;
 use regex::Regex;
+use std::any::Any;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::str::FromStr;
 use std::sync::Arc;
 
 pub trait StageMaker {
-    fn make(&self, config: &ValueConfig, env: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>>;
+    fn make(&self, config: &ValueConfig, env: &Env) -> anyhow::Result<Arc<dyn Stage>>;
 }
 
 pub trait SelectorMaker {
-    fn make(&self, config: &ValueConfig, env: &HashMap<String, ValueConfig>) -> anyhow::Result<Box<dyn SubSetSelector>>;
+    fn make(&self, config: &ValueConfig, env: &Env) -> anyhow::Result<Box<dyn SubSetSelector>>;
 }
 
 pub struct Maker {
@@ -38,70 +38,100 @@ pub struct PrefixSelectorMaker;
 pub struct RegexSelectorMaker;
 pub struct ExtSelectorMaker;
 
-impl StageMaker for GitAuthorsStageMaker {
-    fn make(&self, _: &ValueConfig, env: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>> {
-        if let Some(ValueConfig::String(root_path)) = env.get("root_path") {
-            return Ok(Arc::new(GitAuthors {
-                repo_path: PathBuf::from_str(root_path)?,
-            }));
+pub struct Env {
+    pub(crate) values: HashMap<String, Box<dyn Any>>,
+}
+
+impl Env {
+    pub fn new() -> Self {
+        Self { values: Default::default() }
+    }
+
+    pub fn get(&self, key: &str) -> Option<&dyn Any> {
+        self.values.get(key).map(|b| b.as_ref())
+    }
+
+    pub fn get_downcast<T: 'static>(&self, key: &str) -> anyhow::Result<Option<&T>> {
+        match self.values.get(key) {
+            None => Ok(None),
+            Some(a) => Ok(a.downcast_ref::<T>()),
         }
-        Err(PagesError::NamedValueNotFound("root_path".into()).into())
+    }
+
+    pub fn insert(&mut self, key: String, value: Box<dyn Any>) -> Option<Box<dyn Any>> {
+        self.values.insert(key, value)
+    }
+}
+
+impl Default for Env {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl StageMaker for GitAuthorsStageMaker {
+    fn make(&self, _: &ValueConfig, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        let root_path: &PathBuf = env
+            .get_downcast::<PathBuf>("root_path")?
+            .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
+
+        Ok(Arc::new(GitAuthors { repo_path: root_path.to_path_buf() }))
     }
 }
 
 impl StageMaker for IndexesStageMaker {
-    fn make(&self, _: &ValueConfig, _: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &ValueConfig, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         Ok(Arc::new(IndexStage))
     }
 }
 
 impl StageMaker for MdStageMaker {
-    fn make(&self, _: &ValueConfig, _: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &ValueConfig, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         Ok(Arc::new(MdStage))
     }
 }
 
 impl StageMaker for ShadowStageMaker {
-    fn make(&self, _: &ValueConfig, _: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &ValueConfig, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         Ok(Arc::new(ShadowPages::default()))
     }
 }
 
 impl StageMaker for HandlebarsStageMaker {
-    fn make(&self, _: &ValueConfig, env: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>> {
-        if let Some(ValueConfig::String(root_path)) = env.get("root_path") {
-            return Ok(Arc::new(HandlebarsStage {
-                lookup: Arc::new(HandlebarsDir::new(&PathBuf::from_str(root_path)?)?),
-            }));
-        }
-        Err(PagesError::NamedValueNotFound("path not found".into()).into())
+    fn make(&self, _: &ValueConfig, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        let root_path: &PathBuf = env
+            .get_downcast::<PathBuf>("root_path")?
+            .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
+        Ok(Arc::new(HandlebarsStage {
+            lookup: Arc::new(HandlebarsDir::new(root_path)?),
+        }))
     }
 }
 
 impl SelectorMaker for PrefixSelectorMaker {
-    fn make(&self, config: &ValueConfig, _: &HashMap<String, ValueConfig>) -> anyhow::Result<Box<dyn SubSetSelector>> {
+    fn make(&self, config: &ValueConfig, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
         if let ValueConfig::String(prefix) = config {
             return Ok(Box::new(PrefixSelector(prefix.split('/').map(|s| s.to_string()).collect())));
         }
-        Err(PagesError::NamedValueNotFound("prefix not found".into()).into())
+        Err(PagesError::ElementNotFound("config should be a prefix string".to_string()).into())
     }
 }
 
 impl SelectorMaker for RegexSelectorMaker {
-    fn make(&self, config: &ValueConfig, _: &HashMap<String, ValueConfig>) -> anyhow::Result<Box<dyn SubSetSelector>> {
+    fn make(&self, config: &ValueConfig, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
         if let ValueConfig::String(regexp) = config {
             return Ok(Box::new(RegexSelector(Regex::new(regexp)?)));
         }
-        Err(PagesError::NamedValueNotFound("regexp not found".into()).into())
+        Err(PagesError::ElementNotFound("config should be a regex string".into()).into())
     }
 }
 
 impl SelectorMaker for ExtSelectorMaker {
-    fn make(&self, config: &ValueConfig, _: &HashMap<String, ValueConfig>) -> anyhow::Result<Box<dyn SubSetSelector>> {
+    fn make(&self, config: &ValueConfig, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
         if let ValueConfig::String(ext) = config {
             return Ok(Box::new(ExtSelector(ext.into())));
         }
-        Err(PagesError::NamedValueNotFound("path not found".into()).into())
+        Err(PagesError::ElementNotFound("config should be an ext string".into()).into())
     }
 }
 
@@ -126,7 +156,7 @@ impl Maker {
         }
     }
 
-    pub fn make(&self, value: &StageValue, env: &HashMap<String, ValueConfig>) -> anyhow::Result<Arc<dyn Stage>> {
+    pub fn make(&self, value: &StageValue, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let stage = match value {
             StageValue::Sequence(values) => Arc::new(SequenceStage {
                 stages: values.iter().map(|value| self.make(value, env)).collect::<anyhow::Result<Vec<Arc<dyn Stage>>>>()?,
@@ -145,7 +175,10 @@ impl Maker {
                                 selector: (sel_name, sel_config),
                                 inner: stage_value,
                             } => {
-                                let selector_maker = self.named_selector_makers.get(sel_name).ok_or_else(|| PagesError::NamedValueNotFound("selector not found".into()))?;
+                                let selector_maker = self
+                                    .named_selector_makers
+                                    .get(sel_name)
+                                    .ok_or_else(|| PagesError::ElementNotFound(format!("selector {} not found", sel_name)))?;
                                 let selector = selector_maker.make(sel_config, env)?;
                                 Arc::new(ComposeUnit::ReplaceSubSet(selector, self.make(stage_value, env)?))
                             }
@@ -155,11 +188,11 @@ impl Maker {
                 parallel: true,
             }) as Arc<dyn Stage>,
             StageValue::Named { name, config } => {
-                let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::NamedValueNotFound("stage not found".into()))?;
+                let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", name)))?;
                 stage_maker.make(config, env)? as Arc<dyn Stage>
             }
             StageValue::NamedWithoutConfig(name) => {
-                let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::NamedValueNotFound("stage not found".into()))?;
+                let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", name)))?;
                 stage_maker.make(&ValueConfig::None, env)? as Arc<dyn Stage>
             }
         };

@@ -11,11 +11,15 @@ use crate::pages::{FsPage, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::handlebars_stage::RenderResult::Content;
 use crate::stages::stage::Stage;
 use crate::utilities::visit_dirs;
+use std::any::Any;
 
 pub trait HandlebarsLookup: Sync + Send + Debug {
     fn init_registry(&self, registry: &mut handlebars::Handlebars) -> anyhow::Result<()>;
     fn fetch(&self, page: &Arc<dyn Page>) -> Option<String>;
     fn assets(&self) -> anyhow::Result<Vec<Arc<dyn Page>>>;
+    fn as_any(&self) -> &dyn Any {
+        panic!("not implemented")
+    }
 }
 
 pub struct HandlebarsStage {
@@ -62,6 +66,10 @@ impl Stage for HandlebarsStage {
 
         Ok(Arc::new(result_bundle))
     }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 enum RenderResult {
@@ -91,11 +99,11 @@ impl Page for CursorPage {
 
 #[derive(Debug)]
 pub struct HandlebarsDir {
-    prefix_len: usize,
-    pages: HashMap<String, PathBuf>,
-    template_files: HashMap<String, PathBuf>,
-    static_assets: HashMap<String, PathBuf>,
-    base_path: PathBuf,
+    pub(crate) prefix_len: usize,
+    pub(crate) pages: HashMap<String, PathBuf>,
+    pub(crate) template_files: HashMap<String, PathBuf>,
+    pub(crate) static_assets: HashMap<String, PathBuf>,
+    pub(crate) base_path: PathBuf,
 }
 
 impl HandlebarsDir {
@@ -187,5 +195,9 @@ impl HandlebarsLookup for HandlebarsDir {
         }
 
         Ok(result)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

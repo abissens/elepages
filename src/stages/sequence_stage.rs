@@ -1,5 +1,6 @@
 use crate::pages::PageBundle;
 use crate::stages::stage::Stage;
+use std::any::Any;
 use std::sync::Arc;
 
 pub struct SequenceStage {
@@ -19,5 +20,9 @@ impl SequenceStage {
 impl Stage for SequenceStage {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         SequenceStage::sequence_process(Arc::clone(bundle), &self.stages)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
