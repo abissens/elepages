@@ -88,6 +88,29 @@ pub trait Page: Debug + Send + Sync {
     fn open(&self) -> anyhow::Result<Box<dyn Read>>;
 }
 
+pub trait ArcPage {
+    fn change_path(&self, new_path: Vec<String>) -> Arc<dyn Page>;
+    fn change_meta(&self, new_meta: Metadata) -> Arc<dyn Page>;
+}
+
+impl ArcPage for Arc<dyn Page> {
+    fn change_path(&self, new_path: Vec<String>) -> Arc<dyn Page> {
+        Arc::new(PageProxy {
+            new_path: Some(new_path),
+            new_metadata: None,
+            inner: Arc::clone(self),
+        })
+    }
+
+    fn change_meta(&self, new_meta: Metadata) -> Arc<dyn Page> {
+        Arc::new(PageProxy {
+            new_path: None,
+            new_metadata: Some(new_meta),
+            inner: Arc::clone(self),
+        })
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct PageProxy {
     pub(crate) new_path: Option<Vec<String>>,

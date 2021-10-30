@@ -1,4 +1,4 @@
-use crate::pages::{Metadata, Page, PageBundle, PageProxy, VecBundle};
+use crate::pages::{ArcPage, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
 use rayon::prelude::*;
@@ -113,11 +113,7 @@ impl Stage for ShadowPages {
                         current_metadata = current_metadata.merge(m)?;
                     }
                 }
-                vec_bundle.p.push(Arc::new(PageProxy {
-                    new_path: None,
-                    new_metadata: Some(current_metadata),
-                    inner: Arc::clone(page),
-                }));
+                vec_bundle.p.push(page.change_meta(current_metadata));
             }
         }
 

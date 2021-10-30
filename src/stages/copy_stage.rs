@@ -1,4 +1,4 @@
-use crate::pages::{Page, PageBundle, PageProxy, VecBundle};
+use crate::pages::{ArcPage, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use std::any::Any;
 use std::sync::Arc;
@@ -9,17 +9,7 @@ pub struct CopyStage {
 
 impl Stage for CopyStage {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
-        let p = bundle
-            .pages()
-            .iter()
-            .map(|p| {
-                Arc::new(PageProxy {
-                    inner: Arc::clone(p),
-                    new_path: Some(join_paths(&self.prefix, p.path())),
-                    new_metadata: None,
-                }) as Arc<dyn Page>
-            })
-            .collect::<Vec<Arc<dyn Page>>>();
+        let p = bundle.pages().iter().map(|p| p.change_path(join_paths(&self.prefix, p.path()))).collect::<Vec<Arc<dyn Page>>>();
         Ok(Arc::new(VecBundle { p }))
     }
 

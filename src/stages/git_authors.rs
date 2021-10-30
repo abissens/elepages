@@ -1,4 +1,4 @@
-use crate::pages::{Author, Metadata, Page, PageBundle, PageProxy, VecBundle};
+use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use git2::{BlameOptions, Repository};
 use rayon::prelude::*;
@@ -75,10 +75,8 @@ impl Stage for GitAuthors {
                     let path = PathBuf::from(page.path().join("/"));
                     let page_authors = GitAuthors::blame_authors(&repo.lock().unwrap(), &path, "HEAD")?;
 
-                    Ok(Arc::new(PageProxy {
-                        new_path: None,
-                        new_metadata: page
-                            .metadata()
+                    Ok(page.change_meta(
+                        page.metadata()
                             .map(|m| Metadata {
                                 title: m.title.clone(),
                                 summary: m.summary.clone(),
@@ -91,22 +89,19 @@ impl Stage for GitAuthors {
                                     .collect(),
                                 tags: m.tags.clone(),
                             })
-                            .or_else(|| {
-                                Some(Metadata {
-                                    title: None,
-                                    summary: None,
-                                    authors: page_authors
-                                        .iter()
-                                        .map(|pa| Author {
-                                            name: pa.name.to_string(),
-                                            contacts: IntoIter::new([pa.email.to_string()]).collect(),
-                                        })
-                                        .collect(),
-                                    tags: Default::default(),
-                                })
+                            .unwrap_or_else(|| Metadata {
+                                title: None,
+                                summary: None,
+                                authors: page_authors
+                                    .iter()
+                                    .map(|pa| Author {
+                                        name: pa.name.to_string(),
+                                        contacts: IntoIter::new([pa.email.to_string()]).collect(),
+                                    })
+                                    .collect(),
+                                tags: Default::default(),
                             }),
-                        inner: Arc::clone(page),
-                    }) as Arc<dyn Page>)
+                    ))
                 })
                 .collect::<anyhow::Result<Vec<Arc<dyn Page>>>>()?;
 
