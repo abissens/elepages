@@ -57,6 +57,9 @@ impl Stage for GitAuthors {
         let mut blame_pages = vec![];
 
         for page in bundle.pages() {
+            if page.path().is_empty() {
+                continue;
+            }
             if let Some(m) = page.metadata() {
                 if !m.authors.is_empty() {
                     vec_bundle.p.push(Arc::clone(page));
@@ -73,6 +76,7 @@ impl Stage for GitAuthors {
                 .par_iter()
                 .map(|page: &&Arc<dyn Page>| {
                     let path = PathBuf::from(page.path().join("/"));
+                    // TODO: handle when file does not exists in the HEAD Tree
                     let page_authors = GitAuthors::blame_authors(&repo.lock().unwrap(), &path, "HEAD")?;
 
                     Ok(page.change_meta(

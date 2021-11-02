@@ -1,15 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::maker::{Env, Maker, StageValue};
-    use crate::stages::compose_stage::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::compose_stage::{ComposeStage, ExtSelector, PrefixSelector, RegexSelector};
-    use crate::stages::git_authors::GitAuthors;
-    use crate::stages::handlebars_stage::{HandlebarsDir, HandlebarsStage};
-    use crate::stages::indexes_stage::IndexStage;
-    use crate::stages::md_stage::MdStage;
-    use crate::stages::sequence_stage::SequenceStage;
-    use crate::stages::shadow_pages::ShadowPages;
-    use crate::stages::union_stage::UnionStage;
+    use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
+    use crate::stages::{ComposeStage, ExtSelector, GitAuthors, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, UnionStage};
     use indoc::indoc;
     use std::path::PathBuf;
     use std::str::FromStr;

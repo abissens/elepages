@@ -26,6 +26,9 @@ impl Stage for ShadowPages {
         // select metadata candidates
         for page in bundle.pages() {
             let path = page.path();
+            if path.is_empty() {
+                continue;
+            }
             for (ext, loader) in &self.loaders {
                 if path[path.len() - 1].ends_with(ext) {
                     metadata_candidates.push(MetadataCandidate {

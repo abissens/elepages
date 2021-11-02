@@ -1,14 +1,9 @@
 use crate::maker::config::{ComposeUnitConfig, StageValue, ValueConfig};
 use crate::pages_error::PagesError;
-use crate::stages::compose_stage::{ComposeStage, ComposeUnit, ExtSelector, PrefixSelector, RegexSelector, SubSetSelector};
-use crate::stages::git_authors::GitAuthors;
-use crate::stages::handlebars_stage::{HandlebarsDir, HandlebarsStage};
-use crate::stages::indexes_stage::IndexStage;
-use crate::stages::md_stage::MdStage;
-use crate::stages::sequence_stage::SequenceStage;
-use crate::stages::shadow_pages::ShadowPages;
-use crate::stages::stage::Stage;
-use crate::stages::union_stage::UnionStage;
+use crate::stages::{
+    ComposeStage, ComposeUnit, ExtSelector, GitAuthors, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, Stage, SubSetSelector,
+    UnionStage,
+};
 use regex::Regex;
 use std::any::Any;
 use std::collections::HashMap;
@@ -156,8 +151,8 @@ impl Maker {
         }
     }
 
-    pub fn make(&self, value: &StageValue, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        let stage = match value {
+    pub fn make(&self, stage_config: &StageValue, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        let stage = match stage_config {
             StageValue::Sequence(values) => Arc::new(SequenceStage {
                 stages: values.iter().map(|value| self.make(value, env)).collect::<anyhow::Result<Vec<Arc<dyn Stage>>>>()?,
             }) as Arc<dyn Stage>,
