@@ -202,16 +202,10 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([
-                            Arc::new(Author {
-                                name: "user_1".to_string(),
-                                contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
-                            }),
-                            Arc::new(Author {
-                                name: "user_3".to_string(),
-                                contacts: HashSet::from_iter(IntoIter::new(["user_3@pages.io".to_string()])),
-                            })
-                        ])),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "user_3".to_string(),
+                            contacts: HashSet::from_iter(IntoIter::new(["user_3@pages.io".to_string()])),
+                        })])),
                         tags: Default::default()
                     }),
                     content: indoc! {"

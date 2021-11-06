@@ -1,60 +1,76 @@
 use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
-use git2::{BlameOptions, Repository};
-use rayon::prelude::*;
+use git2::Repository;
 use std::any::Any;
 use std::array::IntoIter;
-use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
-use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
-
+use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
+use std::sync::Arc;
 pub struct GitAuthors {
     pub repo_path: PathBuf,
 }
 
 impl GitAuthors {
-    fn blame_authors(repo: &Repository, path: &Path, commit_id: &str) -> anyhow::Result<HashSet<AuthorStats>> {
-        let spec = format!("{}:{}", commit_id, path.display());
-        let mut opts = BlameOptions::new();
-        opts.track_copies_same_commit_moves(true).track_copies_same_commit_copies(true).first_parent(true);
-        let blame = repo.blame_file(&path, Some(&mut opts))?;
-        let object = repo.revparse_single(&spec[..])?;
-        let blob = repo.find_blob(object.id())?;
-        let reader = BufReader::new(blob.content());
+    fn process_repository(&self, mut blame_pages: HashMap<String, &Arc<dyn Page>>) -> anyhow::Result<Vec<Arc<dyn Page>>> {
+        let repo = Repository::open(&self.repo_path)?;
+        let mut rev_walk = repo.revwalk()?;
+        rev_walk.set_sorting(git2::Sort::TIME)?;
+        rev_walk.push_head()?;
 
-        let mut page_authors = HashSet::new();
-        for (i, line) in reader.lines().enumerate() {
-            if let (Ok(line), Some(hunk)) = (line, blame.get_line(i + 1)) {
-                let sig = hunk.final_signature();
-                let name = String::from_utf8_lossy(sig.name_bytes());
-                let email = String::from_utf8_lossy(sig.email_bytes());
-                let size = line.len();
-                let stats = AuthorStats {
-                    name: name.to_string(),
-                    email: email.to_string(),
-                    size,
-                };
-                if !page_authors.contains(&stats) {
-                    page_authors.insert(stats);
-                } else {
-                    page_authors.replace(AuthorStats {
-                        name: name.to_string(),
-                        email: email.to_string(),
-                        size: stats.size + size,
-                    });
+        let mut result = vec![];
+        let mut commit_id = rev_walk.next();
+
+        while !blame_pages.is_empty() && commit_id.is_some() {
+            let commit = repo.find_commit(commit_id.unwrap()?)?;
+            let parent_tree = if commit.parents().len() == 1 {
+                let parent = commit.parent(0)?;
+                Some(parent.tree()?)
+            } else {
+                None
+            };
+            let current_tree = commit.tree()?;
+
+            let diff = repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&current_tree), None).unwrap();
+            let commit_files: HashSet<String> = diff.deltas().filter_map(|d| d.new_file().path().map(|p| p.to_string_lossy().to_string())).collect();
+            for commit_file in &commit_files {
+                if let Some(origin_page) = blame_pages.remove(commit_file) {
+                    let authors = IntoIter::new([Arc::new(Author {
+                        name: commit.author().name().map(|n| n.to_string()).unwrap_or_else(|| "".to_string()),
+                        contacts: commit.author().email().map(|e| IntoIter::new([e.to_string()]).collect()).unwrap_or_else(HashSet::default),
+                    })])
+                    .collect();
+                    result.push(origin_page.change_meta(if let Some(m) = origin_page.metadata() {
+                        Metadata {
+                            title: m.title.clone(),
+                            summary: m.summary.clone(),
+                            authors,
+                            tags: m.tags.clone(),
+                        }
+                    } else {
+                        Metadata {
+                            title: None,
+                            summary: None,
+                            authors,
+                            tags: HashSet::default(),
+                        }
+                    }))
                 }
             }
+            commit_id = rev_walk.next();
         }
-        Ok(page_authors)
+        if !blame_pages.is_empty() {
+            for (_, remaining_page) in blame_pages {
+                result.push(Arc::clone(remaining_page))
+            }
+        }
+        Ok(result)
     }
 }
 
 impl Stage for GitAuthors {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
-        let mut blame_pages = vec![];
+        let mut blame_pages = HashMap::default();
 
         for page in bundle.pages() {
             if page.path().is_empty() {
@@ -66,54 +82,12 @@ impl Stage for GitAuthors {
                     continue;
                 }
             }
-            blame_pages.push(page);
+            blame_pages.insert(page.path().join("/"), page);
         }
 
         if !blame_pages.is_empty() {
-            let repo = Mutex::new(Repository::open(&self.repo_path)?);
-
-            let mut result: Vec<Arc<dyn Page>> = blame_pages
-                .par_iter()
-                .map(|page: &&Arc<dyn Page>| {
-                    let path = PathBuf::from(page.path().join("/"));
-                    // TODO: handle when file does not exists in the HEAD Tree
-                    let page_authors = GitAuthors::blame_authors(&repo.lock().unwrap(), &path, "HEAD")?;
-
-                    Ok(page.change_meta(
-                        page.metadata()
-                            .map(|m| Metadata {
-                                title: m.title.clone(),
-                                summary: m.summary.clone(),
-                                authors: page_authors
-                                    .iter()
-                                    .map(|pa| {
-                                        Arc::new(Author {
-                                            name: pa.name.to_string(),
-                                            contacts: IntoIter::new([pa.email.to_string()]).collect(),
-                                        })
-                                    })
-                                    .collect(),
-                                tags: m.tags.clone(),
-                            })
-                            .unwrap_or_else(|| Metadata {
-                                title: None,
-                                summary: None,
-                                authors: page_authors
-                                    .iter()
-                                    .map(|pa| {
-                                        Arc::new(Author {
-                                            name: pa.name.to_string(),
-                                            contacts: IntoIter::new([pa.email.to_string()]).collect(),
-                                        })
-                                    })
-                                    .collect(),
-                                tags: Default::default(),
-                            }),
-                    ))
-                })
-                .collect::<anyhow::Result<Vec<Arc<dyn Page>>>>()?;
-
-            vec_bundle.p.append(&mut result);
+            let mut processed_pages = self.process_repository(blame_pages)?;
+            vec_bundle.p.append(&mut processed_pages);
         }
 
         Ok(Arc::new(vec_bundle))
@@ -121,23 +95,5 @@ impl Stage for GitAuthors {
 
     fn as_any(&self) -> &dyn Any {
         self
-    }
-}
-
-struct AuthorStats {
-    name: String,
-    email: String,
-    size: usize,
-}
-impl Eq for AuthorStats {}
-impl PartialEq for AuthorStats {
-    fn eq(&self, other: &Self) -> bool {
-        self.name.eq(&other.name)
-    }
-}
-
-impl Hash for AuthorStats {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
     }
 }
