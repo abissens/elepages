@@ -1,4 +1,5 @@
-use crate::maker::config::{ComposeUnitConfig, StageValue, ValueConfig};
+use crate::config::Value;
+use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::pages_error::PagesError;
 use crate::stages::{
     ComposeStage, ComposeUnit, ExtSelector, GitAuthors, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, Stage, SubSetSelector,
@@ -11,11 +12,11 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 pub trait StageMaker {
-    fn make(&self, config: &ValueConfig, env: &Env) -> anyhow::Result<Arc<dyn Stage>>;
+    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>>;
 }
 
 pub trait SelectorMaker {
-    fn make(&self, config: &ValueConfig, env: &Env) -> anyhow::Result<Box<dyn SubSetSelector>>;
+    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Box<dyn SubSetSelector>>;
 }
 
 pub struct Maker {
@@ -65,7 +66,7 @@ impl Default for Env {
 }
 
 impl StageMaker for GitAuthorsStageMaker {
-    fn make(&self, _: &ValueConfig, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let root_path: &PathBuf = env
             .get_downcast::<PathBuf>("root_path")?
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
@@ -75,25 +76,25 @@ impl StageMaker for GitAuthorsStageMaker {
 }
 
 impl StageMaker for IndexesStageMaker {
-    fn make(&self, _: &ValueConfig, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         Ok(Arc::new(IndexStage))
     }
 }
 
 impl StageMaker for MdStageMaker {
-    fn make(&self, _: &ValueConfig, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         Ok(Arc::new(MdStage))
     }
 }
 
 impl StageMaker for ShadowStageMaker {
-    fn make(&self, _: &ValueConfig, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         Ok(Arc::new(ShadowPages::default()))
     }
 }
 
 impl StageMaker for HandlebarsStageMaker {
-    fn make(&self, _: &ValueConfig, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let root_path: &PathBuf = env
             .get_downcast::<PathBuf>("root_path")?
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
@@ -104,8 +105,8 @@ impl StageMaker for HandlebarsStageMaker {
 }
 
 impl SelectorMaker for PrefixSelectorMaker {
-    fn make(&self, config: &ValueConfig, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
-        if let ValueConfig::String(prefix) = config {
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
+        if let Value::String(prefix) = config {
             return Ok(Box::new(PrefixSelector(prefix.split('/').map(|s| s.to_string()).collect())));
         }
         Err(PagesError::ElementNotFound("config should be a prefix string".to_string()).into())
@@ -113,8 +114,8 @@ impl SelectorMaker for PrefixSelectorMaker {
 }
 
 impl SelectorMaker for RegexSelectorMaker {
-    fn make(&self, config: &ValueConfig, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
-        if let ValueConfig::String(regexp) = config {
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
+        if let Value::String(regexp) = config {
             return Ok(Box::new(RegexSelector(Regex::new(regexp)?)));
         }
         Err(PagesError::ElementNotFound("config should be a regex string".into()).into())
@@ -122,8 +123,8 @@ impl SelectorMaker for RegexSelectorMaker {
 }
 
 impl SelectorMaker for ExtSelectorMaker {
-    fn make(&self, config: &ValueConfig, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
-        if let ValueConfig::String(ext) = config {
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
+        if let Value::String(ext) = config {
             return Ok(Box::new(ExtSelector(ext.into())));
         }
         Err(PagesError::ElementNotFound("config should be an ext string".into()).into())
@@ -188,7 +189,7 @@ impl Maker {
             }
             StageValue::NamedWithoutConfig(name) => {
                 let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", name)))?;
-                stage_maker.make(&ValueConfig::None, env)? as Arc<dyn Stage>
+                stage_maker.make(&Value::None, env)? as Arc<dyn Stage>
             }
         };
 

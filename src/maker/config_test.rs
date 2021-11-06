@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use crate::maker::config::{ComposeUnitConfig, StageValue, ValueConfig};
+    use crate::config::Value;
+    use crate::maker::config::{ComposeUnitConfig, StageValue};
     use indoc::indoc;
     use std::array::IntoIter;
     use std::collections::HashMap;
     use std::iter::FromIterator;
-
     #[test]
     fn parse_stage_value_configs() {
         let single_named: StageValue = serde_yaml::from_str(indoc! {"
@@ -27,7 +27,7 @@ mod tests {
             named_with_config,
             StageValue::Named {
                 name: "stage_name".to_string(),
-                config: ValueConfig::Vec(vec![ValueConfig::I32(1), ValueConfig::I32(2), ValueConfig::I32(3)])
+                config: Value::Vec(vec![Value::I32(1), Value::I32(2), Value::I32(3)])
             }
         );
 
@@ -48,15 +48,15 @@ mod tests {
             StageValue::Sequence(vec![
                 StageValue::Named {
                     name: "stage_name_1".to_string(),
-                    config: ValueConfig::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), ValueConfig::String("some text".to_string()))]))),
+                    config: Value::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), Value::String("some text".to_string()))]))),
                 },
                 StageValue::Named {
                     name: "stage_name_2".to_string(),
-                    config: ValueConfig::None,
+                    config: Value::None,
                 },
                 StageValue::Named {
                     name: "stage_name_3".to_string(),
-                    config: ValueConfig::None,
+                    config: Value::None,
                 },
                 StageValue::NamedWithoutConfig("stage_name_4".to_string()),
             ])
@@ -81,15 +81,15 @@ mod tests {
                 union: vec![
                     StageValue::Named {
                         name: "stage_name_1".to_string(),
-                        config: ValueConfig::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), ValueConfig::String("some text".to_string()))]))),
+                        config: Value::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), Value::String("some text".to_string()))]))),
                     },
                     StageValue::Named {
                         name: "stage_name_2".to_string(),
-                        config: ValueConfig::None,
+                        config: Value::None,
                     },
                     StageValue::Named {
                         name: "stage_name_3".to_string(),
-                        config: ValueConfig::None,
+                        config: Value::None,
                     },
                     StageValue::NamedWithoutConfig("stage_name_4".to_string()),
                 ]
@@ -117,20 +117,20 @@ mod tests {
                 compose: vec![
                     ComposeUnitConfig::Create(StageValue::Named {
                         name: "stage_name_1".to_string(),
-                        config: ValueConfig::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), ValueConfig::String("some text".to_string()))]))),
+                        config: Value::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), Value::String("some text".to_string()))]))),
                     }),
                     ComposeUnitConfig::Create(StageValue::Named {
                         name: "stage_name_2".to_string(),
-                        config: ValueConfig::None,
+                        config: Value::None,
                     }),
                     ComposeUnitConfig::Create(StageValue::Named {
                         name: "stage_name_3".to_string(),
-                        config: ValueConfig::None,
+                        config: Value::None,
                     }),
                     ComposeUnitConfig::Create(StageValue::NamedWithoutConfig("stage_name_4".to_string())),
                     ComposeUnitConfig::Replace {
                         inner: StageValue::NamedWithoutConfig("stage_name_5".to_string()),
-                        selector: ("regexp".to_string(), ValueConfig::String(".*?.md$".to_string()))
+                        selector: ("regexp".to_string(), Value::String(".*?.md$".to_string()))
                     }
                 ]
             }
