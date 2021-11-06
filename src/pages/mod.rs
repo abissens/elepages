@@ -1,4 +1,4 @@
-pub mod fs_loader;
+mod fs_loader;
 mod fs_loader_test;
 mod fs_page;
 mod loader;
