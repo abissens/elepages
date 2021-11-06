@@ -34,7 +34,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -71,7 +71,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -94,7 +94,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -124,7 +124,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["b".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("b title".to_string()),
+                        title: Some(Arc::new("b title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -149,7 +149,7 @@ mod tests {
                 TestPage {
                     path: vec!["b".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("b title".to_string()),
+                        title: Some(Arc::new("b title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default()
@@ -164,7 +164,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -187,7 +187,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -236,7 +236,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -259,7 +259,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -318,7 +318,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -341,7 +341,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -417,7 +417,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -440,7 +440,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -460,7 +460,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["dir".to_string(), "f4.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f4 title".to_string()),
+                        title: Some(Arc::new("f4 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -536,7 +536,7 @@ mod tests {
                 TestPage {
                     path: vec!["dir".to_string(), "f4.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f4 title".to_string()),
+                        title: Some(Arc::new("f4 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -551,7 +551,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -574,7 +574,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -594,7 +594,7 @@ mod tests {
                 Arc::new(TestPage {
                     path: vec!["dir".to_string(), "f4.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f4 title".to_string()),
+                        title: Some(Arc::new("f4 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -693,7 +693,7 @@ mod tests {
                 TestPage {
                     path: vec!["dir".to_string(), "f4.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f4 title".to_string()),
+                        title: Some(Arc::new("f4 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),
@@ -713,7 +713,7 @@ mod tests {
                 TestPage {
                     path: vec!["f1.html".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f1 title".to_string()),
+                        title: Some(Arc::new("f1 title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default(),

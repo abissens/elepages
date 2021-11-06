@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 rustassert = { git = "https://github.com/abissens/rustassert", branch = "main" }
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 serde_yaml = "0.8"
 anyhow = "1.0"

@@ -5,10 +5,11 @@ mod tests {
     use std::array::IntoIter;
     use std::collections::HashMap;
     use std::iter::FromIterator;
+    use std::sync::Arc;
 
     fn new_metadata(title: &str) -> Metadata {
         Metadata {
-            title: Some(title.to_string()),
+            title: Some(Arc::new(title.to_string())),
             summary: None,
             authors: Default::default(),
             tags: Default::default(),

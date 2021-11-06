@@ -44,7 +44,7 @@ mod tests {
         let test_page: Arc<dyn Page> = Arc::new(TestPage {
             path: vec![],
             metadata: Some(Metadata {
-                title: Some("test page".to_string()),
+                title: Some(Arc::new("test page".to_string())),
                 summary: None,
                 authors: HashSet::new(),
                 tags: HashSet::new(),
@@ -59,7 +59,7 @@ mod tests {
         };
 
         assert!(matches!(proxy.metadata(), Some(metadata) if metadata == &Metadata{
-            title: Some("test page".to_string()),
+            title: Some(Arc::new("test page".to_string())),
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::new(),
@@ -71,7 +71,7 @@ mod tests {
         let test_page: Arc<dyn Page> = Arc::new(TestPage {
             path: vec![],
             metadata: Some(Metadata {
-                title: Some("test page".to_string()),
+                title: Some(Arc::new("test page".to_string())),
                 summary: None,
                 authors: HashSet::new(),
                 tags: HashSet::new(),
@@ -82,7 +82,7 @@ mod tests {
         let proxy = PageProxy {
             new_path: None,
             new_metadata: Some(Metadata {
-                title: Some("new test page".to_string()),
+                title: Some(Arc::new("new test page".to_string())),
                 summary: None,
                 authors: HashSet::new(),
                 tags: HashSet::new(),
@@ -91,7 +91,7 @@ mod tests {
         };
 
         assert!(matches!(proxy.metadata(), Some(metadata) if metadata == &Metadata{
-            title: Some("new test page".to_string()),
+            title: Some(Arc::new("new test page".to_string())),
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::new(),

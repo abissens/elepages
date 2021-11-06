@@ -49,10 +49,10 @@ mod tests {
                 metadata: Some(Metadata {
                     title: None,
                     summary: None,
-                    authors: HashSet::from_iter(IntoIter::new([Author {
+                    authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                         name: "user_1".to_string(),
                         contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
-                    }])),
+                    })])),
                     tags: Default::default()
                 }),
                 content: "file content 1".to_string()
@@ -150,10 +150,10 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
-                        }])),
+                        })])),
                         tags: Default::default()
                     }),
                     content: "file content 11".to_string(),
@@ -163,10 +163,10 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
-                        }])),
+                        })])),
                         tags: Default::default()
                     }),
                     content: "file content 1".to_string(),
@@ -176,10 +176,10 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
-                        }])),
+                        })])),
                         tags: Default::default()
                     }),
                     content: "file content 2".to_string(),
@@ -189,10 +189,10 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
-                        }])),
+                        })])),
                         tags: Default::default()
                     }),
                     content: "file content 3".to_string(),
@@ -203,14 +203,14 @@ mod tests {
                         title: None,
                         summary: None,
                         authors: HashSet::from_iter(IntoIter::new([
-                            Author {
+                            Arc::new(Author {
                                 name: "user_1".to_string(),
                                 contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
-                            },
-                            Author {
+                            }),
+                            Arc::new(Author {
                                 name: "user_3".to_string(),
                                 contacts: HashSet::from_iter(IntoIter::new(["user_3@pages.io".to_string()])),
-                            }
+                            })
                         ])),
                         tags: Default::default()
                     }),
@@ -303,24 +303,24 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "a1".to_string(),
                             contacts: HashSet::default()
-                        }])),
-                        tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string()]))
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())]))
                     }),
                     content: "file content 1".to_string(),
                 },
                 TestPage {
                     path: vec!["d1".to_string(), "f2".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("f2 title".to_string()),
-                        summary: Some("f2 summary".to_string()),
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        title: Some(Arc::new("f2 title".to_string())),
+                        summary: Some(Arc::new("f2 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "user_1".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
-                        }])),
-                        tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()]))
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -329,10 +329,10 @@ mod tests {
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "user_1".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
-                        }])),
+                        })])),
                         tags: Default::default()
                     }),
                     content: "file content 3".to_string(),

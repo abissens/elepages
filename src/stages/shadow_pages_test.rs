@@ -37,7 +37,7 @@ mod tests {
             &[TestPage {
                 path: vec!["a".to_string()],
                 metadata: Some(Metadata {
-                    title: Some("a title".to_string()),
+                    title: Some(Arc::new("a title".to_string())),
                     summary: None,
                     authors: Default::default(),
                     tags: Default::default()
@@ -110,7 +110,7 @@ mod tests {
                 TestPage {
                     path: vec!["a".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("a title".to_string()),
+                        title: Some(Arc::new("a title".to_string())),
                         summary: None,
                         authors: Default::default(),
                         tags: Default::default()
@@ -120,38 +120,38 @@ mod tests {
                 TestPage {
                     path: vec!["b".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("b title".to_string()),
-                        summary: Some("b summary".to_string()),
+                        title: Some(Arc::new("b title".to_string())),
+                        summary: Some(Arc::new("b summary".to_string())),
                         authors: HashSet::from_iter(IntoIter::new([
-                            Author {
+                            Arc::new(Author {
                                 name: "a1".to_string(),
                                 contacts: HashSet::default(),
-                            },
-                            Author {
+                            }),
+                            Arc::new(Author {
                                 name: "a2".to_string(),
                                 contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-                            }
+                            })
                         ])),
-                        tags: vec!["t1", "t2", "t3"].iter().map(|x| x.to_string()).collect()
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
                     }),
                     content: "'b' content".to_string()
                 },
                 TestPage {
                     path: vec!["c".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("c title".to_string()),
-                        summary: Some("c summary".to_string()),
+                        title: Some(Arc::new("c title".to_string())),
+                        summary: Some(Arc::new("c summary".to_string())),
                         authors: HashSet::from_iter(IntoIter::new([
-                            Author {
+                            Arc::new(Author {
                                 name: "a1".to_string(),
                                 contacts: HashSet::default(),
-                            },
-                            Author {
+                            }),
+                            Arc::new(Author {
                                 name: "a2".to_string(),
                                 contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-                            }
+                            })
                         ])),
-                        tags: vec!["t1", "t2", "t3"].iter().map(|x| x.to_string()).collect()
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
                     }),
                     content: "'c' content".to_string()
                 },
@@ -287,7 +287,7 @@ mod tests {
                         title: None,
                         summary: None,
                         authors: Default::default(),
-                        tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                     }),
                     content: "'c' content".to_string()
                 },
@@ -297,7 +297,7 @@ mod tests {
                         title: None,
                         summary: None,
                         authors: Default::default(),
-                        tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                     }),
                     content: "'d' content".to_string()
                 },
@@ -307,7 +307,7 @@ mod tests {
                         title: None,
                         summary: None,
                         authors: Default::default(),
-                        tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                     }),
                     content: "'e' content".to_string()
                 },
@@ -393,13 +393,13 @@ mod tests {
                 TestPage {
                     path: vec!["a".to_string(), "b".to_string(), "c.txt".to_string()],
                     metadata: Some(Metadata {
-                        title: Some("c title".to_string()),
-                        summary: Some("c summary".to_string()),
-                        authors: HashSet::from_iter(IntoIter::new([Author {
+                        title: Some(Arc::new("c title".to_string())),
+                        summary: Some(Arc::new("c summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                             name: "a2".to_string(),
                             contacts: vec!["c3", "c4"].iter().map(|x| x.to_string()).collect(),
-                        }])),
-                        tags: vec!["t1", "t2", "t3"].iter().map(|x| x.to_string()).collect(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                     }),
                     content: "'c' content".to_string()
                 },
@@ -409,7 +409,7 @@ mod tests {
                         title: None,
                         summary: None,
                         authors: Default::default(),
-                        tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                     }),
                     content: "'d' content".to_string()
                 },
@@ -419,7 +419,7 @@ mod tests {
                         title: None,
                         summary: None,
                         authors: Default::default(),
-                        tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                     }),
                     content: "'e' content".to_string()
                 },

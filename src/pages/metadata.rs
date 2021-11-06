@@ -2,8 +2,9 @@ use crate::pages_error::PagesError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
+use std::sync::Arc;
 
-#[derive(Clone, PartialEq, Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Author {
     pub name: String,
     #[serde(default = "HashSet::default")]
@@ -12,7 +13,12 @@ pub struct Author {
 
 impl Eq for Author {}
 
-#[allow(clippy::derive_hash_xor_eq)]
+impl PartialEq for Author {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
 impl Hash for Author {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.name.hash(state);
@@ -20,7 +26,7 @@ impl Hash for Author {
 }
 
 impl Author {
-    pub fn merge(&self, parent: &Self) -> anyhow::Result<Self> {
+    pub fn merge(&self, parent: &Arc<Self>) -> anyhow::Result<Self> {
         if self.name != parent.name {
             return Err(PagesError::AuthorMerge("cannot merge authors with different names".to_string()).into());
         }
@@ -38,24 +44,15 @@ impl Author {
 
 #[derive(Clone, PartialEq, Deserialize, Serialize, Debug)]
 pub struct Metadata {
-    pub title: Option<String>,
-    pub summary: Option<String>,
+    pub title: Option<Arc<String>>,
+    pub summary: Option<Arc<String>>,
     #[serde(default = "HashSet::default")]
-    pub authors: HashSet<Author>,
+    pub authors: HashSet<Arc<Author>>,
     #[serde(default = "HashSet::default")]
-    pub tags: HashSet<String>,
+    pub tags: HashSet<Arc<String>>,
 }
 
 impl Metadata {
-    fn author_by_name(&self, name: &str) -> Option<&Author> {
-        for a in &self.authors {
-            if a.name == name {
-                return Some(a);
-            }
-        }
-        None
-    }
-
     pub fn merge(&self, parent: &Self) -> anyhow::Result<Self> {
         let mut result = Metadata {
             title: self.title.clone().or_else(|| parent.title.clone()),
@@ -65,9 +62,8 @@ impl Metadata {
         };
 
         for p_author in &parent.authors {
-            if let Some(c) = self.author_by_name(&p_author.name) {
-                result.authors.remove(c);
-                result.authors.insert(c.merge(&p_author)?);
+            if let Some(c) = self.authors.get(p_author) {
+                result.authors.replace(Arc::new(c.merge(&p_author)?));
             }
         }
 

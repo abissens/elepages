@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::{Author, Metadata};
+    use std::array::IntoIter;
     use std::collections::HashSet;
+    use std::iter::FromIterator;
+    use std::sync::Arc;
 
     #[test]
     fn metadata_merge_title_and_summary_attributes() {
@@ -13,8 +16,8 @@ mod tests {
         };
 
         let m2 = Metadata {
-            title: Some("title".to_string()),
-            summary: Some("summary".to_string()),
+            title: Some(Arc::new("title".to_string())),
+            summary: Some(Arc::new("summary".to_string())),
             authors: HashSet::new(),
             tags: HashSet::new(),
         };
@@ -27,21 +30,18 @@ mod tests {
     #[test]
     fn metadata_merge_should_use_self_as_base_metadata() {
         let m1 = Metadata {
-            title: Some("title".to_string()),
-            summary: Some("summary".to_string()),
-            authors: vec![Author {
+            title: Some(Arc::new("title".to_string())),
+            summary: Some(Arc::new("summary".to_string())),
+            authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
                 name: "a1".to_string(),
                 contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-            }]
-            .iter()
-            .map(|x| x.clone())
-            .collect(),
-            tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+            })])),
+            tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
         };
 
         let m2 = Metadata {
-            title: Some("parent title".to_string()),
-            summary: Some("parent summary".to_string()),
+            title: Some(Arc::new("parent title".to_string())),
+            summary: Some(Arc::new("parent summary".to_string())),
             authors: HashSet::new(),
             tags: HashSet::new(),
         };
@@ -56,54 +56,48 @@ mod tests {
         let m1 = Metadata {
             title: None,
             summary: None,
-            authors: vec![
-                Author {
+            authors: HashSet::from_iter(IntoIter::new([
+                Arc::new(Author {
                     name: "a1".to_string(),
                     contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a2".to_string(),
                     contacts: HashSet::new(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a3".to_string(),
                     contacts: vec!["c1"].iter().map(|x| x.to_string()).collect(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a4".to_string(),
                     contacts: vec!["c1"].iter().map(|x| x.to_string()).collect(),
-                },
-            ]
-            .iter()
-            .map(|x| x.clone())
-            .collect(),
+                }),
+            ])),
             tags: HashSet::new(),
         };
 
         let m2 = Metadata {
             title: None,
             summary: None,
-            authors: vec![
-                Author {
+            authors: HashSet::from_iter(IntoIter::new([
+                Arc::new(Author {
                     name: "a1".to_string(),
                     contacts: vec!["c3"].iter().map(|x| x.to_string()).collect(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a2".to_string(),
                     contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a3".to_string(),
                     contacts: HashSet::new(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "b1".to_string(),
                     contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-                },
-            ]
-            .iter()
-            .map(|x| x.clone())
-            .collect(),
+                }),
+            ])),
             tags: HashSet::new(),
         };
 
@@ -114,27 +108,24 @@ mod tests {
             Metadata {
                 title: None,
                 summary: None,
-                authors: vec![
-                    Author {
+                authors: HashSet::from_iter(IntoIter::new([
+                    Arc::new(Author {
                         name: "a1".to_string(),
                         contacts: vec!["c1", "c2", "c3"].iter().map(|x| x.to_string()).collect()
-                    },
-                    Author {
+                    }),
+                    Arc::new(Author {
                         name: "a2".to_string(),
                         contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect()
-                    },
-                    Author {
+                    }),
+                    Arc::new(Author {
                         name: "a3".to_string(),
                         contacts: vec!["c1"].iter().map(|x| x.to_string()).collect()
-                    },
-                    Author {
+                    }),
+                    Arc::new(Author {
                         name: "a4".to_string(),
                         contacts: vec!["c1"].iter().map(|x| x.to_string()).collect()
-                    },
-                ]
-                .iter()
-                .map(|x| x.clone())
-                .collect(),
+                    }),
+                ])),
                 tags: HashSet::new(),
             }
         );
@@ -146,21 +137,21 @@ mod tests {
             title: None,
             summary: None,
             authors: HashSet::new(),
-            tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+            tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
         };
 
         let m2 = Metadata {
             title: None,
             summary: None,
             authors: HashSet::new(),
-            tags: vec!["t3", "t4"].iter().map(|x| x.to_string()).collect(),
+            tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
         };
 
         let m3 = Metadata {
             title: None,
             summary: None,
             authors: HashSet::new(),
-            tags: vec!["t2", "t3"].iter().map(|x| x.to_string()).collect(),
+            tags: HashSet::from_iter(IntoIter::new([Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
         };
 
         let m4 = Metadata {
@@ -181,7 +172,12 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: vec!["t1", "t2", "t3", "t4"].iter().map(|x| x.to_string()).collect()
+                tags: HashSet::from_iter(IntoIter::new([
+                    Arc::new("t1".to_string()),
+                    Arc::new("t2".to_string()),
+                    Arc::new("t3".to_string()),
+                    Arc::new("t4".to_string())
+                ]))
             }
         );
 
@@ -191,7 +187,7 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: vec!["t1", "t2", "t3"].iter().map(|x| x.to_string()).collect()
+                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
             }
         );
 
@@ -201,7 +197,7 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect()
+                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())]))
             }
         );
 
@@ -211,7 +207,7 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect()
+                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())]))
             }
         );
     }
@@ -219,30 +215,27 @@ mod tests {
     #[test]
     fn metadata_merging_self_returns_a_clone() {
         let m = Metadata {
-            title: Some("title".to_string()),
-            summary: Some("summary".to_string()),
-            authors: vec![
-                Author {
+            title: Some(Arc::new("title".to_string())),
+            summary: Some(Arc::new("summary".to_string())),
+            authors: HashSet::from_iter(IntoIter::new([
+                Arc::new(Author {
                     name: "a1".to_string(),
                     contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a2".to_string(),
                     contacts: HashSet::new(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a3".to_string(),
                     contacts: vec!["c1"].iter().map(|x| x.to_string()).collect(),
-                },
-                Author {
+                }),
+                Arc::new(Author {
                     name: "a4".to_string(),
                     contacts: vec!["c1"].iter().map(|x| x.to_string()).collect(),
-                },
-            ]
-            .iter()
-            .map(|x| x.clone())
-            .collect(),
-            tags: vec!["t1", "t2"].iter().map(|x| x.to_string()).collect(),
+                }),
+            ])),
+            tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
         };
 
         let result = m.merge(&m).unwrap();

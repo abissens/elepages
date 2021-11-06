@@ -86,9 +86,11 @@ impl Stage for GitAuthors {
                                 summary: m.summary.clone(),
                                 authors: page_authors
                                     .iter()
-                                    .map(|pa| Author {
-                                        name: pa.name.to_string(),
-                                        contacts: IntoIter::new([pa.email.to_string()]).collect(),
+                                    .map(|pa| {
+                                        Arc::new(Author {
+                                            name: pa.name.to_string(),
+                                            contacts: IntoIter::new([pa.email.to_string()]).collect(),
+                                        })
                                     })
                                     .collect(),
                                 tags: m.tags.clone(),
@@ -98,9 +100,11 @@ impl Stage for GitAuthors {
                                 summary: None,
                                 authors: page_authors
                                     .iter()
-                                    .map(|pa| Author {
-                                        name: pa.name.to_string(),
-                                        contacts: IntoIter::new([pa.email.to_string()]).collect(),
+                                    .map(|pa| {
+                                        Arc::new(Author {
+                                            name: pa.name.to_string(),
+                                            contacts: IntoIter::new([pa.email.to_string()]).collect(),
+                                        })
                                     })
                                     .collect(),
                                 tags: Default::default(),
