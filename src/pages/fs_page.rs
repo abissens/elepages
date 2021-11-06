@@ -1,4 +1,4 @@
-use crate::pages::page::{Metadata, Page};
+use crate::pages::{Metadata, Page};
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
