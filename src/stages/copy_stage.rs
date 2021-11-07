@@ -4,10 +4,15 @@ use std::any::Any;
 use std::sync::Arc;
 
 pub struct CopyStage {
+    pub name: String,
     pub prefix: Vec<String>,
 }
 
 impl Stage for CopyStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let p = bundle.pages().iter().map(|p| p.change_path(join_paths(&self.prefix, p.path()))).collect::<Vec<Arc<dyn Page>>>();
         Ok(Arc::new(VecBundle { p }))

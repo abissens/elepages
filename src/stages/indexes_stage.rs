@@ -6,9 +6,15 @@ use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-pub struct IndexStage;
+pub struct IndexStage {
+    pub name: String,
+}
 
 impl Stage for IndexStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut pages_by_tag: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut pages_by_author: HashMap<&str, Vec<&[String]>> = HashMap::new();

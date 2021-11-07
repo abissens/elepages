@@ -29,6 +29,10 @@ impl TestStage {
 }
 
 impl Stage for TestStage {
+    fn name(&self) -> String {
+        "test stage".to_string()
+    }
+
     fn process(&self, _: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         return match &self.bundle {
             Some(b) => {

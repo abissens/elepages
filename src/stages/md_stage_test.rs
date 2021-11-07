@@ -50,7 +50,7 @@ mod tests {
             ],
         });
 
-        let md_stage = MdStage {};
+        let md_stage = MdStage { name: "md stage".to_string() };
         let result_bundle = md_stage.process(&bundle).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();

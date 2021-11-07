@@ -26,7 +26,11 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
-            units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage { prefix: vec!["copied".to_string()] })))],
+            name: "compose stage".to_string(),
+            units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage {
+                name: "copy stage".to_string(),
+                prefix: vec!["copied".to_string()],
+            })))],
             parallel: false,
         };
 
@@ -89,9 +93,13 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
+            name: "compose stage".to_string(),
             units: vec![Arc::new(ReplaceSubSet(
                 Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
-                Arc::new(CopyStage { prefix: vec!["copied".to_string()] }),
+                Arc::new(CopyStage {
+                    name: "copy stage".to_string(),
+                    prefix: vec!["copied".to_string()],
+                }),
             ))],
             parallel: false,
         };
@@ -155,13 +163,18 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
+            name: "compose stage".to_string(),
             units: vec![
                 Arc::new(CreateNewSet(Arc::new(CopyStage {
+                    name: "copy stage".to_string(),
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
-                    Arc::new(CopyStage { prefix: vec!["copied".to_string()] }),
+                    Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
+                        prefix: vec!["copied".to_string()],
+                    }),
                 )),
             ],
             parallel: false,
@@ -251,23 +264,30 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
+            name: "compose stage".to_string(),
             units: vec![
                 Arc::new(CreateNewSet(Arc::new(CopyStage {
+                    name: "copy stage".to_string(),
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
-                    Arc::new(CopyStage { prefix: vec!["copied".to_string()] }),
+                    Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
+                        prefix: vec!["copied".to_string()],
+                    }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(RegexSelector(regex::Regex::new(r"^.*?f\d$").unwrap())),
                     Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
                         prefix: vec!["copied regex".to_string()],
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(ExtSelector(".md".into())),
                     Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
                         prefix: vec!["copied ext".to_string()],
                     }),
                 )),
@@ -364,7 +384,11 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
-            units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage { prefix: vec!["copied".to_string()] })))],
+            name: "compose stage".to_string(),
+            units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage {
+                name: "copy stage".to_string(),
+                prefix: vec!["copied".to_string()],
+            })))],
             parallel: true,
         };
 
@@ -427,9 +451,13 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
+            name: "compose stage".to_string(),
             units: vec![Arc::new(ReplaceSubSet(
                 Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
-                Arc::new(CopyStage { prefix: vec!["copied".to_string()] }),
+                Arc::new(CopyStage {
+                    name: "copy stage".to_string(),
+                    prefix: vec!["copied".to_string()],
+                }),
             ))],
             parallel: true,
         };
@@ -493,13 +521,18 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
+            name: "compose stage".to_string(),
             units: vec![
                 Arc::new(CreateNewSet(Arc::new(CopyStage {
+                    name: "copy stage".to_string(),
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
-                    Arc::new(CopyStage { prefix: vec!["copied".to_string()] }),
+                    Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
+                        prefix: vec!["copied".to_string()],
+                    }),
                 )),
             ],
             parallel: true,
@@ -589,23 +622,30 @@ mod tests {
         });
 
         let compose_stage = ComposeStage {
+            name: "compose stage".to_string(),
             units: vec![
                 Arc::new(CreateNewSet(Arc::new(CopyStage {
+                    name: "copy stage".to_string(),
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
-                    Arc::new(CopyStage { prefix: vec!["copied".to_string()] }),
+                    Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
+                        prefix: vec!["copied".to_string()],
+                    }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(RegexSelector(regex::Regex::new(r"^.*?f\d$").unwrap())),
                     Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
                         prefix: vec!["copied regex".to_string()],
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(ExtSelector(".md".into())),
                     Arc::new(CopyStage {
+                        name: "copy stage".to_string(),
                         prefix: vec!["copied ext".to_string()],
                     }),
                 )),

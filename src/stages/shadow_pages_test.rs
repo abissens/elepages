@@ -26,7 +26,7 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
@@ -104,7 +104,7 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
@@ -202,7 +202,7 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
@@ -285,7 +285,7 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 
@@ -402,7 +402,7 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
 

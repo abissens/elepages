@@ -32,6 +32,7 @@ mod tests {
         let commit_time = commit(&repo, "Initial commit");
 
         let git_metadata_stage = GitMetadata {
+            name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
         };
 
@@ -134,6 +135,7 @@ mod tests {
         let commit_time_3 = commit(&repo, "Third commit");
 
         let git_metadata_stage = GitMetadata {
+            name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
         };
 
@@ -307,6 +309,7 @@ mod tests {
             .unwrap();
 
         let git_metadata_stage = GitMetadata {
+            name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
         };
 
@@ -464,9 +467,11 @@ mod tests {
         let commit_time = commit(&repo, "Initial commit");
 
         let sequence_stage = SequenceStage {
+            name: "sequence stage".to_string(),
             stages: vec![
-                Arc::new(ShadowPages::default()),
+                Arc::new(ShadowPages::default("shadow stage".to_string())),
                 Arc::new(GitMetadata {
+                    name: "git meta stage".to_string(),
                     repo_path: test_folder.get_path().to_path_buf(),
                 }),
             ],
@@ -585,9 +590,11 @@ mod tests {
         let commit_time = commit(&repo, "Initial commit");
 
         let sequence_stage = SequenceStage {
+            name: "sequence stage".to_string(),
             stages: vec![
-                Arc::new(ShadowPages::default()),
+                Arc::new(ShadowPages::default("shadow stage".to_string())),
                 Arc::new(GitMetadata {
+                    name: "git meta stage".to_string(),
                     repo_path: test_folder.get_path().to_path_buf(),
                 }),
             ],

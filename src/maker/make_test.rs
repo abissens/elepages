@@ -14,7 +14,7 @@ mod tests {
         let mut env = Env::new();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
-        let git_metadata_stage = Maker::default().make(&git_metadata_stage_config, &env).unwrap();
+        let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
 
         if let Some(g) = git_metadata_stage.as_any().unwrap().downcast_ref::<GitMetadata>() {
             assert_eq!(&g.repo_path, &PathBuf::from_str("a/b/c").unwrap());
@@ -23,25 +23,25 @@ mod tests {
         }
 
         let indexes_stage_config: StageValue = serde_yaml::from_str("indexes").unwrap();
-        let indexes_stage = Maker::default().make(&indexes_stage_config, &Env::new()).unwrap();
+        let indexes_stage = Maker::default().make(None, &indexes_stage_config, &Env::new()).unwrap();
         if let None = indexes_stage.as_any().unwrap().downcast_ref::<IndexStage>() {
             panic!("should downcast to IndexStage");
         }
 
         let shadow_stage_config: StageValue = serde_yaml::from_str("shadow").unwrap();
-        let shadow_stage = Maker::default().make(&shadow_stage_config, &Env::new()).unwrap();
+        let shadow_stage = Maker::default().make(None, &shadow_stage_config, &Env::new()).unwrap();
         if let None = shadow_stage.as_any().unwrap().downcast_ref::<ShadowPages>() {
             panic!("should downcast to ShadowPages");
         }
 
         let md_stage_config: StageValue = serde_yaml::from_str("md").unwrap();
-        let md_stage = Maker::default().make(&md_stage_config, &Env::new()).unwrap();
+        let md_stage = Maker::default().make(None, &md_stage_config, &Env::new()).unwrap();
         if let None = md_stage.as_any().unwrap().downcast_ref::<MdStage>() {
             panic!("should downcast to MdStage");
         }
 
         let hb_stage_config: StageValue = serde_yaml::from_str("handlebars").unwrap();
-        let hb_stage = Maker::default().make(&hb_stage_config, &env).unwrap();
+        let hb_stage = Maker::default().make(None, &hb_stage_config, &env).unwrap();
         if let Some(hb) = hb_stage.as_any().unwrap().downcast_ref::<HandlebarsStage>() {
             let hbl: &HandlebarsDir = hb.lookup.as_any().unwrap().downcast_ref().unwrap();
             assert_eq!(&hbl.base_path, &PathBuf::from_str("a/b/c").unwrap());
@@ -54,7 +54,7 @@ mod tests {
     fn return_err_when_named_stage_not_found() {
         let config: StageValue = serde_yaml::from_str("some_stage").unwrap();
 
-        if let Err(e) = Maker::default().make(&config, &Env::new()) {
+        if let Err(e) = Maker::default().make(None, &config, &Env::new()) {
             assert_eq!(e.to_string(), "stage some_stage not found")
         } else {
             panic!("should return Err");
@@ -71,7 +71,7 @@ mod tests {
         "})
         .unwrap();
 
-        if let Err(e) = Maker::default().make(&config, &Env::new()) {
+        if let Err(e) = Maker::default().make(None, &config, &Env::new()) {
             assert_eq!(e.to_string(), "selector some_selector not found")
         } else {
             panic!("should return Err");
@@ -91,7 +91,7 @@ mod tests {
         let mut env = Env::new();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
-        let stage = Maker::default().make(&config, &env).unwrap();
+        let stage = Maker::default().make(None, &config, &env).unwrap();
 
         let seq = stage.as_any().unwrap().downcast_ref::<SequenceStage>().expect("SequenceStage");
         seq.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
@@ -113,7 +113,7 @@ mod tests {
         let mut env = Env::new();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
-        let stage = Maker::default().make(&config, &env).unwrap();
+        let stage = Maker::default().make(None, &config, &env).unwrap();
 
         let union = stage.as_any().unwrap().downcast_ref::<UnionStage>().expect("UnionStage");
         union.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
@@ -140,7 +140,7 @@ mod tests {
         let mut env = Env::new();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
-        let stage = Maker::default().make(&config, &env).unwrap();
+        let stage = Maker::default().make(None, &config, &env).unwrap();
 
         let compose = stage.as_any().unwrap().downcast_ref::<ComposeStage>().expect("ComposeStage");
 

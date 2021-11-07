@@ -5,6 +5,7 @@ use std::any::Any;
 use std::sync::Arc;
 
 pub struct UnionStage {
+    pub name: String,
     pub stages: Vec<Arc<dyn Stage>>,
     pub parallel: bool,
 }
@@ -39,6 +40,10 @@ impl UnionStage {
 }
 
 impl Stage for UnionStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         Ok(match self.parallel {
             true => self.parallel_process(bundle)?,

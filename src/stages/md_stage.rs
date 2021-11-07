@@ -5,9 +5,15 @@ use std::any::Any;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
 
-pub struct MdStage;
+pub struct MdStage {
+    pub name: String,
+}
 
 impl Stage for MdStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let vec_bundle = VecBundle {
             p: bundle

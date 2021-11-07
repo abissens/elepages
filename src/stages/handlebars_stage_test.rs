@@ -56,7 +56,10 @@ mod tests {
             ],
         });
 
-        let hb_stage = HandlebarsStage { lookup: Arc::new(LookupTest(vec![])) };
+        let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
+            lookup: Arc::new(LookupTest(vec![])),
+        };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
 
@@ -121,6 +124,7 @@ mod tests {
         });
 
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(LookupTest(vec![
                 Arc::new(TestPage {
                     path: vec!["a".to_string()],
@@ -232,6 +236,7 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
@@ -318,6 +323,7 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
@@ -416,6 +422,7 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
@@ -546,6 +553,7 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
@@ -706,6 +714,7 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 

@@ -8,6 +8,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 pub struct ComposeStage {
+    pub name: String,
     pub units: Vec<Arc<ComposeUnit>>,
     pub parallel: bool,
 }
@@ -163,6 +164,10 @@ impl ComposeStage {
 }
 
 impl Stage for ComposeStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         Ok(match self.parallel {
             true => self.parallel_process(bundle)?,

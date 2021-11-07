@@ -13,10 +13,15 @@ pub trait ShadowLoader: Send + Sync {
 }
 
 pub struct ShadowPages {
-    loaders: HashMap<String, Arc<dyn ShadowLoader>>,
+    pub name: String,
+    pub loaders: HashMap<String, Arc<dyn ShadowLoader>>,
 }
 
 impl Stage for ShadowPages {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
 
@@ -133,12 +138,13 @@ impl Stage for ShadowPages {
 }
 
 impl ShadowPages {
-    pub fn new(loaders: HashMap<String, Arc<dyn ShadowLoader>>) -> Self {
-        ShadowPages { loaders }
+    pub fn new(name: String, loaders: HashMap<String, Arc<dyn ShadowLoader>>) -> Self {
+        ShadowPages { name, loaders }
     }
 
-    pub fn default() -> Self {
+    pub fn default(name: String) -> Self {
         ShadowPages {
+            name,
             loaders: IntoIter::new([
                 (".json".to_string(), Arc::new(JsonShadowLoader()) as Arc<dyn ShadowLoader>),
                 (".yaml".to_string(), Arc::new(YamlShadowLoader()) as Arc<dyn ShadowLoader>),

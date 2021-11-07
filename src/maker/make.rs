@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 pub trait StageMaker {
-    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>>;
+    fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>>;
 }
 
 pub trait SelectorMaker {
@@ -20,8 +20,8 @@ pub trait SelectorMaker {
 }
 
 pub struct Maker {
-    pub named_stage_makers: HashMap<String, Box<dyn StageMaker>>,
-    pub named_selector_makers: HashMap<String, Box<dyn SelectorMaker>>,
+    pub processor_stage_makers: HashMap<String, Box<dyn StageMaker>>,
+    pub selector_makers: HashMap<String, Box<dyn SelectorMaker>>,
 }
 
 pub struct GitMetadataStageMaker;
@@ -66,39 +66,47 @@ impl Default for Env {
 }
 
 impl StageMaker for GitMetadataStageMaker {
-    fn make(&self, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, name: Option<&str>, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let root_path: &PathBuf = env
             .get_downcast::<PathBuf>("root_path")?
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
 
-        Ok(Arc::new(GitMetadata { repo_path: root_path.to_path_buf() }))
+        Ok(Arc::new(GitMetadata {
+            name: name.unwrap_or("git metadata stage").to_string(),
+            repo_path: root_path.to_path_buf(),
+        }))
     }
 }
 
 impl StageMaker for IndexesStageMaker {
-    fn make(&self, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        Ok(Arc::new(IndexStage))
+    fn make(&self, name: Option<&str>, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        Ok(Arc::new(IndexStage {
+            name: name.unwrap_or("index stage").to_string(),
+        }))
     }
 }
 
 impl StageMaker for MdStageMaker {
-    fn make(&self, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        Ok(Arc::new(MdStage))
+    fn make(&self, name: Option<&str>, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        Ok(Arc::new(MdStage {
+            name: name.unwrap_or("markdown stage").to_string(),
+        }))
     }
 }
 
 impl StageMaker for ShadowStageMaker {
-    fn make(&self, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        Ok(Arc::new(ShadowPages::default()))
+    fn make(&self, name: Option<&str>, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        Ok(Arc::new(ShadowPages::default(name.unwrap_or("shadow pages stage").to_string())))
     }
 }
 
 impl StageMaker for HandlebarsStageMaker {
-    fn make(&self, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, name: Option<&str>, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let root_path: &PathBuf = env
             .get_downcast::<PathBuf>("root_path")?
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
         Ok(Arc::new(HandlebarsStage {
+            name: name.unwrap_or("handlebars stage").to_string(),
             lookup: Arc::new(HandlebarsDir::new(root_path)?),
         }))
     }
@@ -147,49 +155,59 @@ impl Maker {
         named_selector_makers.insert("ext".into(), Box::new(ExtSelectorMaker) as Box<dyn SelectorMaker>);
 
         Maker {
-            named_stage_makers,
-            named_selector_makers,
+            processor_stage_makers: named_stage_makers,
+            selector_makers: named_selector_makers,
         }
     }
 
-    pub fn make(&self, stage_config: &StageValue, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    pub fn make(&self, name: Option<&str>, stage_config: &StageValue, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let stage = match stage_config {
+            StageValue::Named { name, stage } => self.make(Some(name), stage, env)?,
             StageValue::Sequence(values) => Arc::new(SequenceStage {
-                stages: values.iter().map(|value| self.make(value, env)).collect::<anyhow::Result<Vec<Arc<dyn Stage>>>>()?,
+                name: name.unwrap_or("sequence stage").to_string(),
+                stages: values.iter().map(|value| self.make(None, value, env)).collect::<anyhow::Result<Vec<Arc<dyn Stage>>>>()?,
             }) as Arc<dyn Stage>,
             StageValue::Union { union: values } => Arc::new(UnionStage {
-                stages: values.iter().map(|value| self.make(value, env)).collect::<anyhow::Result<Vec<Arc<dyn Stage>>>>()?,
+                name: name.unwrap_or("union stage").to_string(),
+                stages: values.iter().map(|value| self.make(None, value, env)).collect::<anyhow::Result<Vec<Arc<dyn Stage>>>>()?,
                 parallel: true,
             }) as Arc<dyn Stage>,
             StageValue::Composition { compose: configs } => Arc::new(ComposeStage {
+                name: name.unwrap_or("compose stage").to_string(),
                 units: configs
                     .iter()
                     .map(|value| {
                         Ok(match value {
-                            ComposeUnitConfig::Create(value) => Arc::new(ComposeUnit::CreateNewSet(self.make(value, env)?)),
+                            ComposeUnitConfig::Create(value) => Arc::new(ComposeUnit::CreateNewSet(self.make(None, value, env)?)),
                             ComposeUnitConfig::Replace {
                                 selector: (sel_name, sel_config),
                                 inner: stage_value,
                             } => {
                                 let selector_maker = self
-                                    .named_selector_makers
+                                    .selector_makers
                                     .get(sel_name)
                                     .ok_or_else(|| PagesError::ElementNotFound(format!("selector {} not found", sel_name)))?;
                                 let selector = selector_maker.make(sel_config, env)?;
-                                Arc::new(ComposeUnit::ReplaceSubSet(selector, self.make(stage_value, env)?))
+                                Arc::new(ComposeUnit::ReplaceSubSet(selector, self.make(None, stage_value, env)?))
                             }
                         })
                     })
                     .collect::<anyhow::Result<Vec<Arc<ComposeUnit>>>>()?,
                 parallel: true,
             }) as Arc<dyn Stage>,
-            StageValue::Named { name, config } => {
-                let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", name)))?;
-                stage_maker.make(config, env)? as Arc<dyn Stage>
+            StageValue::ProcessorStage { processor_type, config } => {
+                let stage_maker = self
+                    .processor_stage_makers
+                    .get(processor_type)
+                    .ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", processor_type)))?;
+                stage_maker.make(name, config, env)? as Arc<dyn Stage>
             }
-            StageValue::NamedWithoutConfig(name) => {
-                let stage_maker = self.named_stage_makers.get(name).ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", name)))?;
-                stage_maker.make(&Value::None, env)? as Arc<dyn Stage>
+            StageValue::ProcessorWithoutConfigStage(processor_type) => {
+                let stage_maker = self
+                    .processor_stage_makers
+                    .get(processor_type)
+                    .ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", processor_type)))?;
+                stage_maker.make(name, &Value::None, env)? as Arc<dyn Stage>
             }
         };
 

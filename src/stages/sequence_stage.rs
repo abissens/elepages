@@ -4,6 +4,7 @@ use std::any::Any;
 use std::sync::Arc;
 
 pub struct SequenceStage {
+    pub name: String,
     pub stages: Vec<Arc<dyn Stage>>,
 }
 
@@ -18,6 +19,10 @@ impl SequenceStage {
 }
 
 impl Stage for SequenceStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         SequenceStage::sequence_process(Arc::clone(bundle), &self.stages)
     }

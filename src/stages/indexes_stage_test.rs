@@ -31,7 +31,7 @@ mod tests {
             })],
         });
 
-        let index_stage = IndexStage {};
+        let index_stage = IndexStage { name: "index stage".to_string() };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
 
         assert_eq!(
@@ -129,7 +129,7 @@ mod tests {
             ],
         });
 
-        let index_stage = IndexStage {};
+        let index_stage = IndexStage { name: "index stage".to_string() };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
         let index_pages = IndexPages::from_bundle(&result_bundle);
         assert_eq!(

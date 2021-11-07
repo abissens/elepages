@@ -6,7 +6,9 @@ use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
+
 pub struct GitMetadata {
+    pub name: String,
     pub repo_path: PathBuf,
 }
 
@@ -83,6 +85,10 @@ impl GitMetadata {
 }
 
 impl Stage for GitMetadata {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut blame_pages = HashMap::default();

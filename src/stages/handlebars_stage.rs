@@ -23,10 +23,15 @@ pub trait HandlebarsLookup: Sync + Send + Debug {
 }
 
 pub struct HandlebarsStage {
+    pub name: String,
     pub lookup: Arc<dyn HandlebarsLookup>,
 }
 
 impl Stage for HandlebarsStage {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut registry = handlebars::Handlebars::new();
         self.lookup.init_registry(&mut registry)?;

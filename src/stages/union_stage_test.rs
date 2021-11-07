@@ -27,14 +27,17 @@ mod tests {
         });
 
         let copy_stage_1 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
         let copy_stage_2 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["second_root".to_string()],
         };
 
         let union_stage = UnionStage {
+            name: "union stage".to_string(),
             stages: vec![Arc::new(copy_stage_1), Arc::new(copy_stage_2)],
             parallel: true,
         };
@@ -88,14 +91,17 @@ mod tests {
         });
 
         let copy_stage_1 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
         let copy_stage_2 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["second_root".to_string()],
         };
 
         let union_stage = UnionStage {
+            name: "union stage".to_string(),
             stages: vec![Arc::new(copy_stage_1), Arc::new(copy_stage_2)],
             parallel: false,
         };
@@ -153,6 +159,7 @@ mod tests {
         let err_stage = TestStage::err("some error");
 
         let union_stage = UnionStage {
+            name: "union stage".to_string(),
             stages: vec![
                 Arc::clone(&ok_stage),
                 Arc::new(err_stage),

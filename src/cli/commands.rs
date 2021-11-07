@@ -34,26 +34,26 @@ impl Parameters {
 
     fn default_config() -> StageValue {
         StageValue::Sequence(vec![
-            StageValue::Named {
-                name: "shadow".to_string(),
+            StageValue::ProcessorStage {
+                processor_type: "shadow".to_string(),
                 config: Default::default(),
             },
-            StageValue::Named {
-                name: "git_metadata".to_string(),
+            StageValue::ProcessorStage {
+                processor_type: "git_metadata".to_string(),
                 config: Default::default(),
             },
             StageValue::Composition {
                 compose: vec![ComposeUnitConfig::Replace {
-                    inner: StageValue::Named {
-                        name: "md".to_string(),
+                    inner: StageValue::ProcessorStage {
+                        processor_type: "md".to_string(),
                         config: Default::default(),
                     },
                     selector: ("ext".to_string(), Value::String("md".to_string())),
                 }],
             },
             StageValue::Composition {
-                compose: vec![ComposeUnitConfig::Create(StageValue::Named {
-                    name: "indexes".to_string(),
+                compose: vec![ComposeUnitConfig::Create(StageValue::ProcessorStage {
+                    processor_type: "indexes".to_string(),
                     config: Default::default(),
                 })],
             },

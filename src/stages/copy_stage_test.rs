@@ -23,6 +23,7 @@ mod tests {
             ],
         });
         let copy_stage = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
