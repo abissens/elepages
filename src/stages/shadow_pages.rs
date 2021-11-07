@@ -127,8 +127,8 @@ impl Stage for ShadowPages {
         Ok(Arc::new(vec_bundle))
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 

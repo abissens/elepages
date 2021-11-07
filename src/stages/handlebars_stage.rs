@@ -17,8 +17,8 @@ pub trait HandlebarsLookup: Sync + Send + Debug {
     fn init_registry(&self, registry: &mut handlebars::Handlebars) -> anyhow::Result<()>;
     fn fetch(&self, page: &Arc<dyn Page>) -> Option<String>;
     fn assets(&self) -> anyhow::Result<Vec<Arc<dyn Page>>>;
-    fn as_any(&self) -> &dyn Any {
-        panic!("not implemented")
+    fn as_any(&self) -> Option<&dyn Any> {
+        None
     }
 }
 
@@ -67,8 +67,8 @@ impl Stage for HandlebarsStage {
         Ok(Arc::new(result_bundle))
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 
@@ -197,7 +197,7 @@ impl HandlebarsLookup for HandlebarsDir {
         Ok(result)
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }

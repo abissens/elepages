@@ -19,8 +19,8 @@ pub enum ComposeUnit {
 
 pub trait SubSetSelector: Send + Sync {
     fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle>;
-    fn as_any(&self) -> &dyn Any {
-        panic!("not implemented")
+    fn as_any(&self) -> Option<&dyn Any> {
+        None
     }
 }
 
@@ -37,8 +37,8 @@ impl SubSetSelector for PrefixSelector {
         Arc::new(vec_bundle)
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 pub struct RegexSelector(pub Regex);
@@ -54,8 +54,8 @@ impl SubSetSelector for RegexSelector {
         Arc::new(vec_bundle)
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 
@@ -77,8 +77,8 @@ impl SubSetSelector for ExtSelector {
         Arc::new(vec_bundle)
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 
@@ -170,7 +170,7 @@ impl Stage for ComposeStage {
         })
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }

@@ -174,7 +174,7 @@ mod tests {
 
         let result_bundle = union_stage.process(bundle.borrow());
         assert!(matches!(result_bundle, Err(e) if e.to_string() == "some error"));
-        if let Some(r) = ok_stage.as_any().downcast_ref::<TestStage>() {
+        if let Some(r) = ok_stage.as_any().unwrap().downcast_ref::<TestStage>() {
             println!("{}", *r.launched.lock().unwrap());
         } else {
             panic!("TestStage should be downcasted");

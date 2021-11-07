@@ -22,7 +22,7 @@ impl Stage for SequenceStage {
         SequenceStage::sequence_process(Arc::clone(bundle), &self.stages)
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
