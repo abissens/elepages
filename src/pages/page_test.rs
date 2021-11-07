@@ -2,6 +2,7 @@
 mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Metadata, Page, PageProxy};
+    use chrono::DateTime;
     use std::collections::HashSet;
     use std::sync::Arc;
 
@@ -48,6 +49,8 @@ mod tests {
                 summary: None,
                 authors: HashSet::new(),
                 tags: HashSet::new(),
+                publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+                last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
             }),
             content: "".to_string(),
         });
@@ -63,6 +66,8 @@ mod tests {
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::new(),
+            publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+            last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
         }))
     }
 
@@ -75,6 +80,8 @@ mod tests {
                 summary: None,
                 authors: HashSet::new(),
                 tags: HashSet::new(),
+                publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+                last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
             }),
             content: "".to_string(),
         });
@@ -86,6 +93,8 @@ mod tests {
                 summary: None,
                 authors: HashSet::new(),
                 tags: HashSet::new(),
+                publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
+                last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T19:00:00-08:00").unwrap().timestamp()),
             }),
             inner: Arc::clone(&test_page),
         };
@@ -95,6 +104,8 @@ mod tests {
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::new(),
+            publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
+            last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T19:00:00-08:00").unwrap().timestamp()),
         }))
     }
 }

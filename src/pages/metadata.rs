@@ -50,6 +50,8 @@ pub struct Metadata {
     pub authors: HashSet<Arc<Author>>,
     #[serde(default = "HashSet::default")]
     pub tags: HashSet<Arc<String>>,
+    pub publishing_date: Option<i64>,
+    pub last_edit_date: Option<i64>,
 }
 
 impl Metadata {
@@ -59,6 +61,8 @@ impl Metadata {
             summary: self.summary.clone().or_else(|| parent.summary.clone()),
             authors: self.authors.clone(),
             tags: self.tags.clone(),
+            publishing_date: self.publishing_date.or(parent.publishing_date),
+            last_edit_date: self.last_edit_date.or(parent.last_edit_date),
         };
 
         for p_author in &parent.authors {

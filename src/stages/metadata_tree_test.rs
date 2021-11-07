@@ -13,6 +13,8 @@ mod tests {
             summary: None,
             authors: Default::default(),
             tags: Default::default(),
+            publishing_date: None,
+            last_edit_date: None,
         }
     }
 

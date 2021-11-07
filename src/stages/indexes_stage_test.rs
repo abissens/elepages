@@ -24,6 +24,8 @@ mod tests {
                         contacts: Default::default(),
                     })])),
                     tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                    publishing_date: None,
+                    last_edit_date: None,
                 }),
                 content: String::new(),
             })],
@@ -54,7 +56,9 @@ mod tests {
                             name: "f1 author".to_string(),
                             contacts: Default::default()
                         })])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     })
                 }])),
                 all_authors: HashSet::from_iter(IntoIter::new([Author {
@@ -79,6 +83,8 @@ mod tests {
                             contacts: Default::default(),
                         })])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: String::new(),
                 }),
@@ -103,6 +109,8 @@ mod tests {
                             }),
                         ])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: String::new(),
                 }),
@@ -116,6 +124,8 @@ mod tests {
                             contacts: Default::default(),
                         })])),
                         tags: HashSet::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: String::new(),
                 }),
@@ -150,7 +160,9 @@ mod tests {
                                 name: "f1 author".to_string(),
                                 contacts: Default::default()
                             })])),
-                            tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
+                            tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                            publishing_date: None,
+                            last_edit_date: None,
                         })
                     },
                     TestPageIndex {
@@ -172,7 +184,9 @@ mod tests {
                                     contacts: Default::default()
                                 })
                             ])),
-                            tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())]))
+                            tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+                            publishing_date: None,
+                            last_edit_date: None,
                         })
                     },
                     TestPageIndex {
@@ -185,6 +199,8 @@ mod tests {
                                 contacts: Default::default()
                             })])),
                             tags: HashSet::default(),
+                            publishing_date: None,
+                            last_edit_date: None,
                         })
                     }
                 ])),

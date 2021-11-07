@@ -1,18 +1,21 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::{Author, Metadata};
+    use chrono::DateTime;
     use std::array::IntoIter;
     use std::collections::HashSet;
     use std::iter::FromIterator;
     use std::sync::Arc;
 
     #[test]
-    fn metadata_merge_title_and_summary_attributes() {
+    fn metadata_merge_base_attributes() {
         let m1 = Metadata {
             title: None,
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let m2 = Metadata {
@@ -20,6 +23,8 @@ mod tests {
             summary: Some(Arc::new("summary".to_string())),
             authors: HashSet::new(),
             tags: HashSet::new(),
+            publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+            last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
         };
 
         let result = m1.merge(&m2).unwrap();
@@ -37,6 +42,8 @@ mod tests {
                 contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
             })])),
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+            publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+            last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
         };
 
         let m2 = Metadata {
@@ -44,6 +51,8 @@ mod tests {
             summary: Some(Arc::new("parent summary".to_string())),
             authors: HashSet::new(),
             tags: HashSet::new(),
+            publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
+            last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T19:00:00-08:00").unwrap().timestamp()),
         };
 
         let result = m1.merge(&m2).unwrap();
@@ -75,6 +84,8 @@ mod tests {
                 }),
             ])),
             tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let m2 = Metadata {
@@ -99,6 +110,8 @@ mod tests {
                 }),
             ])),
             tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let result = m1.merge(&m2).unwrap();
@@ -127,6 +140,8 @@ mod tests {
                     }),
                 ])),
                 tags: HashSet::new(),
+                publishing_date: None,
+                last_edit_date: None,
             }
         );
     }
@@ -138,6 +153,8 @@ mod tests {
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let m2 = Metadata {
@@ -145,6 +162,8 @@ mod tests {
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let m3 = Metadata {
@@ -152,6 +171,8 @@ mod tests {
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let m4 = Metadata {
@@ -159,6 +180,8 @@ mod tests {
             summary: None,
             authors: HashSet::new(),
             tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
         };
 
         let result1 = m1.merge(&m2).unwrap();
@@ -177,7 +200,9 @@ mod tests {
                     Arc::new("t2".to_string()),
                     Arc::new("t3".to_string()),
                     Arc::new("t4".to_string())
-                ]))
+                ])),
+                publishing_date: None,
+                last_edit_date: None,
             }
         );
 
@@ -187,7 +212,9 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
+                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                publishing_date: None,
+                last_edit_date: None,
             }
         );
 
@@ -197,7 +224,9 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())]))
+                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                publishing_date: None,
+                last_edit_date: None,
             }
         );
 
@@ -207,7 +236,9 @@ mod tests {
                 title: None,
                 summary: None,
                 authors: HashSet::new(),
-                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())]))
+                tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                publishing_date: None,
+                last_edit_date: None,
             }
         );
     }
@@ -236,6 +267,8 @@ mod tests {
                 }),
             ])),
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+            publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+            last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
         };
 
         let result = m.merge(&m).unwrap();

@@ -45,6 +45,8 @@ impl GitAuthors {
                             summary: m.summary.clone(),
                             authors,
                             tags: m.tags.clone(),
+                            publishing_date: None,
+                            last_edit_date: None,
                         }
                     } else {
                         Metadata {
@@ -52,6 +54,8 @@ impl GitAuthors {
                             summary: None,
                             authors,
                             tags: HashSet::default(),
+                            publishing_date: None,
+                            last_edit_date: None,
                         }
                     }))
                 }

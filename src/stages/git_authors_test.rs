@@ -53,7 +53,9 @@ mod tests {
                         name: "user_1".to_string(),
                         contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
                     })])),
-                    tags: Default::default()
+                    tags: Default::default(),
+                    publishing_date: None,
+                    last_edit_date: None,
                 }),
                 content: "file content 1".to_string()
             }]
@@ -154,7 +156,9 @@ mod tests {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
                         })])),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 11".to_string(),
                 },
@@ -167,7 +171,9 @@ mod tests {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
                         })])),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 1".to_string(),
                 },
@@ -180,7 +186,9 @@ mod tests {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
                         })])),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -193,7 +201,9 @@ mod tests {
                             name: "user_2".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
                         })])),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 3".to_string(),
                 },
@@ -206,7 +216,9 @@ mod tests {
                             name: "user_3".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_3@pages.io".to_string()])),
                         })])),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: indoc! {"
                         file content 1
@@ -301,7 +313,9 @@ mod tests {
                             name: "a1".to_string(),
                             contacts: HashSet::default()
                         })])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())]))
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 1".to_string(),
                 },
@@ -314,7 +328,9 @@ mod tests {
                             name: "user_1".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
                         })])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -327,7 +343,9 @@ mod tests {
                             name: "user_1".to_string(),
                             contacts: HashSet::from_iter(IntoIter::new(["user_1@pages.io".to_string()])),
                         })])),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "file content 3".to_string(),
                 }

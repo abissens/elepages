@@ -40,7 +40,9 @@ mod tests {
                     title: Some(Arc::new("a title".to_string())),
                     summary: None,
                     authors: Default::default(),
-                    tags: Default::default()
+                    tags: Default::default(),
+                    publishing_date: None,
+                    last_edit_date: None,
                 }),
                 content: "'a' content".to_string()
             },]
@@ -113,7 +115,9 @@ mod tests {
                         title: Some(Arc::new("a title".to_string())),
                         summary: None,
                         authors: Default::default(),
-                        tags: Default::default()
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'a' content".to_string()
                 },
@@ -132,7 +136,9 @@ mod tests {
                                 contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
                             })
                         ])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'b' content".to_string()
                 },
@@ -151,7 +157,9 @@ mod tests {
                                 contacts: vec!["c1", "c2"].iter().map(|x| x.to_string()).collect(),
                             })
                         ])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())]))
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'c' content".to_string()
                 },
@@ -288,6 +296,8 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'c' content".to_string()
                 },
@@ -298,6 +308,8 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'d' content".to_string()
                 },
@@ -308,6 +320,8 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'e' content".to_string()
                 },
@@ -400,6 +414,8 @@ mod tests {
                             contacts: vec!["c3", "c4"].iter().map(|x| x.to_string()).collect(),
                         })])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'c' content".to_string()
                 },
@@ -410,6 +426,8 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'d' content".to_string()
                 },
@@ -420,6 +438,8 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
                     }),
                     content: "'e' content".to_string()
                 },
