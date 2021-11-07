@@ -4,7 +4,7 @@ mod tests {
     use crate::pages::{PageBundle, VecBundle};
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
-    use crate::stages::test_stage::TestStage;
+    use crate::stages::test_stage::{TestProcessingResult, TestStage};
     use crate::stages::union_stage::UnionStage;
     use std::borrow::Borrow;
     use std::sync::Arc;
@@ -43,8 +43,23 @@ mod tests {
         };
 
         let result_bundle = union_stage.process(bundle.borrow()).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "union stage".to_string(),
+                sub_results: vec![
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                ]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -107,8 +122,23 @@ mod tests {
         };
 
         let result_bundle = union_stage.process(bundle.borrow()).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "union stage".to_string(),
+                sub_results: vec![
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                ]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,

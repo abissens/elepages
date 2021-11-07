@@ -1,12 +1,14 @@
 use crate::pages::{ArcPage, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use rayon::prelude::*;
 use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::option::Option::Some;
 use std::sync::Arc;
+use std::time::Instant;
 
 pub trait ShadowLoader: Send + Sync {
     fn load(&self, page: Arc<dyn Page>) -> anyhow::Result<Metadata>;
@@ -22,7 +24,8 @@ impl Stage for ShadowPages {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let mut vec_bundle = VecBundle { p: vec![] };
 
         let mut metadata_candidates = vec![];
@@ -129,7 +132,16 @@ impl Stage for ShadowPages {
             }
         }
 
-        Ok(Arc::new(vec_bundle))
+        let end = Instant::now();
+        Ok((
+            Arc::new(vec_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
     fn as_any(&self) -> Option<&dyn Any> {

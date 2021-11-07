@@ -1,9 +1,11 @@
 use crate::pages::{Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use pulldown_cmark::{html, Parser};
 use std::any::Any;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
+use std::time::Instant;
 
 pub struct MdStage {
     pub name: String,
@@ -14,7 +16,8 @@ impl Stage for MdStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let vec_bundle = VecBundle {
             p: bundle
                 .pages()
@@ -31,7 +34,16 @@ impl Stage for MdStage {
                 })
                 .collect(),
         };
-        Ok(Arc::new(vec_bundle))
+        let end = Instant::now();
+        Ok((
+            Arc::new(vec_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
     fn as_any(&self) -> Option<&dyn Any> {

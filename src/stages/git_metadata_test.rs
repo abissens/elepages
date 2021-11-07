@@ -6,6 +6,7 @@ mod tests {
     use crate::stages::sequence_stage::SequenceStage;
     use crate::stages::shadow_pages::ShadowPages;
     use crate::stages::stage::Stage;
+    use crate::stages::test_stage::TestProcessingResult;
     use git2::{IndexAddOption, Repository};
     use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
@@ -40,8 +41,16 @@ mod tests {
         let bundle = loader.load().unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "git meta stage".to_string(),
+                sub_results: vec![]
+            }
+        );
 
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -143,8 +152,16 @@ mod tests {
         let bundle = loader.load().unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "git meta stage".to_string(),
+                sub_results: vec![]
+            }
+        );
 
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -317,8 +334,15 @@ mod tests {
         let bundle = loader.load().unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "git meta stage".to_string(),
+                sub_results: vec![]
+            }
+        );
 
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -482,7 +506,24 @@ mod tests {
 
         let result_bundle = sequence_stage.process(&Arc::new(bundle)).unwrap();
 
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "sequence stage".to_string(),
+                sub_results: vec![
+                    TestProcessingResult {
+                        stage_name: "git meta stage".to_string(),
+                        sub_results: vec![]
+                    },
+                    TestProcessingResult {
+                        stage_name: "shadow stage".to_string(),
+                        sub_results: vec![]
+                    },
+                ]
+            }
+        );
+
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -604,8 +645,23 @@ mod tests {
         let bundle = loader.load().unwrap();
 
         let result_bundle = sequence_stage.process(&Arc::new(bundle)).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "sequence stage".to_string(),
+                sub_results: vec![
+                    TestProcessingResult {
+                        stage_name: "git meta stage".to_string(),
+                        sub_results: vec![]
+                    },
+                    TestProcessingResult {
+                        stage_name: "shadow stage".to_string(),
+                        sub_results: vec![]
+                    },
+                ]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,

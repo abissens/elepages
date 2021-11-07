@@ -31,7 +31,7 @@ impl<'a> Executor<'a> {
         let stage = self.maker.make(None, self.stage_config, self.env)?;
         let stage_making_elapsed = start.elapsed();
 
-        let result_bundle = stage.process(&input_bundle)?;
+        let (result_bundle, _) = stage.process(&input_bundle)?;
         let processing_elapsed = start.elapsed();
 
         self.writer.write(&result_bundle)?;

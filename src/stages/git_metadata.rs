@@ -1,11 +1,13 @@
 use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use git2::Repository;
 use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 
 pub struct GitMetadata {
     pub name: String,
@@ -89,7 +91,8 @@ impl Stage for GitMetadata {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut blame_pages = HashMap::default();
 
@@ -110,8 +113,16 @@ impl Stage for GitMetadata {
             let mut processed_pages = self.process_repository(blame_pages)?;
             vec_bundle.p.append(&mut processed_pages);
         }
-
-        Ok(Arc::new(vec_bundle))
+        let end = Instant::now();
+        Ok((
+            Arc::new(vec_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
     fn as_any(&self) -> Option<&dyn Any> {

@@ -1,10 +1,12 @@
 use crate::pages::{Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use serde::Serialize;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
+use std::time::Instant;
 
 pub struct IndexStage {
     pub name: String,
@@ -15,7 +17,8 @@ impl Stage for IndexStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let mut pages_by_tag: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut pages_by_author: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut all_pages: Vec<PageIndex> = vec![];
@@ -47,7 +50,7 @@ impl Stage for IndexStage {
         let all_authors_ser = serde_json::to_string(&all_authors)?;
         let all_pages_ser = serde_json::to_string(&all_pages)?;
 
-        Ok(Arc::new(VecBundle {
+        let result_bundle = VecBundle {
             p: vec![
                 Arc::new(CursorPage {
                     value: pages_by_tag_ser,
@@ -70,7 +73,17 @@ impl Stage for IndexStage {
                     path: vec!["all_pages.json".to_string()],
                 }),
             ],
-        }))
+        };
+        let end = Instant::now();
+        Ok((
+            Arc::new(result_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
     fn as_any(&self) -> Option<&dyn Any> {

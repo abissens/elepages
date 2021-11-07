@@ -4,6 +4,7 @@ mod tests {
     use crate::pages::{Author, Metadata, PageBundle, VecBundle};
     use crate::stages::indexes_stage::IndexStage;
     use crate::stages::stage::Stage;
+    use crate::stages::test_stage::TestProcessingResult;
     use serde::{Deserialize, Serialize};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
@@ -33,9 +34,15 @@ mod tests {
 
         let index_stage = IndexStage { name: "index stage".to_string() };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
-
         assert_eq!(
-            IndexPages::from_bundle(&result_bundle),
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "index stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        assert_eq!(
+            IndexPages::from_bundle(&result_bundle.0),
             IndexPages {
                 pages_by_tag: HashMap::from_iter(IntoIter::new([
                     ("t1".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
@@ -131,7 +138,14 @@ mod tests {
 
         let index_stage = IndexStage { name: "index stage".to_string() };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
-        let index_pages = IndexPages::from_bundle(&result_bundle);
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "index stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let index_pages = IndexPages::from_bundle(&result_bundle.0);
         assert_eq!(
             index_pages,
             IndexPages {

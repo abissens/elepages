@@ -4,6 +4,7 @@ mod tests {
     use crate::pages::{PageBundle, VecBundle};
     use crate::stages::md_stage::MdStage;
     use crate::stages::stage::Stage;
+    use crate::stages::test_stage::TestProcessingResult;
     use indoc::indoc;
     use std::sync::Arc;
 
@@ -52,8 +53,14 @@ mod tests {
 
         let md_stage = MdStage { name: "md stage".to_string() };
         let result_bundle = md_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "md stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
