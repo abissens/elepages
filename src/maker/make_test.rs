@@ -2,24 +2,24 @@
 mod tests {
     use crate::maker::{Env, Maker, StageValue};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{ComposeStage, ExtSelector, GitAuthors, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, UnionStage};
+    use crate::stages::{ComposeStage, ExtSelector, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, UnionStage};
     use indoc::indoc;
     use std::path::PathBuf;
     use std::str::FromStr;
 
     #[test]
     fn build_default_named_stages_based_on_named_config() {
-        let git_authors_stage_config: StageValue = serde_yaml::from_str("git_authors").unwrap();
+        let git_metadata_stage_config: StageValue = serde_yaml::from_str("git_metadata").unwrap();
 
         let mut env = Env::new();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
-        let git_authors_stage = Maker::default().make(&git_authors_stage_config, &env).unwrap();
+        let git_metadata_stage = Maker::default().make(&git_metadata_stage_config, &env).unwrap();
 
-        if let Some(g) = git_authors_stage.as_any().downcast_ref::<GitAuthors>() {
+        if let Some(g) = git_metadata_stage.as_any().downcast_ref::<GitMetadata>() {
             assert_eq!(&g.repo_path, &PathBuf::from_str("a/b/c").unwrap());
         } else {
-            panic!("should downcast to GitAuthors");
+            panic!("should downcast to GitMetadata");
         }
 
         let indexes_stage_config: StageValue = serde_yaml::from_str("indexes").unwrap();
@@ -82,7 +82,7 @@ mod tests {
     fn build_sequence_stage() {
         let config: StageValue = serde_yaml::from_str(indoc! {"
             ---
-            - git_authors
+            - git_metadata
             - md
             - handlebars
         "})
@@ -94,7 +94,7 @@ mod tests {
         let stage = Maker::default().make(&config, &env).unwrap();
 
         let seq = stage.as_any().downcast_ref::<SequenceStage>().expect("SequenceStage");
-        seq.stages.get(0).unwrap().as_any().downcast_ref::<GitAuthors>().expect("GitAuthors");
+        seq.stages.get(0).unwrap().as_any().downcast_ref::<GitMetadata>().expect("GitMetadata");
         seq.stages.get(1).unwrap().as_any().downcast_ref::<MdStage>().expect("MdStage");
         seq.stages.get(2).unwrap().as_any().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
     }
@@ -104,7 +104,7 @@ mod tests {
         let config: StageValue = serde_yaml::from_str(indoc! {"
             ---
             union:
-              - git_authors
+              - git_metadata
               - md
               - handlebars
         "})
@@ -116,7 +116,7 @@ mod tests {
         let stage = Maker::default().make(&config, &env).unwrap();
 
         let union = stage.as_any().downcast_ref::<UnionStage>().expect("UnionStage");
-        union.stages.get(0).unwrap().as_any().downcast_ref::<GitAuthors>().expect("GitAuthors");
+        union.stages.get(0).unwrap().as_any().downcast_ref::<GitMetadata>().expect("GitMetadata");
         union.stages.get(1).unwrap().as_any().downcast_ref::<MdStage>().expect("MdStage");
         union.stages.get(2).unwrap().as_any().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
     }
@@ -127,10 +127,10 @@ mod tests {
             ---
             compose:
                 - md
-                - git_authors
+                - git_metadata
                 - inner: md
                   selector: [regex, '.*?.md$']
-                - inner: git_authors
+                - inner: git_metadata
                   selector: [prefix, 'a/b']
                 - inner: handlebars
                   selector: [ext, '.hbs']
@@ -151,7 +151,7 @@ mod tests {
         }
 
         if let CreateNewSet(stage) = compose.units.get(1).unwrap().as_ref() {
-            stage.as_any().downcast_ref::<GitAuthors>().expect("GitAuthors");
+            stage.as_any().downcast_ref::<GitMetadata>().expect("GitMetadata");
         } else {
             panic!("unit should be of variant CreateNewSet")
         }
@@ -165,7 +165,7 @@ mod tests {
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(3).unwrap().as_ref() {
-            stage.as_any().downcast_ref::<GitAuthors>().expect("GitAuthors");
+            stage.as_any().downcast_ref::<GitMetadata>().expect("GitMetadata");
             let pre = selector.as_any().downcast_ref::<PrefixSelector>().expect("PrefixSelector");
             assert_eq!(pre.0, vec!["a", "b"]);
         } else {

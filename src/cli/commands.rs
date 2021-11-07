@@ -39,7 +39,7 @@ impl Parameters {
                 config: Default::default(),
             },
             StageValue::Named {
-                name: "git_authors".to_string(),
+                name: "git_metadata".to_string(),
                 config: Default::default(),
             },
             StageValue::Composition {

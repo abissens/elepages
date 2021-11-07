@@ -82,23 +82,23 @@ impl Metadata {
 }
 
 mod epoch_timestamp {
-    use serde::{Serialize, Serializer, Deserialize, Deserializer, de::Error};
-    use chrono::{Utc, TimeZone, DateTime};
+    use chrono::{DateTime, TimeZone, Utc};
+    use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
     pub fn serialize<S>(instant: &Option<i64>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         instant.map(|i| Utc.timestamp(i, 0).to_rfc3339()).serialize(serializer)
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let result = match Option::<String>::deserialize(deserializer)? {
             None => None,
-            Some(dt) => Some(DateTime::parse_from_rfc3339(&dt).map_err(D::Error::custom)?.timestamp())
+            Some(dt) => Some(DateTime::parse_from_rfc3339(&dt).map_err(D::Error::custom)?.timestamp()),
         };
         Ok(result)
     }

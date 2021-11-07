@@ -2,7 +2,7 @@
 mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, FsLoader, Loader, Metadata};
-    use crate::stages::git_authors::GitAuthors;
+    use crate::stages::git_metadata::GitMetadata;
     use crate::stages::sequence_stage::SequenceStage;
     use crate::stages::shadow_pages::ShadowPages;
     use crate::stages::stage::Stage;
@@ -31,14 +31,14 @@ mod tests {
             .unwrap();
         commit(&repo, "Initial commit");
 
-        let git_authors_stage = GitAuthors {
+        let git_metadata_stage = GitMetadata {
             repo_path: test_folder.get_path().to_path_buf(),
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = git_authors_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -133,14 +133,14 @@ mod tests {
         repo.config().unwrap().set_str("user.email", "user_3@pages.io").unwrap();
         commit(&repo, "Third commit");
 
-        let git_authors_stage = GitAuthors {
+        let git_metadata_stage = GitMetadata {
             repo_path: test_folder.get_path().to_path_buf(),
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = git_authors_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
 
         let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -288,7 +288,7 @@ mod tests {
         let sequence_stage = SequenceStage {
             stages: vec![
                 Arc::new(ShadowPages::default()),
-                Arc::new(GitAuthors {
+                Arc::new(GitMetadata {
                     repo_path: test_folder.get_path().to_path_buf(),
                 }),
             ],

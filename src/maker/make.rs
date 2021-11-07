@@ -2,7 +2,7 @@ use crate::config::Value;
 use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::pages_error::PagesError;
 use crate::stages::{
-    ComposeStage, ComposeUnit, ExtSelector, GitAuthors, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, Stage, SubSetSelector,
+    ComposeStage, ComposeUnit, ExtSelector, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, Stage, SubSetSelector,
     UnionStage,
 };
 use regex::Regex;
@@ -24,7 +24,7 @@ pub struct Maker {
     pub named_selector_makers: HashMap<String, Box<dyn SelectorMaker>>,
 }
 
-pub struct GitAuthorsStageMaker;
+pub struct GitMetadataStageMaker;
 pub struct IndexesStageMaker;
 pub struct MdStageMaker;
 pub struct ShadowStageMaker;
@@ -65,13 +65,13 @@ impl Default for Env {
     }
 }
 
-impl StageMaker for GitAuthorsStageMaker {
+impl StageMaker for GitMetadataStageMaker {
     fn make(&self, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let root_path: &PathBuf = env
             .get_downcast::<PathBuf>("root_path")?
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
 
-        Ok(Arc::new(GitAuthors { repo_path: root_path.to_path_buf() }))
+        Ok(Arc::new(GitMetadata { repo_path: root_path.to_path_buf() }))
     }
 }
 
@@ -136,7 +136,7 @@ impl Maker {
         let mut named_stage_makers = HashMap::new();
         let mut named_selector_makers = HashMap::new();
 
-        named_stage_makers.insert("git_authors".into(), Box::new(GitAuthorsStageMaker) as Box<dyn StageMaker>);
+        named_stage_makers.insert("git_metadata".into(), Box::new(GitMetadataStageMaker) as Box<dyn StageMaker>);
         named_stage_makers.insert("indexes".into(), Box::new(IndexesStageMaker) as Box<dyn StageMaker>);
         named_stage_makers.insert("md".into(), Box::new(MdStageMaker) as Box<dyn StageMaker>);
         named_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);

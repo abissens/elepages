@@ -6,11 +6,11 @@ use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
-pub struct GitAuthors {
+pub struct GitMetadata {
     pub repo_path: PathBuf,
 }
 
-impl GitAuthors {
+impl GitMetadata {
     fn process_repository(&self, mut blame_pages: HashMap<String, &Arc<dyn Page>>) -> anyhow::Result<Vec<Arc<dyn Page>>> {
         let repo = Repository::open(&self.repo_path)?;
         let mut rev_walk = repo.revwalk()?;
@@ -71,7 +71,7 @@ impl GitAuthors {
     }
 }
 
-impl Stage for GitAuthors {
+impl Stage for GitMetadata {
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut blame_pages = HashMap::default();
