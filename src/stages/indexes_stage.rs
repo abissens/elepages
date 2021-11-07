@@ -20,7 +20,7 @@ impl Stage for IndexStage {
             let page_path = page.path();
             all_pages.push(PageIndex {
                 path: page_path,
-                metadata: page.metadata(),
+                metadata: page.metadata().map(PageMetadata::from),
             });
             if let Some(metadata) = page.metadata() {
                 for tag in &metadata.tags {
@@ -75,9 +75,35 @@ impl Stage for IndexStage {
 #[derive(Serialize)]
 struct PageIndex<'a> {
     path: &'a [String],
-    metadata: Option<&'a Metadata>,
+    metadata: Option<PageMetadata<'a>>,
 }
 
+#[derive(Serialize)]
+struct PageMetadata<'a> {
+    title: Option<&'a str>,
+    summary: Option<&'a str>,
+    #[serde(default = "HashSet::default")]
+    authors: HashSet<&'a str>,
+    #[serde(default = "HashSet::default")]
+    tags: HashSet<&'a str>,
+    #[serde(alias = "publishingDate")]
+    publishing_date: Option<&'a i64>,
+    #[serde(alias = "lastEditDate")]
+    last_edit_date: Option<&'a i64>,
+}
+
+impl<'a> From<&'a Metadata> for PageMetadata<'a> {
+    fn from(m: &'a Metadata) -> Self {
+        Self {
+            title: m.title.as_ref().map(|v| v.as_str()),
+            summary: m.summary.as_ref().map(|v| v.as_str()),
+            authors: m.authors.iter().map(|v| v.name.as_str()).collect(),
+            tags: m.tags.iter().map(|v| v.as_str()).collect(),
+            publishing_date: m.publishing_date.as_ref(),
+            last_edit_date: m.last_edit_date.as_ref(),
+        }
+    }
+}
 #[derive(Debug)]
 struct CursorPage {
     value: String,
