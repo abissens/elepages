@@ -75,7 +75,9 @@ mod tests {
                         "title": "b title",
                         "summary": "b summary",
                         "authors": [{"name": "a1"}, {"name": "a2", "contacts": ["c1", "c2"]}],
-                        "tags": ["t1", "t2", "t3"]
+                        "tags": ["t1", "t2", "t3"],
+                        "publishingDate": "2021-10-20T16:00:00-08:00",
+                        "lastEditDate": "2021-10-20T17:00:00-08:00"
                     }"#
                     .to_string(),
                 }),
@@ -95,6 +97,8 @@ mod tests {
                           - name: a2
                             contacts: [c1, c2]
                         tags: [t1, t2, t3]
+                        publishingDate: 2021-10-20T16:00:00-08:00
+                        lastEditDate: 2021-10-20T17:00:00-08:00
                     "}
                     .to_string(),
                 }),
@@ -137,8 +141,8 @@ mod tests {
                             })
                         ])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
-                        publishing_date: None,
-                        last_edit_date: None,
+                        publishing_date: Some(1634774400),
+                        last_edit_date: Some(1634778000),
                     }),
                     content: "'b' content".to_string()
                 },
@@ -158,8 +162,8 @@ mod tests {
                             })
                         ])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
-                        publishing_date: None,
-                        last_edit_date: None,
+                        publishing_date: Some(1634774400),
+                        last_edit_date: Some(1634778000),
                     }),
                     content: "'c' content".to_string()
                 },
@@ -250,6 +254,7 @@ mod tests {
                           - name: a2
                             contacts: [c3, c4]
                         tags: [t1, t2]
+                        publishingDate: 2021-10-20T16:00:00-08:00
                     "}
                     .to_string(),
                 }),
@@ -296,7 +301,7 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
-                        publishing_date: None,
+                        publishing_date: Some(1634774400),
                         last_edit_date: None,
                     }),
                     content: "'c' content".to_string()
@@ -308,7 +313,7 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
-                        publishing_date: None,
+                        publishing_date: Some(1634774400),
                         last_edit_date: None,
                     }),
                     content: "'d' content".to_string()
@@ -320,7 +325,7 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
-                        publishing_date: None,
+                        publishing_date: Some(1634774400),
                         last_edit_date: None,
                     }),
                     content: "'e' content".to_string()
@@ -353,6 +358,7 @@ mod tests {
                           - name: a2
                             contacts: [c3, c4]
                         tags: [t1, t2]
+                        publishingDate: 2021-10-20T16:00:00-08:00
                     "}
                     .to_string(),
                 }),
@@ -370,6 +376,7 @@ mod tests {
                         authors:
                           - name: a2
                         tags: [t2, t3]
+                        publishingDate: 2021-10-20T17:00:00-08:00
                     "}
                     .to_string(),
                 }),
@@ -414,7 +421,7 @@ mod tests {
                             contacts: vec!["c3", "c4"].iter().map(|x| x.to_string()).collect(),
                         })])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
-                        publishing_date: None,
+                        publishing_date: Some(1634778000),
                         last_edit_date: None,
                     }),
                     content: "'c' content".to_string()
@@ -426,7 +433,7 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
-                        publishing_date: None,
+                        publishing_date: Some(1634774400),
                         last_edit_date: None,
                     }),
                     content: "'d' content".to_string()
@@ -438,7 +445,7 @@ mod tests {
                         summary: None,
                         authors: Default::default(),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
-                        publishing_date: None,
+                        publishing_date: Some(1634774400),
                         last_edit_date: None,
                     }),
                     content: "'e' content".to_string()

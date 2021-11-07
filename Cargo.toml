@@ -19,5 +19,4 @@ git2 = "0.13"
 indoc = "1.0"
 regex = "1.5"
 clap= "2"
-[dev-dependencies]
 chrono = "0.4"

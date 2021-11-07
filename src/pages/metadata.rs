@@ -50,7 +50,9 @@ pub struct Metadata {
     pub authors: HashSet<Arc<Author>>,
     #[serde(default = "HashSet::default")]
     pub tags: HashSet<Arc<String>>,
+    #[serde(with = "epoch_timestamp", default, alias = "publishingDate")]
     pub publishing_date: Option<i64>,
+    #[serde(with = "epoch_timestamp", default, alias = "lastEditDate")]
     pub last_edit_date: Option<i64>,
 }
 
@@ -75,6 +77,29 @@ impl Metadata {
             result.tags.insert(tag.clone());
         }
 
+        Ok(result)
+    }
+}
+
+mod epoch_timestamp {
+    use serde::{Serialize, Serializer, Deserialize, Deserializer, de::Error};
+    use chrono::{Utc, TimeZone, DateTime};
+
+    pub fn serialize<S>(instant: &Option<i64>, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+    {
+        instant.map(|i| Utc.timestamp(i, 0).to_rfc3339()).serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        let result = match Option::<String>::deserialize(deserializer)? {
+            None => None,
+            Some(dt) => Some(DateTime::parse_from_rfc3339(&dt).map_err(D::Error::custom)?.timestamp())
+        };
         Ok(result)
     }
 }
