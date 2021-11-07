@@ -141,22 +141,22 @@ impl SelectorMaker for ExtSelectorMaker {
 
 impl Maker {
     pub fn default() -> Self {
-        let mut named_stage_makers = HashMap::new();
-        let mut named_selector_makers = HashMap::new();
+        let mut processor_stage_makers = HashMap::new();
+        let mut selector_makers = HashMap::new();
 
-        named_stage_makers.insert("git_metadata".into(), Box::new(GitMetadataStageMaker) as Box<dyn StageMaker>);
-        named_stage_makers.insert("indexes".into(), Box::new(IndexesStageMaker) as Box<dyn StageMaker>);
-        named_stage_makers.insert("md".into(), Box::new(MdStageMaker) as Box<dyn StageMaker>);
-        named_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);
-        named_stage_makers.insert("handlebars".into(), Box::new(HandlebarsStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("git_metadata".into(), Box::new(GitMetadataStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("indexes".into(), Box::new(IndexesStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("md".into(), Box::new(MdStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("handlebars".into(), Box::new(HandlebarsStageMaker) as Box<dyn StageMaker>);
 
-        named_selector_makers.insert("prefix".into(), Box::new(PrefixSelectorMaker) as Box<dyn SelectorMaker>);
-        named_selector_makers.insert("regex".into(), Box::new(RegexSelectorMaker) as Box<dyn SelectorMaker>);
-        named_selector_makers.insert("ext".into(), Box::new(ExtSelectorMaker) as Box<dyn SelectorMaker>);
+        selector_makers.insert("prefix".into(), Box::new(PrefixSelectorMaker) as Box<dyn SelectorMaker>);
+        selector_makers.insert("regex".into(), Box::new(RegexSelectorMaker) as Box<dyn SelectorMaker>);
+        selector_makers.insert("ext".into(), Box::new(ExtSelectorMaker) as Box<dyn SelectorMaker>);
 
         Maker {
-            processor_stage_makers: named_stage_makers,
-            selector_makers: named_selector_makers,
+            processor_stage_makers,
+            selector_makers,
         }
     }
 
