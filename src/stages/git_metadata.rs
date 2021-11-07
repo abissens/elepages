@@ -34,19 +34,30 @@ impl GitMetadata {
             let commit_files: HashSet<String> = diff.deltas().filter_map(|d| d.new_file().path().map(|p| p.to_string_lossy().to_string())).collect();
             for commit_file in &commit_files {
                 if let Some(origin_page) = blame_pages.remove(commit_file) {
-                    let authors = IntoIter::new([Arc::new(Author {
-                        name: commit.author().name().map(|n| n.to_string()).unwrap_or_else(|| "".to_string()),
-                        contacts: commit.author().email().map(|e| IntoIter::new([e.to_string()]).collect()).unwrap_or_else(HashSet::default),
-                    })])
-                    .collect();
+                    let origin_metadata = origin_page.metadata();
+                    let authors = match origin_metadata.map(|m| m.authors.clone()) {
+                        Some(origin_authors) if !origin_authors.is_empty() => origin_authors,
+                        _ => IntoIter::new([Arc::new(Author {
+                            name: commit.author().name().map(|n| n.to_string()).unwrap_or_else(|| "".to_string()),
+                            contacts: commit.author().email().map(|e| IntoIter::new([e.to_string()]).collect()).unwrap_or_else(HashSet::default),
+                        })])
+                        .collect(),
+                    };
+                    let last_edit_date = match origin_metadata {
+                        Some(metadata) => match metadata.last_edit_date {
+                            Some(l) => Some(l),
+                            None => Some(commit.time().seconds()),
+                        },
+                        None => Some(commit.time().seconds()),
+                    };
                     result.push(origin_page.change_meta(if let Some(m) = origin_page.metadata() {
                         Metadata {
                             title: m.title.clone(),
                             summary: m.summary.clone(),
                             authors,
                             tags: m.tags.clone(),
-                            publishing_date: None,
-                            last_edit_date: None,
+                            publishing_date: m.publishing_date,
+                            last_edit_date,
                         }
                     } else {
                         Metadata {
@@ -55,7 +66,7 @@ impl GitMetadata {
                             authors,
                             tags: HashSet::default(),
                             publishing_date: None,
-                            last_edit_date: None,
+                            last_edit_date,
                         }
                     }))
                 }
@@ -81,7 +92,7 @@ impl Stage for GitMetadata {
                 continue;
             }
             if let Some(m) = page.metadata() {
-                if !m.authors.is_empty() {
+                if !m.authors.is_empty() && m.last_edit_date.is_some() {
                     vec_bundle.p.push(Arc::clone(page));
                     continue;
                 }
