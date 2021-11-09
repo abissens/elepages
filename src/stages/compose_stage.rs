@@ -98,11 +98,11 @@ impl ComposeStage {
             .map(|unit: &Arc<ComposeUnit>| {
                 let result = match unit.borrow() {
                     ComposeUnit::CreateNewSet(stage) => CompositionResult {
-                        result: stage.process(&bundle)?,
+                        result: stage.process(bundle)?,
                         selected_set: None,
                     },
                     ComposeUnit::ReplaceSubSet(selector, stage) => {
-                        let sub_set_bundle = selector.select(&bundle);
+                        let sub_set_bundle = selector.select(bundle);
                         CompositionResult {
                             result: stage.process(&sub_set_bundle)?,
                             selected_set: Some(sub_set_bundle),

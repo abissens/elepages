@@ -15,7 +15,7 @@ impl UnionStage {
         let stage_pages_result: Vec<Arc<dyn PageBundle>> = self
             .stages
             .par_iter()
-            .map(|stage: &Arc<dyn Stage>| stage.process(&bundle))
+            .map(|stage: &Arc<dyn Stage>| stage.process(bundle))
             .collect::<anyhow::Result<Vec<Arc<dyn PageBundle>>>>()?;
 
         for bundle in stage_pages_result {

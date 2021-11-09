@@ -32,7 +32,7 @@ impl MetadataTree {
                 match metadata {
                     Some(metadata) => result.push(MetadataNode {
                         path: current_name,
-                        metadata: Some(&metadata),
+                        metadata: Some(metadata),
                     }),
                     None => result.push(MetadataNode { path: current_name, metadata: None }),
                 }

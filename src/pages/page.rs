@@ -43,14 +43,14 @@ impl Page for PageProxy {
     fn path(&self) -> &[String] {
         match &self.new_path {
             None => self.inner.path(),
-            Some(p) => &p,
+            Some(p) => p,
         }
     }
 
     fn metadata(&self) -> Option<&Metadata> {
         match &self.new_metadata {
             None => self.inner.metadata(),
-            Some(m) => Some(&m),
+            Some(m) => Some(m),
         }
     }
 
