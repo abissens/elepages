@@ -1,11 +1,12 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum PagesError {
     AuthorMerge(String),
     MetadataTree(String),
     ElementNotFound(String),
+    ValueParsing(String),
 }
 
 impl Display for PagesError {
@@ -14,6 +15,7 @@ impl Display for PagesError {
             PagesError::AuthorMerge(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::MetadataTree(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::ElementNotFound(s) => f.write_fmt(format_args!("{}", s)),
+            PagesError::ValueParsing(s) => f.write_fmt(format_args!("{}", s)),
         }
     }
 }
