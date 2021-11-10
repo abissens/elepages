@@ -1,16 +1,20 @@
 use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use git2::Repository;
 use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
-pub struct GitAuthors {
+use std::time::Instant;
+
+pub struct GitMetadata {
+    pub name: String,
     pub repo_path: PathBuf,
 }
 
-impl GitAuthors {
+impl GitMetadata {
     fn process_repository(&self, mut blame_pages: HashMap<String, &Arc<dyn Page>>) -> anyhow::Result<Vec<Arc<dyn Page>>> {
         let repo = Repository::open(&self.repo_path)?;
         let mut rev_walk = repo.revwalk()?;
@@ -34,19 +38,30 @@ impl GitAuthors {
             let commit_files: HashSet<String> = diff.deltas().filter_map(|d| d.new_file().path().map(|p| p.to_string_lossy().to_string())).collect();
             for commit_file in &commit_files {
                 if let Some(origin_page) = blame_pages.remove(commit_file) {
-                    let authors = IntoIter::new([Arc::new(Author {
-                        name: commit.author().name().map(|n| n.to_string()).unwrap_or_else(|| "".to_string()),
-                        contacts: commit.author().email().map(|e| IntoIter::new([e.to_string()]).collect()).unwrap_or_else(HashSet::default),
-                    })])
-                    .collect();
+                    let origin_metadata = origin_page.metadata();
+                    let authors = match origin_metadata.map(|m| m.authors.clone()) {
+                        Some(origin_authors) if !origin_authors.is_empty() => origin_authors,
+                        _ => IntoIter::new([Arc::new(Author {
+                            name: commit.author().name().map(|n| n.to_string()).unwrap_or_else(|| "".to_string()),
+                            contacts: commit.author().email().map(|e| IntoIter::new([e.to_string()]).collect()).unwrap_or_else(HashSet::default),
+                        })])
+                        .collect(),
+                    };
+                    let last_edit_date = match origin_metadata {
+                        Some(metadata) => match metadata.last_edit_date {
+                            Some(l) => Some(l),
+                            None => Some(commit.time().seconds()),
+                        },
+                        None => Some(commit.time().seconds()),
+                    };
                     result.push(origin_page.change_meta(if let Some(m) = origin_page.metadata() {
                         Metadata {
                             title: m.title.clone(),
                             summary: m.summary.clone(),
                             authors,
                             tags: m.tags.clone(),
-                            publishing_date: None,
-                            last_edit_date: None,
+                            publishing_date: m.publishing_date,
+                            last_edit_date,
                         }
                     } else {
                         Metadata {
@@ -55,7 +70,7 @@ impl GitAuthors {
                             authors,
                             tags: HashSet::default(),
                             publishing_date: None,
-                            last_edit_date: None,
+                            last_edit_date,
                         }
                     }))
                 }
@@ -71,8 +86,13 @@ impl GitAuthors {
     }
 }
 
-impl Stage for GitAuthors {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+impl Stage for GitMetadata {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut blame_pages = HashMap::default();
 
@@ -81,7 +101,7 @@ impl Stage for GitAuthors {
                 continue;
             }
             if let Some(m) = page.metadata() {
-                if !m.authors.is_empty() {
+                if !m.authors.is_empty() && m.last_edit_date.is_some() {
                     vec_bundle.p.push(Arc::clone(page));
                     continue;
                 }
@@ -93,11 +113,19 @@ impl Stage for GitAuthors {
             let mut processed_pages = self.process_repository(blame_pages)?;
             vec_bundle.p.append(&mut processed_pages);
         }
-
-        Ok(Arc::new(vec_bundle))
+        let end = Instant::now();
+        Ok((
+            Arc::new(vec_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }

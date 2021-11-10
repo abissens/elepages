@@ -4,6 +4,7 @@ mod tests {
     use crate::pages::{Author, Metadata, PageBundle, VecBundle};
     use crate::stages::indexes_stage::IndexStage;
     use crate::stages::stage::Stage;
+    use crate::stages::test_stage::TestProcessingResult;
     use serde::{Deserialize, Serialize};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
@@ -31,11 +32,17 @@ mod tests {
             })],
         });
 
-        let index_stage = IndexStage {};
+        let index_stage = IndexStage { name: "index stage".to_string() };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
-
         assert_eq!(
-            IndexPages::from_bundle(&result_bundle),
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "index stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        assert_eq!(
+            IndexPages::from_bundle(&result_bundle.0),
             IndexPages {
                 pages_by_tag: HashMap::from_iter(IntoIter::new([
                     ("t1".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
@@ -49,14 +56,11 @@ mod tests {
                 all_tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                 all_pages: HashSet::from_iter(IntoIter::new([TestPageIndex {
                     path: vec!["dir".to_string(), "f1".to_string()],
-                    metadata: Some(Metadata {
-                        title: Some(Arc::new("f1 title".to_string())),
-                        summary: Some(Arc::new("f1 summary".to_string())),
-                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
-                            name: "f1 author".to_string(),
-                            contacts: Default::default()
-                        })])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                    metadata: Some(TestPageIndexMetadata {
+                        title: Some("f1 title".to_string()),
+                        summary: Some("f1 summary".to_string()),
+                        authors: HashSet::from_iter(IntoIter::new(["f1 author".to_string()])),
+                        tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                         publishing_date: None,
                         last_edit_date: None,
                     })
@@ -132,9 +136,16 @@ mod tests {
             ],
         });
 
-        let index_stage = IndexStage {};
+        let index_stage = IndexStage { name: "index stage".to_string() };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
-        let index_pages = IndexPages::from_bundle(&result_bundle);
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "index stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let index_pages = IndexPages::from_bundle(&result_bundle.0);
         assert_eq!(
             index_pages,
             IndexPages {
@@ -153,14 +164,11 @@ mod tests {
                 all_pages: HashSet::from_iter(IntoIter::new([
                     TestPageIndex {
                         path: vec!["dir".to_string(), "f1".to_string()],
-                        metadata: Some(Metadata {
-                            title: Some(Arc::new("f1 title".to_string())),
-                            summary: Some(Arc::new("f1 summary".to_string())),
-                            authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
-                                name: "f1 author".to_string(),
-                                contacts: Default::default()
-                            })])),
-                            tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        metadata: Some(TestPageIndexMetadata {
+                            title: Some("f1 title".to_string()),
+                            summary: Some("f1 summary".to_string()),
+                            authors: HashSet::from_iter(IntoIter::new(["f1 author".to_string()])),
+                            tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
                         })
@@ -171,33 +179,21 @@ mod tests {
                     },
                     TestPageIndex {
                         path: vec!["f3".to_string()],
-                        metadata: Some(Metadata {
-                            title: Some(Arc::new("f3 title".to_string())),
-                            summary: Some(Arc::new("f3 summary".to_string())),
-                            authors: HashSet::from_iter(IntoIter::new([
-                                Arc::new(Author {
-                                    name: "f3 author 1".to_string(),
-                                    contacts: Default::default()
-                                }),
-                                Arc::new(Author {
-                                    name: "f3 author 2".to_string(),
-                                    contacts: Default::default()
-                                })
-                            ])),
-                            tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+                        metadata: Some(TestPageIndexMetadata {
+                            title: Some("f3 title".to_string()),
+                            summary: Some("f3 summary".to_string()),
+                            authors: HashSet::from_iter(IntoIter::new(["f3 author 1".to_string(), "f3 author 2".to_string()])),
+                            tags: HashSet::from_iter(IntoIter::new(["t3".to_string(), "t4".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
                         })
                     },
                     TestPageIndex {
                         path: vec!["f4".to_string()],
-                        metadata: Some(Metadata {
-                            title: Some(Arc::new("f4 title".to_string())),
-                            summary: Some(Arc::new("f4 summary".to_string())),
-                            authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
-                                name: "f3 author 1".to_string(),
-                                contacts: Default::default()
-                            })])),
+                        metadata: Some(TestPageIndexMetadata {
+                            title: Some("f4 title".to_string()),
+                            summary: Some("f4 summary".to_string()),
+                            authors: HashSet::from_iter(IntoIter::new(["f3 author 1".to_string()])),
                             tags: HashSet::default(),
                             publishing_date: None,
                             last_edit_date: None,
@@ -225,7 +221,21 @@ mod tests {
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
     struct TestPageIndex {
         path: Vec<String>,
-        metadata: Option<Metadata>,
+        metadata: Option<TestPageIndexMetadata>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize, PartialEq)]
+    struct TestPageIndexMetadata {
+        title: Option<String>,
+        summary: Option<String>,
+        #[serde(default = "HashSet::default")]
+        authors: HashSet<String>,
+        #[serde(default = "HashSet::default")]
+        tags: HashSet<String>,
+        #[serde(alias = "publishingDate")]
+        publishing_date: Option<i64>,
+        #[serde(alias = "lastEditDate")]
+        last_edit_date: Option<i64>,
     }
 
     impl Hash for TestPageIndex {

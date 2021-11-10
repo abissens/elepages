@@ -8,6 +8,7 @@ mod tests {
     use crate::pages::{Metadata, Page, PageBundle, VecBundle};
     use crate::stages::handlebars_stage::{HandlebarsDir, HandlebarsLookup, HandlebarsStage};
     use crate::stages::stage::Stage;
+    use crate::stages::test_stage::TestProcessingResult;
 
     #[derive(Debug)]
     struct LookupTest(Vec<Arc<dyn Page>>);
@@ -56,11 +57,20 @@ mod tests {
             ],
         });
 
-        let hb_stage = HandlebarsStage { lookup: Arc::new(LookupTest(vec![])) };
+        let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
+            lookup: Arc::new(LookupTest(vec![])),
+        };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -121,6 +131,7 @@ mod tests {
         });
 
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(LookupTest(vec![
                 Arc::new(TestPage {
                     path: vec!["a".to_string()],
@@ -143,8 +154,14 @@ mod tests {
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -232,12 +249,19 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -318,12 +342,19 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -416,12 +447,19 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -546,12 +584,19 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -706,12 +751,19 @@ mod tests {
             })
             .unwrap();
         let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
             lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,

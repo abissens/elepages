@@ -1,8 +1,12 @@
 use crate::pages::PageBundle;
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use anyhow::anyhow;
 use std::any::Any;
+use std::cmp::Ordering;
+use std::hash::Hash;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
 pub(crate) struct TestStage {
     pub(crate) bundle: Option<Arc<dyn PageBundle>>,
@@ -29,8 +33,13 @@ impl TestStage {
 }
 
 impl Stage for TestStage {
-    fn process(&self, _: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
-        return match &self.bundle {
+    fn name(&self) -> String {
+        "test stage".to_string()
+    }
+
+    fn process(&self, _: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
+        let result_bundle = match &self.bundle {
             Some(b) => {
                 let mut l = self.launched.lock().unwrap();
                 *l = *l + 1;
@@ -41,9 +50,53 @@ impl Stage for TestStage {
                 _ => panic!("should have bundle or error"),
             },
         };
+        let end = Instant::now();
+        Ok((
+            result_bundle?,
+            ProcessingResult {
+                stage_name: "test stage".to_string(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Ord)]
+pub(crate) struct TestProcessingResult {
+    pub(crate) stage_name: String,
+    pub(crate) sub_results: Vec<TestProcessingResult>,
+}
+
+impl PartialOrd for TestProcessingResult {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.stage_name.partial_cmp(&other.stage_name)
+    }
+}
+
+impl From<&ProcessingResult> for TestProcessingResult {
+    fn from(pr: &ProcessingResult) -> Self {
+        if pr.end < pr.start {
+            panic!("pr.end < pr.start")
+        }
+        for sub_r in &pr.sub_results {
+            if sub_r.start < pr.start {
+                panic!("{} : sub_r.start < pr.start", sub_r.stage_name)
+            }
+            if sub_r.end > pr.end {
+                panic!("{} : sub_r.end > pr.end", sub_r.stage_name)
+            }
+        }
+        let mut sub_results: Vec<TestProcessingResult> = pr.sub_results.iter().map(TestProcessingResult::from).collect();
+        sub_results.sort();
+        TestProcessingResult {
+            stage_name: pr.stage_name.clone(),
+            sub_results,
+        }
     }
 }

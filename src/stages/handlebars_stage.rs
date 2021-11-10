@@ -10,24 +10,32 @@ use rayon::prelude::*;
 use crate::pages::{FsPage, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::handlebars_stage::RenderResult::Content;
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use crate::utilities::visit_dirs;
 use std::any::Any;
+use std::time::Instant;
 
 pub trait HandlebarsLookup: Sync + Send + Debug {
     fn init_registry(&self, registry: &mut handlebars::Handlebars) -> anyhow::Result<()>;
     fn fetch(&self, page: &Arc<dyn Page>) -> Option<String>;
     fn assets(&self) -> anyhow::Result<Vec<Arc<dyn Page>>>;
-    fn as_any(&self) -> &dyn Any {
-        panic!("not implemented")
+    fn as_any(&self) -> Option<&dyn Any> {
+        None
     }
 }
 
 pub struct HandlebarsStage {
+    pub name: String,
     pub lookup: Arc<dyn HandlebarsLookup>,
 }
 
 impl Stage for HandlebarsStage {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let mut registry = handlebars::Handlebars::new();
         self.lookup.init_registry(&mut registry)?;
         let result: Vec<RenderResult> = bundle
@@ -63,12 +71,20 @@ impl Stage for HandlebarsStage {
         }
 
         result_bundle.p.append(&mut self.lookup.assets()?);
-
-        Ok(Arc::new(result_bundle))
+        let end = Instant::now();
+        Ok((
+            Arc::new(result_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 
@@ -197,7 +213,7 @@ impl HandlebarsLookup for HandlebarsDir {
         Ok(result)
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }

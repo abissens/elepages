@@ -4,7 +4,7 @@ mod tests {
     use crate::pages::{PageBundle, VecBundle};
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
-    use crate::stages::test_stage::TestStage;
+    use crate::stages::test_stage::{TestProcessingResult, TestStage};
     use crate::stages::union_stage::UnionStage;
     use std::borrow::Borrow;
     use std::sync::Arc;
@@ -27,21 +27,39 @@ mod tests {
         });
 
         let copy_stage_1 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
         let copy_stage_2 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["second_root".to_string()],
         };
 
         let union_stage = UnionStage {
+            name: "union stage".to_string(),
             stages: vec![Arc::new(copy_stage_1), Arc::new(copy_stage_2)],
             parallel: true,
         };
 
         let result_bundle = union_stage.process(bundle.borrow()).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "union stage".to_string(),
+                sub_results: vec![
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                ]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -88,21 +106,39 @@ mod tests {
         });
 
         let copy_stage_1 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["root".to_string(), "sub_root".to_string()],
         };
 
         let copy_stage_2 = CopyStage {
+            name: "copy stage".to_string(),
             prefix: vec!["second_root".to_string()],
         };
 
         let union_stage = UnionStage {
+            name: "union stage".to_string(),
             stages: vec![Arc::new(copy_stage_1), Arc::new(copy_stage_2)],
             parallel: false,
         };
 
         let result_bundle = union_stage.process(bundle.borrow()).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "union stage".to_string(),
+                sub_results: vec![
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                    TestProcessingResult {
+                        stage_name: "copy stage".to_string(),
+                        sub_results: vec![]
+                    },
+                ]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -153,6 +189,7 @@ mod tests {
         let err_stage = TestStage::err("some error");
 
         let union_stage = UnionStage {
+            name: "union stage".to_string(),
             stages: vec![
                 Arc::clone(&ok_stage),
                 Arc::new(err_stage),
@@ -174,7 +211,7 @@ mod tests {
 
         let result_bundle = union_stage.process(bundle.borrow());
         assert!(matches!(result_bundle, Err(e) if e.to_string() == "some error"));
-        if let Some(r) = ok_stage.as_any().downcast_ref::<TestStage>() {
+        if let Some(r) = ok_stage.as_any().unwrap().downcast_ref::<TestStage>() {
             println!("{}", *r.launched.lock().unwrap());
         } else {
             panic!("TestStage should be downcasted");

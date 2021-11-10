@@ -11,6 +11,10 @@ pub enum ComposeUnitConfig {
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 pub enum StageValue {
+    Named {
+        name: String,
+        stage: Box<StageValue>,
+    },
     Sequence(Vec<StageValue>),
     Union {
         union: Vec<StageValue>,
@@ -18,11 +22,11 @@ pub enum StageValue {
     Composition {
         compose: Vec<ComposeUnitConfig>,
     },
-    Named {
-        #[serde(alias = "stage")]
-        name: String,
+    ProcessorStage {
+        #[serde(alias = "type")]
+        processor_type: String,
         #[serde(default)]
         config: Value,
     },
-    NamedWithoutConfig(String),
+    ProcessorWithoutConfigStage(String),
 }

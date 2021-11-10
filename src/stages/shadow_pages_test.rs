@@ -4,6 +4,7 @@ mod tests {
     use crate::pages::{Author, Metadata, PageBundle, VecBundle};
     use crate::stages::shadow_pages::ShadowPages;
     use crate::stages::stage::Stage;
+    use crate::stages::test_stage::TestProcessingResult;
     use indoc::indoc;
     use std::array::IntoIter;
     use std::collections::HashSet;
@@ -26,11 +27,17 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "shadow stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -104,11 +111,17 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "shadow stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -202,11 +215,17 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "shadow stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -285,11 +304,17 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "shadow stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,
@@ -402,11 +427,17 @@ mod tests {
                 }),
             ],
         });
-        let shadow_stage = ShadowPages::default();
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
         let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
-
-        let mut actual = result_bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "shadow stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
         assert_eq!(
             actual,

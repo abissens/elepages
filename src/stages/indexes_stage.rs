@@ -1,15 +1,24 @@
 use crate::pages::{Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
+use crate::stages::ProcessingResult;
 use serde::Serialize;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
+use std::time::Instant;
 
-pub struct IndexStage;
+pub struct IndexStage {
+    pub name: String,
+}
 
 impl Stage for IndexStage {
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+        let start = Instant::now();
         let mut pages_by_tag: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut pages_by_author: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut all_pages: Vec<PageIndex> = vec![];
@@ -20,7 +29,7 @@ impl Stage for IndexStage {
             let page_path = page.path();
             all_pages.push(PageIndex {
                 path: page_path,
-                metadata: page.metadata(),
+                metadata: page.metadata().map(PageMetadata::from),
             });
             if let Some(metadata) = page.metadata() {
                 for tag in &metadata.tags {
@@ -41,7 +50,7 @@ impl Stage for IndexStage {
         let all_authors_ser = serde_json::to_string(&all_authors)?;
         let all_pages_ser = serde_json::to_string(&all_pages)?;
 
-        Ok(Arc::new(VecBundle {
+        let result_bundle = VecBundle {
             p: vec![
                 Arc::new(CursorPage {
                     value: pages_by_tag_ser,
@@ -64,20 +73,56 @@ impl Stage for IndexStage {
                     path: vec!["all_pages.json".to_string()],
                 }),
             ],
-        }))
+        };
+        let end = Instant::now();
+        Ok((
+            Arc::new(result_bundle),
+            ProcessingResult {
+                stage_name: self.name.clone(),
+                start,
+                end,
+                sub_results: vec![],
+            },
+        ))
     }
 
-    fn as_any(&self) -> &dyn Any {
-        self
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
     }
 }
 
 #[derive(Serialize)]
 struct PageIndex<'a> {
     path: &'a [String],
-    metadata: Option<&'a Metadata>,
+    metadata: Option<PageMetadata<'a>>,
 }
 
+#[derive(Serialize)]
+struct PageMetadata<'a> {
+    title: Option<&'a str>,
+    summary: Option<&'a str>,
+    #[serde(default = "HashSet::default")]
+    authors: HashSet<&'a str>,
+    #[serde(default = "HashSet::default")]
+    tags: HashSet<&'a str>,
+    #[serde(alias = "publishingDate")]
+    publishing_date: Option<&'a i64>,
+    #[serde(alias = "lastEditDate")]
+    last_edit_date: Option<&'a i64>,
+}
+
+impl<'a> From<&'a Metadata> for PageMetadata<'a> {
+    fn from(m: &'a Metadata) -> Self {
+        Self {
+            title: m.title.as_ref().map(|v| v.as_str()),
+            summary: m.summary.as_ref().map(|v| v.as_str()),
+            authors: m.authors.iter().map(|v| v.name.as_str()).collect(),
+            tags: m.tags.iter().map(|v| v.as_str()).collect(),
+            publishing_date: m.publishing_date.as_ref(),
+            last_edit_date: m.last_edit_date.as_ref(),
+        }
+    }
+}
 #[derive(Debug)]
 struct CursorPage {
     value: String,
