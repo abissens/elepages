@@ -2,7 +2,7 @@
 mod tests {
     use crate::pages::selector::{PathSelector, Selector};
     use crate::pages::test_page::TestPage;
-    use crate::pages::{PageBundle, VecBundle};
+    use crate::pages::{ExtSelector, PageBundle, VecBundle};
     use std::sync::Arc;
 
     #[macro_export]
@@ -147,5 +147,25 @@ mod tests {
             result_bundle,
             path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"], vec!["d1", "d2", "f2"], vec!["d1", "d2", "d3", "f1"], vec!["d3", "d1", "f4"])
         );
+    }
+
+    #[test]
+    fn select_all_pages_when_ext_is_empty() {
+        let bundle: Arc<dyn PageBundle> = path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]);
+        let selector = ExtSelector { ext: "".to_string() };
+
+        let result_bundle = selector.select(&bundle);
+
+        assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]));
+    }
+
+    #[test]
+    fn select_pages_by_their_ext() {
+        let bundle: Arc<dyn PageBundle> = path_bundle!(vec!["d1", "f1"], vec!["d1", "f2.md"], vec!["d1", "f3"], vec!["f4.md".to_string()]);
+        let selector = ExtSelector { ext: ".md".to_string() };
+
+        let result_bundle = selector.select(&bundle);
+
+        assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f2.md"], vec!["f4.md".to_string()]));
     }
 }

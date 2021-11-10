@@ -111,3 +111,35 @@ impl Selector for PathSelector {
         Some(self)
     }
 }
+
+pub struct ExtSelector {
+    pub ext: String,
+}
+
+impl Selector for ExtSelector {
+    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        let ql = self.ext.len();
+        if ql == 0 {
+            return Arc::clone(bundle);
+        }
+
+        let p = bundle
+            .pages()
+            .iter()
+            .filter_map(|p: &Arc<dyn Page>| {
+                let path = p.path();
+                if path[path.len() - 1].ends_with(&self.ext) {
+                    Some(Arc::clone(p))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        Arc::new(VecBundle { p })
+    }
+
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
+    }
+}
