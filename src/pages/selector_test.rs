@@ -2,7 +2,7 @@
 mod tests {
     use crate::pages::selector::{PathSelector, Selector};
     use crate::pages::test_page::TestPage;
-    use crate::pages::{ExtSelector, PageBundle, VecBundle};
+    use crate::pages::{ExtSelector, Metadata, PageBundle, TagSelector, VecBundle};
     use std::sync::Arc;
 
     #[macro_export]
@@ -15,6 +15,28 @@ mod tests {
                         metadata: None,
                         content: "".to_string(),
                     })), +
+                ],
+            })
+        };
+    }
+
+    #[macro_export]
+    macro_rules! tag_bundle {
+        ($($result:expr),+) => {
+            Arc::new(VecBundle {
+                p: vec![
+                    $(Arc::new(TestPage {
+                        path: vec![],
+                        metadata: Some(Metadata{
+                            title: None,
+                            summary: None,
+                            authors: Default::default(),
+                            tags: $result.iter().map(|s| Arc::new(s.to_string())).collect(),
+                            publishing_date: None,
+                            last_edit_date: None
+                        }),
+                        content: "".to_string()
+                })), +
                 ],
             })
         };
@@ -167,5 +189,22 @@ mod tests {
         let result_bundle = selector.select(&bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f2.md"], vec!["f4.md".to_string()]));
+    }
+
+    #[test]
+    fn select_pages_by_tags() {
+        let bundle: Arc<dyn PageBundle> = tag_bundle!(vec!["a", "b", "c"], vec!["a"], vec!["e", "f"]);
+
+        let selector_1 = TagSelector { tag: "a".to_string() };
+        let selector_2 = TagSelector { tag: "f".to_string() };
+        let selector_3 = TagSelector { tag: "g".to_string() };
+
+        let result_bundle_1 = selector_1.select(&bundle);
+        let result_bundle_2 = selector_2.select(&bundle);
+        let result_bundle_3 = selector_3.select(&bundle);
+
+        assert_eq_bundles!(result_bundle_1, tag_bundle!(vec!["a", "b", "c"], vec!["a"]));
+        assert_eq_bundles!(result_bundle_2, tag_bundle!(vec!["e", "f"]));
+        assert!(result_bundle_3.pages().is_empty());
     }
 }
