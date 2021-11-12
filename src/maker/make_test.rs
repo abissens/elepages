@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
     use crate::maker::{Env, Maker, StageValue};
+    use crate::pages::{ExtSelector, PathSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{ComposeStage, ExtSelector, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, Stage, UnionStage};
+    use crate::stages::{ComposeStage, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
     use indoc::indoc;
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -251,10 +252,8 @@ mod tests {
             compose:
                 - md
                 - git_metadata
-                - inner: md
-                  selector: [regex, '.*?.md$']
                 - inner: git_metadata
-                  selector: [prefix, 'a/b']
+                  selector: [path, ['a', 'b']]
                 - inner: handlebars
                   selector: [ext, '.hbs']
         "})
@@ -280,25 +279,17 @@ mod tests {
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(2).unwrap().as_ref() {
-            stage.as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
-            let re = selector.as_any().unwrap().downcast_ref::<RegexSelector>().expect("RegexSelector");
-            assert_eq!(re.0.to_string(), ".*?.md$");
+            stage.as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
+            let path = selector.as_any().unwrap().downcast_ref::<PathSelector>().expect("PathSelector");
+            assert_eq!(path.query, vec!["a", "b"]);
         } else {
             panic!("unit should be of variant ReplaceSubSet")
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(3).unwrap().as_ref() {
-            stage.as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
-            let pre = selector.as_any().unwrap().downcast_ref::<PrefixSelector>().expect("PrefixSelector");
-            assert_eq!(pre.0, vec!["a", "b"]);
-        } else {
-            panic!("unit should be of variant ReplaceSubSet")
-        }
-
-        if let ReplaceSubSet(selector, stage) = compose.units.get(4).unwrap().as_ref() {
             stage.as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
-            let ext = selector.as_any().unwrap().downcast_ref::<ExtSelector>().expect("ExtSelector");
-            assert_eq!(ext.0, ".hbs");
+            let ext_selector = selector.as_any().unwrap().downcast_ref::<ExtSelector>().expect("ExtSelector");
+            assert_eq!(ext_selector.ext, ".hbs");
         } else {
             panic!("unit should be of variant ReplaceSubSet")
         }
@@ -313,10 +304,8 @@ mod tests {
               compose:
                 - md
                 - git_metadata
-                - inner: md
-                  selector: [regex, '.*?.md$']
                 - inner: git_metadata
-                  selector: [prefix, 'a/b']
+                  selector: [path, ['a', 'b']]
                 - inner: handlebars
                   selector: [ext, '.hbs']
         "})
@@ -343,25 +332,17 @@ mod tests {
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(2).unwrap().as_ref() {
-            stage.as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
-            let re = selector.as_any().unwrap().downcast_ref::<RegexSelector>().expect("RegexSelector");
-            assert_eq!(re.0.to_string(), ".*?.md$");
+            stage.as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
+            let path = selector.as_any().unwrap().downcast_ref::<PathSelector>().expect("PathSelector");
+            assert_eq!(path.query, vec!["a", "b"]);
         } else {
             panic!("unit should be of variant ReplaceSubSet")
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(3).unwrap().as_ref() {
-            stage.as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
-            let pre = selector.as_any().unwrap().downcast_ref::<PrefixSelector>().expect("PrefixSelector");
-            assert_eq!(pre.0, vec!["a", "b"]);
-        } else {
-            panic!("unit should be of variant ReplaceSubSet")
-        }
-
-        if let ReplaceSubSet(selector, stage) = compose.units.get(4).unwrap().as_ref() {
             stage.as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
-            let ext = selector.as_any().unwrap().downcast_ref::<ExtSelector>().expect("ExtSelector");
-            assert_eq!(ext.0, ".hbs");
+            let ext_selector = selector.as_any().unwrap().downcast_ref::<ExtSelector>().expect("ExtSelector");
+            assert_eq!(ext_selector.ext, ".hbs");
         } else {
             panic!("unit should be of variant ReplaceSubSet")
         }

@@ -1,11 +1,8 @@
-use crate::config::Value;
+use crate::config::{FromValue, Value};
 use crate::maker::config::{ComposeUnitConfig, StageValue};
+use crate::pages::{ExtSelector, PathSelector, Selector};
 use crate::pages_error::PagesError;
-use crate::stages::{
-    ComposeStage, ComposeUnit, ExtSelector, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PrefixSelector, RegexSelector, SequenceStage, ShadowPages, Stage, SubSetSelector,
-    UnionStage,
-};
-use regex::Regex;
+use crate::stages::{ComposeStage, ComposeUnit, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
 use std::any::Any;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -16,7 +13,7 @@ pub trait StageMaker {
 }
 
 pub trait SelectorMaker {
-    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Box<dyn SubSetSelector>>;
+    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Box<dyn Selector>>;
 }
 
 pub struct Maker {
@@ -30,8 +27,7 @@ pub struct MdStageMaker;
 pub struct ShadowStageMaker;
 pub struct HandlebarsStageMaker;
 
-pub struct PrefixSelectorMaker;
-pub struct RegexSelectorMaker;
+pub struct PathSelectorMaker;
 pub struct ExtSelectorMaker;
 
 pub struct Env {
@@ -112,30 +108,19 @@ impl StageMaker for HandlebarsStageMaker {
     }
 }
 
-impl SelectorMaker for PrefixSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
-        if let Value::String(prefix) = config {
-            return Ok(Box::new(PrefixSelector(prefix.split('/').map(|s| s.to_string()).collect())));
-        }
-        Err(PagesError::ElementNotFound("config should be a prefix string".to_string()).into())
-    }
-}
-
-impl SelectorMaker for RegexSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
-        if let Value::String(regexp) = config {
-            return Ok(Box::new(RegexSelector(Regex::new(regexp)?)));
-        }
-        Err(PagesError::ElementNotFound("config should be a regex string".into()).into())
+impl SelectorMaker for PathSelectorMaker {
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn Selector>> {
+        Ok(Box::new(PathSelector {
+            query: <Vec<String>>::from_value(config.clone())?,
+        }))
     }
 }
 
 impl SelectorMaker for ExtSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn SubSetSelector>> {
-        if let Value::String(ext) = config {
-            return Ok(Box::new(ExtSelector(ext.into())));
-        }
-        Err(PagesError::ElementNotFound("config should be an ext string".into()).into())
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn Selector>> {
+        Ok(Box::new(ExtSelector {
+            ext: String::from_value(config.clone())?,
+        }))
     }
 }
 
@@ -150,8 +135,7 @@ impl Maker {
         processor_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("handlebars".into(), Box::new(HandlebarsStageMaker) as Box<dyn StageMaker>);
 
-        selector_makers.insert("prefix".into(), Box::new(PrefixSelectorMaker) as Box<dyn SelectorMaker>);
-        selector_makers.insert("regex".into(), Box::new(RegexSelectorMaker) as Box<dyn SelectorMaker>);
+        selector_makers.insert("path".into(), Box::new(PathSelectorMaker) as Box<dyn SelectorMaker>);
         selector_makers.insert("ext".into(), Box::new(ExtSelectorMaker) as Box<dyn SelectorMaker>);
 
         Maker {

@@ -1,8 +1,7 @@
-use crate::pages::{Page, PageBundle, VecBundle};
+use crate::pages::{Page, PageBundle, Selector, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use rayon::prelude::*;
-use regex::Regex;
 use std::any::Any;
 use std::borrow::Borrow;
 use std::collections::HashSet;
@@ -17,72 +16,7 @@ pub struct ComposeStage {
 
 pub enum ComposeUnit {
     CreateNewSet(Arc<dyn Stage>),
-    ReplaceSubSet(Box<dyn SubSetSelector>, Arc<dyn Stage>),
-}
-
-pub trait SubSetSelector: Send + Sync {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle>;
-    fn as_any(&self) -> Option<&dyn Any> {
-        None
-    }
-}
-
-pub struct PrefixSelector(pub Vec<String>);
-
-impl SubSetSelector for PrefixSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let mut vec_bundle = VecBundle { p: vec![] };
-        for p in bundle.pages() {
-            if p.path().starts_with(&self.0) {
-                vec_bundle.p.push(Arc::clone(p))
-            }
-        }
-        Arc::new(vec_bundle)
-    }
-
-    fn as_any(&self) -> Option<&dyn Any> {
-        Some(self)
-    }
-}
-pub struct RegexSelector(pub Regex);
-
-impl SubSetSelector for RegexSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let mut vec_bundle = VecBundle { p: vec![] };
-        for p in bundle.pages() {
-            if self.0.is_match(&p.path().join("/")) {
-                vec_bundle.p.push(Arc::clone(p))
-            }
-        }
-        Arc::new(vec_bundle)
-    }
-
-    fn as_any(&self) -> Option<&dyn Any> {
-        Some(self)
-    }
-}
-
-pub struct ExtSelector(pub String);
-
-impl SubSetSelector for ExtSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let mut vec_bundle = VecBundle { p: vec![] };
-        for p in bundle.pages() {
-            let path = p.path();
-            if path.is_empty() {
-                continue;
-            }
-
-            if path[path.len() - 1].ends_with(&self.0) {
-                vec_bundle.p.push(Arc::clone(p))
-            }
-        }
-        Arc::new(vec_bundle)
-    }
-
-    fn as_any(&self) -> Option<&dyn Any> {
-        Some(self)
-    }
+    ReplaceSubSet(Box<dyn Selector>, Arc<dyn Stage>),
 }
 
 struct CompositionResult {

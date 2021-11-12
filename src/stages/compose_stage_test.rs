@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{PageBundle, VecBundle};
+    use crate::pages::{ExtSelector, PageBundle, PathSelector, VecBundle};
+    use crate::stages::compose_stage::ComposeStage;
     use crate::stages::compose_stage::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::compose_stage::{ComposeStage, ExtSelector, PrefixSelector, RegexSelector};
     use crate::stages::copy_stage::CopyStage;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
@@ -107,7 +107,9 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![Arc::new(ReplaceSubSet(
-                Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
+                Box::new(PathSelector {
+                    query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
+                }),
                 Arc::new(CopyStage {
                     name: "copy stage".to_string(),
                     prefix: vec!["copied".to_string()],
@@ -191,7 +193,9 @@ mod tests {
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
+                    Box::new(PathSelector {
+                        query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
+                    }),
                     Arc::new(CopyStage {
                         name: "copy stage".to_string(),
                         prefix: vec!["copied".to_string()],
@@ -307,21 +311,16 @@ mod tests {
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
+                    Box::new(PathSelector {
+                        query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
+                    }),
                     Arc::new(CopyStage {
                         name: "copy stage".to_string(),
                         prefix: vec!["copied".to_string()],
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
-                    Box::new(RegexSelector(regex::Regex::new(r"^.*?f\d$").unwrap())),
-                    Arc::new(CopyStage {
-                        name: "copy stage".to_string(),
-                        prefix: vec!["copied regex".to_string()],
-                    }),
-                )),
-                Arc::new(ReplaceSubSet(
-                    Box::new(ExtSelector(".md".into())),
+                    Box::new(ExtSelector { ext: ".md".to_string() }),
                     Arc::new(CopyStage {
                         name: "copy stage".to_string(),
                         prefix: vec!["copied ext".to_string()],
@@ -337,10 +336,6 @@ mod tests {
             TestProcessingResult {
                 stage_name: "compose stage".to_string(),
                 sub_results: vec![
-                    TestProcessingResult {
-                        stage_name: "copy stage".to_string(),
-                        sub_results: Default::default()
-                    },
                     TestProcessingResult {
                         stage_name: "copy stage".to_string(),
                         sub_results: Default::default()
@@ -392,32 +387,22 @@ mod tests {
                     content: "test content a md".to_string(),
                 },
                 TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "d2".to_string(), "f3".to_string()],
-                    metadata: None,
-                    content: "".to_string(),
-                },
-                TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "d2".to_string(), "f4".to_string()],
-                    metadata: None,
-                    content: "".to_string(),
-                },
-                TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "f1".to_string()],
-                    metadata: None,
-                    content: "test content".to_string(),
-                },
-                TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "f2".to_string()],
-                    metadata: None,
-                    content: "".to_string(),
-                },
-                TestPage {
                     path: vec!["copied".to_string(), "d1".to_string(), "d2".to_string(), "f3".to_string()],
                     metadata: None,
                     content: "".to_string(),
                 },
                 TestPage {
                     path: vec!["copied".to_string(), "d1".to_string(), "d2".to_string(), "f4".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
                     metadata: None,
                     content: "".to_string(),
                 },
@@ -521,7 +506,9 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![Arc::new(ReplaceSubSet(
-                Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
+                Box::new(PathSelector {
+                    query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
+                }),
                 Arc::new(CopyStage {
                     name: "copy stage".to_string(),
                     prefix: vec!["copied".to_string()],
@@ -605,7 +592,9 @@ mod tests {
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
+                    Box::new(PathSelector {
+                        query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
+                    }),
                     Arc::new(CopyStage {
                         name: "copy stage".to_string(),
                         prefix: vec!["copied".to_string()],
@@ -721,21 +710,16 @@ mod tests {
                     prefix: vec!["backup".to_string(), "copied".to_string()],
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PrefixSelector(vec!["d1".to_string(), "d2".to_string()])),
+                    Box::new(PathSelector {
+                        query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
+                    }),
                     Arc::new(CopyStage {
                         name: "copy stage".to_string(),
                         prefix: vec!["copied".to_string()],
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
-                    Box::new(RegexSelector(regex::Regex::new(r"^.*?f\d$").unwrap())),
-                    Arc::new(CopyStage {
-                        name: "copy stage".to_string(),
-                        prefix: vec!["copied regex".to_string()],
-                    }),
-                )),
-                Arc::new(ReplaceSubSet(
-                    Box::new(ExtSelector(".md".into())),
+                    Box::new(ExtSelector { ext: ".md".to_string() }),
                     Arc::new(CopyStage {
                         name: "copy stage".to_string(),
                         prefix: vec!["copied ext".to_string()],
@@ -751,10 +735,6 @@ mod tests {
             TestProcessingResult {
                 stage_name: "compose stage".to_string(),
                 sub_results: vec![
-                    TestProcessingResult {
-                        stage_name: "copy stage".to_string(),
-                        sub_results: Default::default()
-                    },
                     TestProcessingResult {
                         stage_name: "copy stage".to_string(),
                         sub_results: Default::default()
@@ -806,32 +786,22 @@ mod tests {
                     content: "test content a md".to_string(),
                 },
                 TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "d2".to_string(), "f3".to_string()],
-                    metadata: None,
-                    content: "".to_string(),
-                },
-                TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "d2".to_string(), "f4".to_string()],
-                    metadata: None,
-                    content: "".to_string(),
-                },
-                TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "f1".to_string()],
-                    metadata: None,
-                    content: "test content".to_string(),
-                },
-                TestPage {
-                    path: vec!["copied regex".to_string(), "d1".to_string(), "f2".to_string()],
-                    metadata: None,
-                    content: "".to_string(),
-                },
-                TestPage {
                     path: vec!["copied".to_string(), "d1".to_string(), "d2".to_string(), "f3".to_string()],
                     metadata: None,
                     content: "".to_string(),
                 },
                 TestPage {
                     path: vec!["copied".to_string(), "d1".to_string(), "d2".to_string(), "f4".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: None,
+                    content: "test content".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
                     metadata: None,
                     content: "".to_string(),
                 },
