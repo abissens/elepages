@@ -156,8 +156,33 @@ impl Selector for TagSelector {
             .filter_map(|p: &Arc<dyn Page>| {
                 if let Some(m) = p.metadata() {
                     if m.tags.contains(&self.tag) {
-                        return Some(Arc::clone(p))
+                        return Some(Arc::clone(p));
                     }
+                }
+                None
+            })
+            .collect();
+
+        Arc::new(VecBundle { p })
+    }
+
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
+    }
+}
+
+pub struct AuthorSelector {
+    pub author: String,
+}
+
+impl Selector for AuthorSelector {
+    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        let p = bundle
+            .pages()
+            .iter()
+            .filter_map(|p: &Arc<dyn Page>| {
+                if let Some(m) = p.metadata() {
+                    return m.authors.iter().find_map(|a| if a.name == self.author { Some(Arc::clone(p)) } else { None });
                 }
                 None
             })

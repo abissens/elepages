@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::pages::selector::{PathSelector, Selector};
+    use crate::pages::selector::{AuthorSelector, PathSelector, Selector};
     use crate::pages::test_page::TestPage;
-    use crate::pages::{ExtSelector, Metadata, PageBundle, TagSelector, VecBundle};
+    use crate::pages::{Author, ExtSelector, Metadata, PageBundle, TagSelector, VecBundle};
     use std::sync::Arc;
 
     #[macro_export]
@@ -32,6 +32,31 @@ mod tests {
                             summary: None,
                             authors: Default::default(),
                             tags: $result.iter().map(|s| Arc::new(s.to_string())).collect(),
+                            publishing_date: None,
+                            last_edit_date: None
+                        }),
+                        content: "".to_string()
+                })), +
+                ],
+            })
+        };
+    }
+
+    #[macro_export]
+    macro_rules! author_bundle {
+        ($($result:expr),+) => {
+            Arc::new(VecBundle {
+                p: vec![
+                    $(Arc::new(TestPage {
+                        path: vec![],
+                        metadata: Some(Metadata{
+                            title: None,
+                            summary: None,
+                            authors: $result.iter().map(|s| Arc::new(Author {
+                                name: s.to_string(),
+                                contacts: Default::default(),
+                            })).collect(),
+                            tags: Default::default(),
                             publishing_date: None,
                             last_edit_date: None
                         }),
@@ -192,7 +217,7 @@ mod tests {
     }
 
     #[test]
-    fn select_pages_by_tags() {
+    fn select_pages_by_tag() {
         let bundle: Arc<dyn PageBundle> = tag_bundle!(vec!["a", "b", "c"], vec!["a"], vec!["e", "f"]);
 
         let selector_1 = TagSelector { tag: "a".to_string() };
@@ -205,6 +230,23 @@ mod tests {
 
         assert_eq_bundles!(result_bundle_1, tag_bundle!(vec!["a", "b", "c"], vec!["a"]));
         assert_eq_bundles!(result_bundle_2, tag_bundle!(vec!["e", "f"]));
+        assert!(result_bundle_3.pages().is_empty());
+    }
+
+    #[test]
+    fn select_pages_by_author() {
+        let bundle: Arc<dyn PageBundle> = author_bundle!(vec!["a1", "a2", "a3"], vec!["a1"], vec!["a4", "a5"]);
+
+        let selector_1 = AuthorSelector { author: "a1".to_string() };
+        let selector_2 = AuthorSelector { author: "a4".to_string() };
+        let selector_3 = AuthorSelector { author: "a6".to_string() };
+
+        let result_bundle_1 = selector_1.select(&bundle);
+        let result_bundle_2 = selector_2.select(&bundle);
+        let result_bundle_3 = selector_3.select(&bundle);
+
+        assert_eq_bundles!(result_bundle_1, author_bundle!(vec!["a1", "a2", "a3"], vec!["a1"]));
+        assert_eq_bundles!(result_bundle_2, author_bundle!(vec!["a4", "a5"]));
         assert!(result_bundle_3.pages().is_empty());
     }
 }
