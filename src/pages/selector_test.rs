@@ -2,7 +2,7 @@
 mod tests {
     use crate::pages::selector::{AuthorSelector, PathSelector, Selector};
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, DateQuery, ExtSelector, Metadata, PageBundle, PublishingDateSelector, TagSelector, VecBundle};
+    use crate::pages::{Author, DateQuery, ExtSelector, Logical, Metadata, PageBundle, PublishingDateSelector, TagSelector, VecBundle};
     use chrono::DateTime;
     use std::sync::Arc;
 
@@ -318,6 +318,22 @@ mod tests {
             result_bundle_3,
             publishing_date_bundle!(Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()))
         );
+    }
+    #[test]
+    fn select_pages_using_logical_operations() {
+        let bundle: Arc<dyn PageBundle> = tag_bundle!(vec!["a", "b", "c"], vec!["a"], vec!["e", "f"]);
+
+        let selector_1 = Logical::And(vec![Arc::new(TagSelector { tag: "a".to_string() }), Arc::new(TagSelector { tag: "b".to_string() })]);
+        let selector_2 = Logical::Or(vec![Arc::new(TagSelector { tag: "a".to_string() }), Arc::new(TagSelector { tag: "b".to_string() })]);
+        let selector_3 = Logical::Not(Arc::new(TagSelector { tag: "a".to_string() }));
+
+        let result_bundle_1 = select_to_bundle(&selector_1, &bundle);
+        let result_bundle_2 = select_to_bundle(&selector_2, &bundle);
+        let result_bundle_3 = select_to_bundle(&selector_3, &bundle);
+
+        assert_eq_bundles!(result_bundle_1, tag_bundle!(vec!["a", "b", "c"]));
+        assert_eq_bundles!(result_bundle_2, tag_bundle!(vec!["a", "b", "c"], vec!["a"]));
+        assert_eq_bundles!(result_bundle_3, tag_bundle!(vec!["e", "f"]));
     }
 
     fn select_to_bundle(selector: &dyn Selector, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {

@@ -187,3 +187,36 @@ impl Selector for PublishingDateSelector {
         Some(self)
     }
 }
+
+pub enum Logical {
+    And(Vec<Arc<dyn Selector>>),
+    Or(Vec<Arc<dyn Selector>>),
+    Not(Arc<dyn Selector>),
+}
+
+impl Selector for Logical {
+    fn select(&self, page: &Arc<dyn Page>) -> bool {
+        match self {
+            Logical::And(v) => {
+                for s in v {
+                    if !s.select(page) {
+                        return false;
+                    }
+                }
+                true
+            }
+            Logical::Or(v) => {
+                for s in v {
+                    if s.select(page) {
+                        return true;
+                    }
+                }
+                false
+            }
+            Logical::Not(s) => !s.select(page),
+        }
+    }
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
+    }
+}
