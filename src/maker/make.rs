@@ -1,24 +1,23 @@
-use crate::config::{FromValue, Value};
+use crate::config::Value;
 use crate::maker::config::{ComposeUnitConfig, StageValue};
-use crate::pages::{ExtSelector, PathSelector, Selector};
+use crate::maker::{DateQueryConfig, SelectorConfig};
+use crate::pages::{AuthorSelector, DateQuery, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
-use crate::stages::{ComposeStage, ComposeUnit, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+use crate::stages::{ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+use chrono::{DateTime, NaiveDate, Utc};
 use std::any::Any;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 pub trait StageMaker {
     fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>>;
 }
 
-pub trait SelectorMaker {
-    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Selector>>;
-}
-
 pub struct Maker {
     pub processor_stage_makers: HashMap<String, Box<dyn StageMaker>>,
-    pub selector_makers: HashMap<String, Box<dyn SelectorMaker>>,
 }
 
 pub struct GitMetadataStageMaker;
@@ -26,9 +25,6 @@ pub struct IndexesStageMaker;
 pub struct MdStageMaker;
 pub struct ShadowStageMaker;
 pub struct HandlebarsStageMaker;
-
-pub struct PathSelectorMaker;
-pub struct ExtSelectorMaker;
 
 pub struct Env {
     pub(crate) values: HashMap<String, Box<dyn Any>>,
@@ -108,26 +104,9 @@ impl StageMaker for HandlebarsStageMaker {
     }
 }
 
-impl SelectorMaker for PathSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Arc<dyn Selector>> {
-        Ok(Arc::new(PathSelector {
-            query: <Vec<String>>::from_value(config.clone())?,
-        }))
-    }
-}
-
-impl SelectorMaker for ExtSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Arc<dyn Selector>> {
-        Ok(Arc::new(ExtSelector {
-            ext: String::from_value(config.clone())?,
-        }))
-    }
-}
-
 impl Maker {
     pub fn default() -> Self {
         let mut processor_stage_makers = HashMap::new();
-        let mut selector_makers = HashMap::new();
 
         processor_stage_makers.insert("git_metadata".into(), Box::new(GitMetadataStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("indexes".into(), Box::new(IndexesStageMaker) as Box<dyn StageMaker>);
@@ -135,13 +114,66 @@ impl Maker {
         processor_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("handlebars".into(), Box::new(HandlebarsStageMaker) as Box<dyn StageMaker>);
 
-        selector_makers.insert("path".into(), Box::new(PathSelectorMaker) as Box<dyn SelectorMaker>);
-        selector_makers.insert("ext".into(), Box::new(ExtSelectorMaker) as Box<dyn SelectorMaker>);
+        Maker { processor_stage_makers }
+    }
 
-        Maker {
-            processor_stage_makers,
-            selector_makers,
+    fn make_date_config(date_config: &DateQueryConfig) -> anyhow::Result<DateQuery> {
+        match date_config {
+            DateQueryConfig::BeforeDate { before_date } => {
+                if before_date == "now" {
+                    let ts = DateTime::<Utc>::from(SystemTime::now()).date().and_hms(0, 0, 0).timestamp();
+                    return Ok(DateQuery::Before(ts));
+                }
+                let ts = DateTime::<Utc>::from_utc(NaiveDate::from_str(before_date)?.and_hms(0, 0, 0), Utc);
+                Ok(DateQuery::Before(ts.timestamp()))
+            }
+            DateQueryConfig::AfterDate { after_date } => {
+                if after_date == "now" {
+                    let ts = DateTime::<Utc>::from(SystemTime::now()).date().and_hms(23, 59, 59).timestamp();
+                    return Ok(DateQuery::After(ts));
+                }
+                let ts = DateTime::<Utc>::from_utc(NaiveDate::from_str(after_date)?.and_hms(23, 59, 59), Utc);
+                Ok(DateQuery::After(ts.timestamp()))
+            }
+            DateQueryConfig::BeforeTime { before_time } => {
+                if before_time == "now" {
+                    let ts = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+                    return Ok(DateQuery::Before(ts));
+                }
+                let ts = DateTime::<Utc>::from_str(before_time)?;
+                Ok(DateQuery::Before(ts.timestamp()))
+            }
+            DateQueryConfig::AfterTime { after_time } => {
+                if after_time == "now" {
+                    let ts = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+                    return Ok(DateQuery::After(ts));
+                }
+                let ts = DateTime::<Utc>::from_str(after_time)?;
+                Ok(DateQuery::After(ts.timestamp()))
+            }
         }
+    }
+
+    fn make_selector(config: &SelectorConfig) -> anyhow::Result<Arc<dyn Selector>> {
+        let selector: Arc<dyn Selector> = match config {
+            SelectorConfig::Path { path } => Arc::new(PathSelector {
+                query: path.split('/').map(|s| s.to_string()).collect(),
+            }) as Arc<dyn Selector>,
+            SelectorConfig::Tag { tag } => Arc::new(TagSelector { tag: tag.to_string() }) as Arc<dyn Selector>,
+            SelectorConfig::Ext { ext } => Arc::new(ExtSelector { ext: ext.to_string() }) as Arc<dyn Selector>,
+            SelectorConfig::Author { author } => Arc::new(AuthorSelector { author: author.to_string() }) as Arc<dyn Selector>,
+            SelectorConfig::Publishing { publishing } => Arc::new(PublishingDateSelector {
+                query: Maker::make_date_config(publishing)?,
+            }) as Arc<dyn Selector>,
+            SelectorConfig::Conjunction { and } => Arc::new(Logical::And(and.iter().map(|sc| Maker::make_selector(sc)).collect::<anyhow::Result<Vec<Arc<dyn Selector>>>>()?)) as Arc<dyn Selector>,
+            SelectorConfig::Disjunction { or } => Arc::new(Logical::Or(or.iter().map(|sc| Maker::make_selector(sc)).collect::<anyhow::Result<Vec<Arc<dyn Selector>>>>()?)) as Arc<dyn Selector>,
+            SelectorConfig::Not { not } => Arc::new(Logical::Not(Maker::make_selector(not)?)) as Arc<dyn Selector>,
+
+            SelectorConfig::PathShortCut(path) => Maker::make_selector(&SelectorConfig::Path { path: path.to_string() })?,
+            SelectorConfig::ConjunctionSelectorConfig(and) => Maker::make_selector(&SelectorConfig::Conjunction { and: and.to_vec() })?,
+        };
+
+        Ok(selector)
     }
 
     pub fn make(&self, name: Option<&str>, stage_config: &StageValue, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
@@ -164,14 +196,10 @@ impl Maker {
                         Ok(match value {
                             ComposeUnitConfig::Create(value) => Arc::new(ComposeUnit::CreateNewSet(self.make(None, value, env)?)),
                             ComposeUnitConfig::Replace {
-                                selector: (sel_name, sel_config),
+                                selector: selector_config,
                                 inner: stage_value,
                             } => {
-                                let selector_maker = self
-                                    .selector_makers
-                                    .get(sel_name)
-                                    .ok_or_else(|| PagesError::ElementNotFound(format!("selector {} not found", sel_name)))?;
-                                let selector = selector_maker.make(sel_config, env)?;
+                                let selector = Maker::make_selector(selector_config)?;
                                 Arc::new(ComposeUnit::ReplaceSubSet(selector, self.make(None, stage_value, env)?))
                             }
                         })
@@ -192,6 +220,29 @@ impl Maker {
                     .get(processor_type)
                     .ok_or_else(|| PagesError::ElementNotFound(format!("stage {} not found", processor_type)))?;
                 stage_maker.make(name, &Value::None, env)? as Arc<dyn Stage>
+            }
+            StageValue::Copy { dest, copy_selector } => {
+                let selector = Maker::make_selector(copy_selector)?;
+                Arc::new(CopyCut::Copy {
+                    name: name.unwrap_or("copy stage").to_string(),
+                    selector,
+                    dest: dest.split('/').map(|s| s.to_string()).collect(),
+                })
+            }
+            StageValue::Move { dest, move_selector } => {
+                let selector = Maker::make_selector(move_selector)?;
+                Arc::new(CopyCut::Move {
+                    name: name.unwrap_or("move stage").to_string(),
+                    selector,
+                    dest: dest.split('/').map(|s| s.to_string()).collect(),
+                })
+            }
+            StageValue::Ignore { ignore_selector } => {
+                let selector = Maker::make_selector(ignore_selector)?;
+                Arc::new(CopyCut::Ignore {
+                    name: name.unwrap_or("ignore stage").to_string(),
+                    selector,
+                })
             }
         };
 

@@ -1,7 +1,6 @@
 use crate::cli::execute::{Execution, Executor};
 use crate::cli::fs_writer::FsWriter;
-use crate::config::Value;
-use crate::maker::{ComposeUnitConfig, Env, Maker, StageValue};
+use crate::maker::{ComposeUnitConfig, Env, Maker, SelectorConfig, StageValue};
 use crate::pages::FsLoader;
 use crate::pages_error::PagesError;
 use std::env::current_dir;
@@ -48,7 +47,7 @@ impl Parameters {
                         processor_type: "md".to_string(),
                         config: Default::default(),
                     },
-                    selector: ("ext".to_string(), Value::String("md".to_string())),
+                    selector: SelectorConfig::Ext { ext: "md".to_string() },
                 }],
             },
             StageValue::Composition {

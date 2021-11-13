@@ -1,11 +1,47 @@
 use crate::config::Value;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(untagged)]
+pub enum DateQueryConfig {
+    BeforeDate {
+        #[serde(alias = "beforeDate")]
+        before_date: String,
+    },
+    AfterDate {
+        #[serde(alias = "afterDate")]
+        after_date: String,
+    },
+    BeforeTime {
+        #[serde(alias = "beforeTime")]
+        before_time: String,
+    },
+    AfterTime {
+        #[serde(alias = "afterTime")]
+        after_time: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(untagged)]
+pub enum SelectorConfig {
+    PathShortCut(String),
+    ConjunctionSelectorConfig(Vec<SelectorConfig>),
+    Path { path: String },
+    Tag { tag: String },
+    Ext { ext: String },
+    Author { author: String },
+    Publishing { publishing: DateQueryConfig },
+    Conjunction { and: Vec<SelectorConfig> },
+    Disjunction { or: Vec<SelectorConfig> },
+    Not { not: Box<SelectorConfig> },
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 pub enum ComposeUnitConfig {
     Create(StageValue),
-    Replace { inner: StageValue, selector: (String, Value) },
+    Replace { inner: StageValue, selector: SelectorConfig },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -29,4 +65,18 @@ pub enum StageValue {
         config: Value,
     },
     ProcessorWithoutConfigStage(String),
+    Copy {
+        #[serde(alias = "copy")]
+        copy_selector: SelectorConfig,
+        dest: String,
+    },
+    Move {
+        #[serde(alias = "move")]
+        move_selector: SelectorConfig,
+        dest: String,
+    },
+    Ignore {
+        #[serde(alias = "ignore")]
+        ignore_selector: SelectorConfig,
+    },
 }

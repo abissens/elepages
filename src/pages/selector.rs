@@ -1,14 +1,16 @@
 use crate::pages::Page;
 use std::any::Any;
+use std::fmt::Debug;
 use std::sync::Arc;
 
-pub trait Selector: Send + Sync {
+pub trait Selector: Send + Sync + Debug {
     fn select(&self, page: &Arc<dyn Page>) -> bool;
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }
 }
 
+#[derive(Debug)]
 pub struct PathSelector {
     pub query: Vec<String>,
 }
@@ -102,6 +104,7 @@ impl Selector for PathSelector {
     }
 }
 
+#[derive(Debug)]
 pub struct ExtSelector {
     pub ext: String,
 }
@@ -121,6 +124,7 @@ impl Selector for ExtSelector {
     }
 }
 
+#[derive(Debug)]
 pub struct TagSelector {
     pub tag: String,
 }
@@ -138,6 +142,7 @@ impl Selector for TagSelector {
     }
 }
 
+#[derive(Debug)]
 pub struct AuthorSelector {
     pub author: String,
 }
@@ -155,6 +160,7 @@ impl Selector for AuthorSelector {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum DateQuery {
     Before(i64),
     After(i64),
@@ -171,6 +177,7 @@ impl DateQuery {
     }
 }
 
+#[derive(Debug)]
 pub struct PublishingDateSelector {
     pub query: DateQuery,
 }
@@ -188,6 +195,7 @@ impl Selector for PublishingDateSelector {
     }
 }
 
+#[derive(Debug)]
 pub enum Logical {
     And(Vec<Arc<dyn Selector>>),
     Or(Vec<Arc<dyn Selector>>),

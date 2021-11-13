@@ -1,9 +1,10 @@
 #[cfg(test)]
 mod tests {
     use crate::maker::{Env, Maker, StageValue};
-    use crate::pages::{ExtSelector, PathSelector};
+    use crate::pages::{DateQuery, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{ComposeStage, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+    use crate::stages::{ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+    use chrono::{DateTime, Utc};
     use indoc::indoc;
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -136,23 +137,6 @@ mod tests {
     }
 
     #[test]
-    fn return_err_when_named_selector_not_found() {
-        let config: StageValue = serde_yaml::from_str(indoc! {"
-            ---
-            compose:
-              - inner: stage_name
-                selector: [some_selector, ~]
-        "})
-        .unwrap();
-
-        if let Err(e) = Maker::default().make(None, &config, &Env::new()) {
-            assert_eq!(e.to_string(), "selector some_selector not found")
-        } else {
-            panic!("should return Err");
-        }
-    }
-
-    #[test]
     fn build_sequence_stage() {
         let config: StageValue = serde_yaml::from_str(indoc! {"
             ---
@@ -171,6 +155,66 @@ mod tests {
         seq.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
         seq.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
         seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+    }
+
+    #[test]
+    fn build_copy_cut_stages() {
+        let config: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            - copy: 'a/**'
+              dest: 'copied/dest'
+            - move: [{tag: 'draft'}, {publishing: {afterDate: '2021-10-20'}}]
+              dest: 'moved/dest'
+            - ignore: {publishing: {afterTime: '2021-10-20T22:00:00+00:00'}}
+        "})
+        .unwrap();
+
+        let env = Env::new();
+
+        let stage = Maker::default().make(None, &config, &env).unwrap();
+
+        let seq = stage.as_any().unwrap().downcast_ref::<SequenceStage>().expect("SequenceStage");
+        let cc_1 = seq.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<CopyCut>().expect("CopyCut 0");
+        let cc_2 = seq.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<CopyCut>().expect("CopyCut 1");
+        let cc_3 = seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<CopyCut>().expect("CopyCut 2");
+
+        match cc_1 {
+            CopyCut::Copy { dest, selector, name } => {
+                assert_eq!(name, "copy stage");
+                assert_eq!(dest, &vec!["copied".to_string(), "dest".to_string()]);
+                let selector = selector.as_any().unwrap().downcast_ref::<PathSelector>().expect("PathSelector");
+                assert_eq!(selector.query, vec!["a".to_string(), "**".to_string()]);
+            }
+            _ => panic!("CopyCut::Copy"),
+        }
+
+        match cc_2 {
+            CopyCut::Move { dest, selector, name } => {
+                assert_eq!(name, "move stage");
+                assert_eq!(dest, &vec!["moved".to_string(), "dest".to_string()]);
+                let l = selector.as_any().unwrap().downcast_ref::<Logical>().expect("Logical");
+                match l {
+                    Logical::And(and) => {
+                        let a0 = and[0].as_any().unwrap().downcast_ref::<TagSelector>().expect("TagSelector");
+                        assert_eq!(a0.tag, "draft".to_string());
+
+                        let a1 = and[1].as_any().unwrap().downcast_ref::<PublishingDateSelector>().expect("PublishingDateSelector");
+                        assert_eq!(a1.query, DateQuery::After(DateTime::<Utc>::from_str("2021-10-20T23:59:59+00:00").unwrap().timestamp()));
+                    }
+                    _ => panic!("Logical::And"),
+                }
+            }
+            _ => panic!("CopyCut::Move"),
+        }
+
+        match cc_3 {
+            CopyCut::Ignore { selector, name } => {
+                assert_eq!(name, "ignore stage");
+                let selector = selector.as_any().unwrap().downcast_ref::<PublishingDateSelector>().expect("PublishingDateSelector");
+                assert_eq!(selector.query, DateQuery::After(DateTime::<Utc>::from_str("2021-10-20T22:00:00+00:00").unwrap().timestamp()));
+            }
+            _ => panic!("CopyCut::Copy"),
+        }
     }
 
     #[test]
@@ -253,9 +297,9 @@ mod tests {
                 - md
                 - git_metadata
                 - inner: git_metadata
-                  selector: [path, ['a', 'b']]
+                  selector: { path: 'a/b' }
                 - inner: handlebars
-                  selector: [ext, '.hbs']
+                  selector: { ext: '.hbs' }
         "})
         .unwrap();
 
@@ -305,9 +349,9 @@ mod tests {
                 - md
                 - git_metadata
                 - inner: git_metadata
-                  selector: [path, ['a', 'b']]
+                  selector: { path: 'a/b' }
                 - inner: handlebars
-                  selector: [ext, '.hbs']
+                  selector: { ext: '.hbs' }
         "})
         .unwrap();
 

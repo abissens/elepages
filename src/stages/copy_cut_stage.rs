@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Instant;
 
+#[derive(Debug)]
 pub enum CopyCut {
     Copy { name: String, selector: Arc<dyn Selector>, dest: Vec<String> },
     Move { name: String, selector: Arc<dyn Selector>, dest: Vec<String> },

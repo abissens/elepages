@@ -2,10 +2,12 @@
 mod tests {
     use crate::config::Value;
     use crate::maker::config::{ComposeUnitConfig, StageValue};
+    use crate::maker::{DateQueryConfig, SelectorConfig};
     use indoc::indoc;
     use std::array::IntoIter;
     use std::collections::HashMap;
     use std::iter::FromIterator;
+
     #[test]
     fn parse_stage_value_configs() {
         let single_named: StageValue = serde_yaml::from_str(indoc! {"
@@ -31,6 +33,53 @@ mod tests {
             }
         );
 
+        let copy_stage: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            copy: 'a/**'
+            dest: 'copied/dest'
+        "})
+        .unwrap();
+
+        assert_eq!(
+            copy_stage,
+            StageValue::Copy {
+                copy_selector: SelectorConfig::PathShortCut("a/**".to_string()),
+                dest: "copied/dest".to_string(),
+            }
+        );
+
+        let move_stage: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            move: { and: [ {tag: 'a'}, {path: 'a/**'}]}
+            dest: 'moved/dest'
+        "})
+        .unwrap();
+
+        assert_eq!(
+            move_stage,
+            StageValue::Move {
+                move_selector: SelectorConfig::Conjunction {
+                    and: vec![SelectorConfig::Tag { tag: "a".to_string() }, SelectorConfig::Path { path: "a/**".to_string() }]
+                },
+                dest: "moved/dest".to_string(),
+            }
+        );
+
+        let ignore_stage: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            ignore: { publishing: { afterDate: 'now' } }
+        "})
+        .unwrap();
+
+        assert_eq!(
+            ignore_stage,
+            StageValue::Ignore {
+                ignore_selector: SelectorConfig::Publishing {
+                    publishing: DateQueryConfig::AfterDate { after_date: "now".to_string() }
+                },
+            }
+        );
+
         let sequence: StageValue = serde_yaml::from_str(indoc! {"
             ---
             - type: stage_type_1
@@ -40,6 +89,8 @@ mod tests {
               config: ~
             - type: stage_type_3
             - stage_type_4
+            - copy: 'a/**'
+              dest: 'copied/dest'
         "})
         .unwrap();
 
@@ -59,6 +110,10 @@ mod tests {
                     config: Value::None,
                 },
                 StageValue::ProcessorWithoutConfigStage("stage_type_4".to_string()),
+                StageValue::Copy {
+                    copy_selector: SelectorConfig::PathShortCut("a/**".to_string()),
+                    dest: "copied/dest".to_string(),
+                }
             ])
         );
 
@@ -107,7 +162,7 @@ mod tests {
                 - type: stage_type_3
                 - stage_type_4
                 - inner: stage_type_5
-                  selector: [regexp, '.*?.md$']
+                  selector: { ext: '.md' }
         "})
         .unwrap();
 
@@ -130,7 +185,7 @@ mod tests {
                     ComposeUnitConfig::Create(StageValue::ProcessorWithoutConfigStage("stage_type_4".to_string())),
                     ComposeUnitConfig::Replace {
                         inner: StageValue::ProcessorWithoutConfigStage("stage_type_5".to_string()),
-                        selector: ("regexp".to_string(), Value::String(".*?.md$".to_string()))
+                        selector: SelectorConfig::Ext { ext: ".md".to_string() }
                     }
                 ]
             }
