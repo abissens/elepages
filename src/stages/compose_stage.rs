@@ -25,6 +25,12 @@ struct CompositionResult {
 }
 
 impl ComposeStage {
+    fn select(&self, selector: &dyn Selector, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        Arc::new(VecBundle {
+            p: bundle.pages().iter().filter_map(|p| if selector.select(p) { Some(Arc::clone(p)) } else { None }).collect(),
+        })
+    }
+
     fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = Instant::now();
         let mut vec_bundle = VecBundle { p: vec![] };
@@ -41,7 +47,7 @@ impl ComposeStage {
                         selected_set: None,
                     },
                     ComposeUnit::ReplaceSubSet(selector, stage) => {
-                        let sub_set_bundle = selector.select(bundle);
+                        let sub_set_bundle = self.select(selector.as_ref(), bundle);
                         CompositionResult {
                             result: stage.process(&sub_set_bundle)?,
                             selected_set: Some(sub_set_bundle),
@@ -97,7 +103,7 @@ impl ComposeStage {
                     vec_bundle.p.append(&mut stage_pages);
                 }
                 ComposeUnit::ReplaceSubSet(selector, stage) => {
-                    let sub_set_bundle = selector.select(bundle);
+                    let sub_set_bundle = self.select(selector.as_ref(), bundle);
                     for p in sub_set_bundle.pages() {
                         replaced_set.insert(p.path().to_vec());
                     }

@@ -103,13 +103,13 @@ mod tests {
     }
 
     #[test]
-    fn select_all_pages_when_query_is_empty() {
+    fn select_none_when_query_is_empty() {
         let bundle: Arc<dyn PageBundle> = path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]);
         let selector = PathSelector { query: vec![] };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
-        assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]));
+        assert!(result_bundle.pages().is_empty())
     }
 
     #[test]
@@ -119,7 +119,7 @@ mod tests {
             query: vec!["d1".to_string(), "f2".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f2"]));
     }
@@ -131,7 +131,7 @@ mod tests {
             query: vec!["d1".to_string(), "*.txt".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1.txt"], vec!["d1", "f3.txt"]));
     }
@@ -143,7 +143,7 @@ mod tests {
             query: vec!["**".to_string(), "f*.t*t".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1.txt"], vec!["d1", "f3.txt"], vec!["f4.txt"]));
     }
@@ -155,7 +155,7 @@ mod tests {
             query: vec!["**".to_string(), "f***.t**t".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1.txt"], vec!["d1", "f3.txt"], vec!["f4.txt"]));
     }
@@ -167,7 +167,7 @@ mod tests {
             query: vec!["d1".to_string(), "*".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]));
     }
@@ -179,7 +179,7 @@ mod tests {
             query: vec!["d1".to_string(), "**".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"], vec!["d1", "d2", "f2"]));
     }
@@ -191,7 +191,7 @@ mod tests {
             query: vec!["d1".to_string(), "**".to_string(), "f1".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1"], vec!["d1", "d2", "d3", "f1"]));
     }
@@ -211,7 +211,7 @@ mod tests {
             query: vec!["**".to_string(), "d1".to_string(), "**".to_string()],
         };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(
             result_bundle,
@@ -224,7 +224,7 @@ mod tests {
         let bundle: Arc<dyn PageBundle> = path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]);
         let selector = ExtSelector { ext: "".to_string() };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f1"], vec!["d1", "f2"]));
     }
@@ -234,7 +234,7 @@ mod tests {
         let bundle: Arc<dyn PageBundle> = path_bundle!(vec!["d1", "f1"], vec!["d1", "f2.md"], vec!["d1", "f3"], vec!["f4.md".to_string()]);
         let selector = ExtSelector { ext: ".md".to_string() };
 
-        let result_bundle = selector.select(&bundle);
+        let result_bundle = select_to_bundle(&selector, &bundle);
 
         assert_eq_bundles!(result_bundle, path_bundle!(vec!["d1", "f2.md"], vec!["f4.md".to_string()]));
     }
@@ -247,9 +247,9 @@ mod tests {
         let selector_2 = TagSelector { tag: "f".to_string() };
         let selector_3 = TagSelector { tag: "g".to_string() };
 
-        let result_bundle_1 = selector_1.select(&bundle);
-        let result_bundle_2 = selector_2.select(&bundle);
-        let result_bundle_3 = selector_3.select(&bundle);
+        let result_bundle_1 = select_to_bundle(&selector_1, &bundle);
+        let result_bundle_2 = select_to_bundle(&selector_2, &bundle);
+        let result_bundle_3 = select_to_bundle(&selector_3, &bundle);
 
         assert_eq_bundles!(result_bundle_1, tag_bundle!(vec!["a", "b", "c"], vec!["a"]));
         assert_eq_bundles!(result_bundle_2, tag_bundle!(vec!["e", "f"]));
@@ -264,9 +264,9 @@ mod tests {
         let selector_2 = AuthorSelector { author: "a4".to_string() };
         let selector_3 = AuthorSelector { author: "a6".to_string() };
 
-        let result_bundle_1 = selector_1.select(&bundle);
-        let result_bundle_2 = selector_2.select(&bundle);
-        let result_bundle_3 = selector_3.select(&bundle);
+        let result_bundle_1 = select_to_bundle(&selector_1, &bundle);
+        let result_bundle_2 = select_to_bundle(&selector_2, &bundle);
+        let result_bundle_3 = select_to_bundle(&selector_3, &bundle);
 
         assert_eq_bundles!(result_bundle_1, author_bundle!(vec!["a1", "a2", "a3"], vec!["a1"]));
         assert_eq_bundles!(result_bundle_2, author_bundle!(vec!["a4", "a5"]));
@@ -295,9 +295,9 @@ mod tests {
             ),
         };
 
-        let result_bundle_1 = selector_1.select(&bundle);
-        let result_bundle_2 = selector_2.select(&bundle);
-        let result_bundle_3 = selector_3.select(&bundle);
+        let result_bundle_1 = select_to_bundle(&selector_1, &bundle);
+        let result_bundle_2 = select_to_bundle(&selector_2, &bundle);
+        let result_bundle_3 = select_to_bundle(&selector_3, &bundle);
 
         assert_eq_bundles!(
             result_bundle_1,
@@ -318,5 +318,11 @@ mod tests {
             result_bundle_3,
             publishing_date_bundle!(Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()))
         );
+    }
+
+    fn select_to_bundle(selector: &dyn Selector, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        Arc::new(VecBundle {
+            p: bundle.pages().iter().filter_map(|p| if selector.select(p) { Some(Arc::clone(p)) } else { None }).collect(),
+        })
     }
 }

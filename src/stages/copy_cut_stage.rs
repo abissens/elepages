@@ -10,6 +10,14 @@ pub enum CopyCut {
     Move { name: String, selector: Arc<dyn Selector>, dest: Vec<String> },
     Ignore { name: String, selector: Arc<dyn Selector> },
 }
+
+impl CopyCut {
+    fn select(&self, selector: &Arc<dyn Selector>, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        Arc::new(VecBundle {
+            p: bundle.pages().iter().filter_map(|p| if selector.select(p) { Some(Arc::clone(p)) } else { None }).collect(),
+        })
+    }
+}
 fn join_paths(a: &[String], b: &[String]) -> Vec<String> {
     let mut result = Vec::from(a);
     result.append(&mut Vec::from(b));
@@ -30,12 +38,12 @@ impl Stage for CopyCut {
         let p = match self {
             CopyCut::Copy { selector, dest, .. } => {
                 let mut result = bundle.pages().to_vec();
-                let mut copied = selector.select(bundle).pages().iter().map(|p| p.change_path(join_paths(dest, p.path()))).collect();
+                let mut copied = self.select(selector, bundle).pages().iter().map(|p| p.change_path(join_paths(dest, p.path()))).collect();
                 result.append(&mut copied);
                 result
             }
             CopyCut::Move { selector, dest, .. } => {
-                let selected = selector.select(bundle);
+                let selected = self.select(selector, bundle);
                 let mut selected_paths: HashSet<Vec<String>> = HashSet::default();
                 let mut result = vec![];
                 for selected_page in selected.pages() {
@@ -51,7 +59,7 @@ impl Stage for CopyCut {
                 result
             }
             CopyCut::Ignore { selector, .. } => {
-                let selected_paths: HashSet<Vec<String>> = selector.select(bundle).pages().iter().map(|p| p.path().to_vec()).collect();
+                let selected_paths: HashSet<Vec<String>> = self.select(selector, bundle).pages().iter().map(|p| p.path().to_vec()).collect();
                 bundle
                     .pages()
                     .iter()

@@ -1,9 +1,9 @@
-use crate::pages::{Page, PageBundle, VecBundle};
+use crate::pages::Page;
 use std::any::Any;
 use std::sync::Arc;
 
 pub trait Selector: Send + Sync {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle>;
+    fn select(&self, page: &Arc<dyn Page>) -> bool;
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }
@@ -93,18 +93,8 @@ impl PathSelector {
 }
 
 impl Selector for PathSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let ql = self.query.len();
-        if ql == 0 {
-            return Arc::clone(bundle);
-        }
-
-        let p = bundle
-            .pages()
-            .iter()
-            .filter_map(|p: &Arc<dyn Page>| if self.select_page(p.path(), &self.query) { Some(Arc::clone(p)) } else { None })
-            .collect();
-        Arc::new(VecBundle { p })
+    fn select(&self, page: &Arc<dyn Page>) -> bool {
+        self.select_page(page.path(), &self.query)
     }
 
     fn as_any(&self) -> Option<&dyn Any> {
@@ -117,26 +107,13 @@ pub struct ExtSelector {
 }
 
 impl Selector for ExtSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+    fn select(&self, page: &Arc<dyn Page>) -> bool {
         let ql = self.ext.len();
         if ql == 0 {
-            return Arc::clone(bundle);
+            return true;
         }
-
-        let p = bundle
-            .pages()
-            .iter()
-            .filter_map(|p: &Arc<dyn Page>| {
-                let path = p.path();
-                if path[path.len() - 1].ends_with(&self.ext) {
-                    Some(Arc::clone(p))
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-        Arc::new(VecBundle { p })
+        let path = page.path();
+        path[path.len() - 1].ends_with(&self.ext)
     }
 
     fn as_any(&self) -> Option<&dyn Any> {
@@ -149,21 +126,11 @@ pub struct TagSelector {
 }
 
 impl Selector for TagSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let p = bundle
-            .pages()
-            .iter()
-            .filter_map(|p: &Arc<dyn Page>| {
-                if let Some(m) = p.metadata() {
-                    if m.tags.contains(&self.tag) {
-                        return Some(Arc::clone(p));
-                    }
-                }
-                None
-            })
-            .collect();
-
-        Arc::new(VecBundle { p })
+    fn select(&self, page: &Arc<dyn Page>) -> bool {
+        if let Some(m) = page.metadata() {
+            return m.tags.contains(&self.tag);
+        }
+        false
     }
 
     fn as_any(&self) -> Option<&dyn Any> {
@@ -176,19 +143,11 @@ pub struct AuthorSelector {
 }
 
 impl Selector for AuthorSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let p = bundle
-            .pages()
-            .iter()
-            .filter_map(|p: &Arc<dyn Page>| {
-                if let Some(m) = p.metadata() {
-                    return m.authors.iter().find_map(|a| if a.name == self.author { Some(Arc::clone(p)) } else { None });
-                }
-                None
-            })
-            .collect();
-
-        Arc::new(VecBundle { p })
+    fn select(&self, page: &Arc<dyn Page>) -> bool {
+        if let Some(m) = page.metadata() {
+            return m.authors.iter().any(|a| a.name == self.author);
+        }
+        false
     }
 
     fn as_any(&self) -> Option<&dyn Any> {
@@ -217,21 +176,11 @@ pub struct PublishingDateSelector {
 }
 
 impl Selector for PublishingDateSelector {
-    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
-        let p = bundle
-            .pages()
-            .iter()
-            .filter_map(|p: &Arc<dyn Page>| {
-                if let Some(Some(pub_date)) = p.metadata().map(|m| &m.publishing_date) {
-                    if self.query.match_query(pub_date) {
-                        return Some(Arc::clone(p));
-                    }
-                }
-                None
-            })
-            .collect();
-
-        Arc::new(VecBundle { p })
+    fn select(&self, page: &Arc<dyn Page>) -> bool {
+        if let Some(Some(pub_date)) = page.metadata().map(|m| &m.publishing_date) {
+            return self.query.match_query(pub_date);
+        }
+        false
     }
 
     fn as_any(&self) -> Option<&dyn Any> {

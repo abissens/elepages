@@ -29,13 +29,13 @@ mod tests {
         let copy_stage_1 = CopyCut::Move {
             name: "copy stage".to_string(),
             dest: vec!["root".to_string(), "sub_root".to_string()],
-            selector: Arc::new(PathSelector { query: vec![] }),
+            selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
         };
 
         let copy_stage_2 = CopyCut::Move {
             name: "copy stage".to_string(),
             dest: vec!["second_root".to_string()],
-            selector: Arc::new(PathSelector { query: vec![] }),
+            selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
         };
 
         let union_stage = UnionStage {
@@ -110,13 +110,13 @@ mod tests {
         let copy_stage_1 = CopyCut::Move {
             name: "copy stage".to_string(),
             dest: vec!["root".to_string(), "sub_root".to_string()],
-            selector: Arc::new(PathSelector { query: vec![] }),
+            selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
         };
 
         let copy_stage_2 = CopyCut::Move {
             name: "copy stage".to_string(),
             dest: vec!["second_root".to_string()],
-            selector: Arc::new(PathSelector { query: vec![] }),
+            selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
         };
 
         let union_stage = UnionStage {

@@ -31,7 +31,7 @@ mod tests {
             units: vec![Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                 name: "copy stage".to_string(),
                 dest: vec!["copied".to_string()],
-                selector: Arc::new(PathSelector { query: vec![] }),
+                selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
             })))],
             parallel: false,
         };
@@ -114,7 +114,7 @@ mod tests {
                 Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
                     dest: vec!["copied".to_string()],
-                    selector: Arc::new(PathSelector { query: vec![] }),
+                    selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }),
             ))],
             parallel: false,
@@ -193,7 +193,7 @@ mod tests {
                 Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
                     dest: vec!["backup".to_string(), "copied".to_string()],
-                    selector: Arc::new(PathSelector { query: vec![] }),
+                    selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
@@ -202,7 +202,7 @@ mod tests {
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied".to_string()],
-                        selector: Arc::new(PathSelector { query: vec![] }),
+                        selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                     }),
                 )),
             ],
@@ -313,7 +313,7 @@ mod tests {
                 Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
                     dest: vec!["backup".to_string(), "copied".to_string()],
-                    selector: Arc::new(PathSelector { query: vec![] }),
+                    selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
@@ -322,7 +322,7 @@ mod tests {
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied".to_string()],
-                        selector: Arc::new(PathSelector { query: vec![] }),
+                        selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
@@ -330,7 +330,7 @@ mod tests {
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied ext".to_string()],
-                        selector: Arc::new(PathSelector { query: vec![] }),
+                        selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                     }),
                 )),
             ],
@@ -439,7 +439,7 @@ mod tests {
             units: vec![Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                 name: "copy stage".to_string(),
                 dest: vec!["copied".to_string()],
-                selector: Arc::new(PathSelector { query: vec![] }),
+                selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
             })))],
             parallel: true,
         };
@@ -520,7 +520,7 @@ mod tests {
                 Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
                     dest: vec!["copied".to_string()],
-                    selector: Arc::new(PathSelector { query: vec![] }),
+                    selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }),
             ))],
             parallel: true,
@@ -599,7 +599,7 @@ mod tests {
                 Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
                     dest: vec!["backup".to_string(), "copied".to_string()],
-                    selector: Arc::new(PathSelector { query: vec![] }),
+                    selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
@@ -608,7 +608,7 @@ mod tests {
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied".to_string()],
-                        selector: Arc::new(PathSelector { query: vec![] }),
+                        selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                     }),
                 )),
             ],
@@ -719,7 +719,7 @@ mod tests {
                 Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
                     dest: vec!["backup".to_string(), "copied".to_string()],
-                    selector: Arc::new(PathSelector { query: vec![] }),
+                    selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
@@ -728,7 +728,7 @@ mod tests {
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied".to_string()],
-                        selector: Arc::new(PathSelector { query: vec![] }),
+                        selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
@@ -736,7 +736,7 @@ mod tests {
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied ext".to_string()],
-                        selector: Arc::new(PathSelector { query: vec![] }),
+                        selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                     }),
                 )),
             ],
