@@ -16,7 +16,7 @@ pub struct ComposeStage {
 
 pub enum ComposeUnit {
     CreateNewSet(Arc<dyn Stage>),
-    ReplaceSubSet(Box<dyn Selector>, Arc<dyn Stage>),
+    ReplaceSubSet(Arc<dyn Selector>, Arc<dyn Stage>),
 }
 
 struct CompositionResult {

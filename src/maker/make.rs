@@ -13,7 +13,7 @@ pub trait StageMaker {
 }
 
 pub trait SelectorMaker {
-    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Box<dyn Selector>>;
+    fn make(&self, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Selector>>;
 }
 
 pub struct Maker {
@@ -109,16 +109,16 @@ impl StageMaker for HandlebarsStageMaker {
 }
 
 impl SelectorMaker for PathSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn Selector>> {
-        Ok(Box::new(PathSelector {
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Arc<dyn Selector>> {
+        Ok(Arc::new(PathSelector {
             query: <Vec<String>>::from_value(config.clone())?,
         }))
     }
 }
 
 impl SelectorMaker for ExtSelectorMaker {
-    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Box<dyn Selector>> {
-        Ok(Box::new(ExtSelector {
+    fn make(&self, config: &Value, _: &Env) -> anyhow::Result<Arc<dyn Selector>> {
+        Ok(Arc::new(ExtSelector {
             ext: String::from_value(config.clone())?,
         }))
     }

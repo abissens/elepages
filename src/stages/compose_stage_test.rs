@@ -108,7 +108,7 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![Arc::new(ReplaceSubSet(
-                Box::new(PathSelector {
+                Arc::new(PathSelector {
                     query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                 }),
                 Arc::new(CopyCut::Move {
@@ -196,7 +196,7 @@ mod tests {
                     selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PathSelector {
+                    Arc::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
                     Arc::new(CopyCut::Move {
@@ -316,7 +316,7 @@ mod tests {
                     selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PathSelector {
+                    Arc::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
                     Arc::new(CopyCut::Move {
@@ -326,7 +326,7 @@ mod tests {
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
-                    Box::new(ExtSelector { ext: ".md".to_string() }),
+                    Arc::new(ExtSelector { ext: ".md".to_string() }),
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied ext".to_string()],
@@ -514,7 +514,7 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![Arc::new(ReplaceSubSet(
-                Box::new(PathSelector {
+                Arc::new(PathSelector {
                     query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                 }),
                 Arc::new(CopyCut::Move {
@@ -602,7 +602,7 @@ mod tests {
                     selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PathSelector {
+                    Arc::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
                     Arc::new(CopyCut::Move {
@@ -722,7 +722,7 @@ mod tests {
                     selector: Arc::new(PathSelector { query: vec!["**".to_string()] }),
                 }))),
                 Arc::new(ReplaceSubSet(
-                    Box::new(PathSelector {
+                    Arc::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
                     Arc::new(CopyCut::Move {
@@ -732,7 +732,7 @@ mod tests {
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
-                    Box::new(ExtSelector { ext: ".md".to_string() }),
+                    Arc::new(ExtSelector { ext: ".md".to_string() }),
                     Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
                         dest: vec!["copied ext".to_string()],
