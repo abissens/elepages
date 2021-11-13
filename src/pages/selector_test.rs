@@ -2,7 +2,8 @@
 mod tests {
     use crate::pages::selector::{AuthorSelector, PathSelector, Selector};
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, ExtSelector, Metadata, PageBundle, TagSelector, VecBundle};
+    use crate::pages::{Author, DateQuery, ExtSelector, Metadata, PageBundle, PublishingDateSelector, TagSelector, VecBundle};
+    use chrono::DateTime;
     use std::sync::Arc;
 
     #[macro_export]
@@ -58,6 +59,28 @@ mod tests {
                             })).collect(),
                             tags: Default::default(),
                             publishing_date: None,
+                            last_edit_date: None
+                        }),
+                        content: "".to_string()
+                })), +
+                ],
+            })
+        };
+    }
+
+    #[macro_export]
+    macro_rules! publishing_date_bundle {
+        ($($result:expr),+) => {
+            Arc::new(VecBundle {
+                p: vec![
+                    $(Arc::new(TestPage {
+                        path: vec![],
+                        metadata: Some(Metadata{
+                            title: None,
+                            summary: None,
+                            authors: Default::default(),
+                            tags: Default::default(),
+                            publishing_date: $result,
                             last_edit_date: None
                         }),
                         content: "".to_string()
@@ -248,5 +271,52 @@ mod tests {
         assert_eq_bundles!(result_bundle_1, author_bundle!(vec!["a1", "a2", "a3"], vec!["a1"]));
         assert_eq_bundles!(result_bundle_2, author_bundle!(vec!["a4", "a5"]));
         assert!(result_bundle_3.pages().is_empty());
+    }
+
+    #[test]
+    fn select_pages_by_publishing_date() {
+        let bundle: Arc<dyn PageBundle> = publishing_date_bundle!(
+            None,
+            Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+            Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
+            Some(DateTime::parse_from_rfc3339("2021-10-21T16:00:00-08:00").unwrap().timestamp())
+        );
+
+        let selector_1 = PublishingDateSelector {
+            query: DateQuery::After(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+        };
+        let selector_2 = PublishingDateSelector {
+            query: DateQuery::Before(DateTime::parse_from_rfc3339("2021-10-20T23:59:00-08:00").unwrap().timestamp()),
+        };
+        let selector_3 = PublishingDateSelector {
+            query: DateQuery::Between(
+                DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp(),
+                DateTime::parse_from_rfc3339("2021-10-20T20:00:00-08:00").unwrap().timestamp(),
+            ),
+        };
+
+        let result_bundle_1 = selector_1.select(&bundle);
+        let result_bundle_2 = selector_2.select(&bundle);
+        let result_bundle_3 = selector_3.select(&bundle);
+
+        assert_eq_bundles!(
+            result_bundle_1,
+            publishing_date_bundle!(
+                Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
+                Some(DateTime::parse_from_rfc3339("2021-10-21T16:00:00-08:00").unwrap().timestamp())
+            )
+        );
+        assert_eq_bundles!(
+            result_bundle_2,
+            publishing_date_bundle!(
+                Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
+                Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp())
+            )
+        );
+
+        assert_eq_bundles!(
+            result_bundle_3,
+            publishing_date_bundle!(Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()))
+        );
     }
 }

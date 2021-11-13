@@ -195,3 +195,46 @@ impl Selector for AuthorSelector {
         Some(self)
     }
 }
+
+pub enum DateQuery {
+    Before(i64),
+    After(i64),
+    Between(i64, i64),
+}
+
+impl DateQuery {
+    pub fn match_query(&self, time: &i64) -> bool {
+        match self {
+            DateQuery::Before(v) => time < v,
+            DateQuery::After(v) => time > v,
+            DateQuery::Between(v1, v2) => time > v1 && time < v2,
+        }
+    }
+}
+
+pub struct PublishingDateSelector {
+    pub query: DateQuery,
+}
+
+impl Selector for PublishingDateSelector {
+    fn select(&self, bundle: &Arc<dyn PageBundle>) -> Arc<dyn PageBundle> {
+        let p = bundle
+            .pages()
+            .iter()
+            .filter_map(|p: &Arc<dyn Page>| {
+                if let Some(Some(pub_date)) = p.metadata().map(|m| &m.publishing_date) {
+                    if self.query.match_query(pub_date) {
+                        return Some(Arc::clone(p));
+                    }
+                }
+                None
+            })
+            .collect();
+
+        Arc::new(VecBundle { p })
+    }
+
+    fn as_any(&self) -> Option<&dyn Any> {
+        Some(self)
+    }
+}
