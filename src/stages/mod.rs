@@ -1,5 +1,7 @@
 mod compose_stage;
 mod compose_stage_test;
+mod copy_cut_stage;
+mod copy_cut_stage_test;
 mod copy_stage;
 mod copy_stage_test;
 mod git_metadata;
@@ -22,6 +24,7 @@ mod union_stage;
 mod union_stage_test;
 
 pub use self::compose_stage::*;
+pub use self::copy_cut_stage::*;
 pub use self::copy_stage::*;
 pub use self::git_metadata::*;
 pub use self::handlebars_stage::*;
