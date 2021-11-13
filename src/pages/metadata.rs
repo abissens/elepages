@@ -85,11 +85,11 @@ mod epoch_timestamp {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
-    pub fn serialize<S>(instant: &Option<i64>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(ts: &Option<i64>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        instant.map(|i| Utc.timestamp(i, 0).to_rfc3339()).serialize(serializer)
+        ts.map(|i| Utc.timestamp(i, 0).to_rfc3339()).serialize(serializer)
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<i64>, D::Error>

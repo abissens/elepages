@@ -1,13 +1,14 @@
 use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
+use chrono::{DateTime, Utc};
 use git2::Repository;
 use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub struct GitMetadata {
     pub name: String,
@@ -92,7 +93,7 @@ impl Stage for GitMetadata {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut blame_pages = HashMap::default();
 
@@ -113,7 +114,7 @@ impl Stage for GitMetadata {
             let mut processed_pages = self.process_repository(blame_pages)?;
             vec_bundle.p.append(&mut processed_pages);
         }
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

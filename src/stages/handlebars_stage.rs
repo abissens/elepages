@@ -12,8 +12,9 @@ use crate::stages::handlebars_stage::RenderResult::Content;
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use crate::utilities::visit_dirs;
+use chrono::{DateTime, Utc};
 use std::any::Any;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub trait HandlebarsLookup: Sync + Send + Debug {
     fn init_registry(&self, registry: &mut handlebars::Handlebars) -> anyhow::Result<()>;
@@ -35,7 +36,7 @@ impl Stage for HandlebarsStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut registry = handlebars::Handlebars::new();
         self.lookup.init_registry(&mut registry)?;
         let result: Vec<RenderResult> = bundle
@@ -71,7 +72,7 @@ impl Stage for HandlebarsStage {
         }
 
         result_bundle.p.append(&mut self.lookup.assets()?);
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(result_bundle),
             ProcessingResult {

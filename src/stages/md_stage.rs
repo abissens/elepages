@@ -1,11 +1,12 @@
 use crate::pages::{Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
+use chrono::{DateTime, Utc};
 use pulldown_cmark::{html, Parser};
 use std::any::Any;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub struct MdStage {
     pub name: String,
@@ -17,7 +18,7 @@ impl Stage for MdStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let vec_bundle = VecBundle {
             p: bundle
                 .pages()
@@ -34,7 +35,7 @@ impl Stage for MdStage {
                 })
                 .collect(),
         };
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

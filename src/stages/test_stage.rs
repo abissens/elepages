@@ -2,11 +2,12 @@ use crate::pages::PageBundle;
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use anyhow::anyhow;
+use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::cmp::Ordering;
 use std::hash::Hash;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub(crate) struct TestStage {
     pub(crate) bundle: Option<Arc<dyn PageBundle>>,
@@ -38,7 +39,7 @@ impl Stage for TestStage {
     }
 
     fn process(&self, _: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let result_bundle = match &self.bundle {
             Some(b) => {
                 let mut l = self.launched.lock().unwrap();
@@ -50,7 +51,7 @@ impl Stage for TestStage {
                 _ => panic!("should have bundle or error"),
             },
         };
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             result_bundle?,
             ProcessingResult {

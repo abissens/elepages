@@ -1,12 +1,13 @@
 use crate::pages::{Page, PageBundle, Selector, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
+use chrono::{DateTime, Utc};
 use rayon::prelude::*;
 use std::any::Any;
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub struct ComposeStage {
     pub name: String,
@@ -32,7 +33,7 @@ impl ComposeStage {
     }
 
     fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
         let mut sub_results = vec![];
@@ -76,7 +77,7 @@ impl ComposeStage {
                 vec_bundle.p.push(Arc::clone(p))
             }
         }
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {
@@ -89,7 +90,7 @@ impl ComposeStage {
     }
 
     fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
         let mut sub_results = vec![];
@@ -120,7 +121,7 @@ impl ComposeStage {
                 vec_bundle.p.push(Arc::clone(p))
             }
         }
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

@@ -1,9 +1,10 @@
 use crate::pages::{ArcPage, PageBundle, Selector, VecBundle};
 use crate::stages::{ProcessingResult, Stage};
+use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::collections::HashSet;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 #[derive(Debug)]
 pub enum CopyCut {
@@ -35,7 +36,7 @@ impl Stage for CopyCut {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let p = match self {
             CopyCut::Copy { selector, dest, .. } => {
                 let mut result = bundle.pages().to_vec();
@@ -68,7 +69,7 @@ impl Stage for CopyCut {
                     .collect()
             }
         };
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
 
         Ok((
             Arc::new(VecBundle { p }),

@@ -1,9 +1,10 @@
 use crate::pages::PageBundle;
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
+use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub struct SequenceStage {
     pub name: String,
@@ -28,9 +29,9 @@ impl Stage for SequenceStage {
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let mut sub_results = vec![];
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let result_bundle = SequenceStage::sequence_process(Arc::clone(bundle), &self.stages, &mut sub_results)?;
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             result_bundle,
             ProcessingResult {

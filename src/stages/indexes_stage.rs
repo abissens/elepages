@@ -1,12 +1,13 @@
 use crate::pages::{Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
+use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::io::{Cursor, Read};
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub struct IndexStage {
     pub name: String,
@@ -18,7 +19,7 @@ impl Stage for IndexStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut pages_by_tag: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut pages_by_author: HashMap<&str, Vec<&[String]>> = HashMap::new();
         let mut all_pages: Vec<PageIndex> = vec![];
@@ -74,7 +75,7 @@ impl Stage for IndexStage {
                 }),
             ],
         };
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(result_bundle),
             ProcessingResult {

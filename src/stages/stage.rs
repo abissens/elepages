@@ -1,7 +1,6 @@
 use crate::pages::PageBundle;
 use std::any::Any;
 use std::sync::Arc;
-use std::time::Instant;
 
 pub trait Stage: Send + Sync {
     fn name(&self) -> String;
@@ -13,7 +12,7 @@ pub trait Stage: Send + Sync {
 
 pub struct ProcessingResult {
     pub stage_name: String,
-    pub start: Instant,
-    pub end: Instant,
+    pub start: i64,
+    pub end: i64,
     pub sub_results: Vec<ProcessingResult>,
 }

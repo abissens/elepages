@@ -1,10 +1,11 @@
 use crate::pages::{Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
+use chrono::{DateTime, Utc};
 use rayon::prelude::*;
 use std::any::Any;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::SystemTime;
 
 pub struct UnionStage {
     pub name: String,
@@ -14,7 +15,7 @@ pub struct UnionStage {
 
 impl UnionStage {
     fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
         let stage_pages_result: Vec<(Arc<dyn PageBundle>, ProcessingResult)> = self
@@ -29,7 +30,7 @@ impl UnionStage {
                 vec_bundle.p.push(Arc::clone(page));
             }
         }
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {
@@ -42,7 +43,7 @@ impl UnionStage {
     }
 
     fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = Instant::now();
+        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
 
@@ -54,7 +55,7 @@ impl UnionStage {
             vec_bundle.p.append(&mut stage_pages);
         }
 
-        let end = Instant::now();
+        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {
