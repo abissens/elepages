@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{PageBundle, VecBundle};
-    use crate::stages::copy_stage::CopyStage;
+    use crate::pages::{PageBundle, PathSelector, VecBundle};
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::{TestProcessingResult, TestStage};
     use crate::stages::union_stage::UnionStage;
+    use crate::stages::CopyCut;
     use std::borrow::Borrow;
     use std::sync::Arc;
 
@@ -26,14 +26,16 @@ mod tests {
             ],
         });
 
-        let copy_stage_1 = CopyStage {
+        let copy_stage_1 = CopyCut::Move {
             name: "copy stage".to_string(),
-            prefix: vec!["root".to_string(), "sub_root".to_string()],
+            dest: vec!["root".to_string(), "sub_root".to_string()],
+            selector: Arc::new(PathSelector { query: vec![] }),
         };
 
-        let copy_stage_2 = CopyStage {
+        let copy_stage_2 = CopyCut::Move {
             name: "copy stage".to_string(),
-            prefix: vec!["second_root".to_string()],
+            dest: vec!["second_root".to_string()],
+            selector: Arc::new(PathSelector { query: vec![] }),
         };
 
         let union_stage = UnionStage {
@@ -105,14 +107,16 @@ mod tests {
             ],
         });
 
-        let copy_stage_1 = CopyStage {
+        let copy_stage_1 = CopyCut::Move {
             name: "copy stage".to_string(),
-            prefix: vec!["root".to_string(), "sub_root".to_string()],
+            dest: vec!["root".to_string(), "sub_root".to_string()],
+            selector: Arc::new(PathSelector { query: vec![] }),
         };
 
-        let copy_stage_2 = CopyStage {
+        let copy_stage_2 = CopyCut::Move {
             name: "copy stage".to_string(),
-            prefix: vec!["second_root".to_string()],
+            dest: vec!["second_root".to_string()],
+            selector: Arc::new(PathSelector { query: vec![] }),
         };
 
         let union_stage = UnionStage {

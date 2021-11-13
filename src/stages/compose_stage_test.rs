@@ -4,7 +4,7 @@ mod tests {
     use crate::pages::{ExtSelector, PageBundle, PathSelector, VecBundle};
     use crate::stages::compose_stage::ComposeStage;
     use crate::stages::compose_stage::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::copy_stage::CopyStage;
+    use crate::stages::copy_cut_stage::CopyCut;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
     use std::sync::Arc;
@@ -28,9 +28,10 @@ mod tests {
 
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
-            units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage {
+            units: vec![Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                 name: "copy stage".to_string(),
-                prefix: vec!["copied".to_string()],
+                dest: vec!["copied".to_string()],
+                selector: Arc::new(PathSelector { query: vec![] }),
             })))],
             parallel: false,
         };
@@ -110,9 +111,10 @@ mod tests {
                 Box::new(PathSelector {
                     query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                 }),
-                Arc::new(CopyStage {
+                Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
-                    prefix: vec!["copied".to_string()],
+                    dest: vec!["copied".to_string()],
+                    selector: Arc::new(PathSelector { query: vec![] }),
                 }),
             ))],
             parallel: false,
@@ -188,17 +190,19 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![
-                Arc::new(CreateNewSet(Arc::new(CopyStage {
+                Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
-                    prefix: vec!["backup".to_string(), "copied".to_string()],
+                    dest: vec!["backup".to_string(), "copied".to_string()],
+                    selector: Arc::new(PathSelector { query: vec![] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
-                    Arc::new(CopyStage {
+                    Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
-                        prefix: vec!["copied".to_string()],
+                        dest: vec!["copied".to_string()],
+                        selector: Arc::new(PathSelector { query: vec![] }),
                     }),
                 )),
             ],
@@ -306,24 +310,27 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![
-                Arc::new(CreateNewSet(Arc::new(CopyStage {
+                Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
-                    prefix: vec!["backup".to_string(), "copied".to_string()],
+                    dest: vec!["backup".to_string(), "copied".to_string()],
+                    selector: Arc::new(PathSelector { query: vec![] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
-                    Arc::new(CopyStage {
+                    Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
-                        prefix: vec!["copied".to_string()],
+                        dest: vec!["copied".to_string()],
+                        selector: Arc::new(PathSelector { query: vec![] }),
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(ExtSelector { ext: ".md".to_string() }),
-                    Arc::new(CopyStage {
+                    Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
-                        prefix: vec!["copied ext".to_string()],
+                        dest: vec!["copied ext".to_string()],
+                        selector: Arc::new(PathSelector { query: vec![] }),
                     }),
                 )),
             ],
@@ -429,9 +436,10 @@ mod tests {
 
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
-            units: vec![Arc::new(CreateNewSet(Arc::new(CopyStage {
+            units: vec![Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                 name: "copy stage".to_string(),
-                prefix: vec!["copied".to_string()],
+                dest: vec!["copied".to_string()],
+                selector: Arc::new(PathSelector { query: vec![] }),
             })))],
             parallel: true,
         };
@@ -509,9 +517,10 @@ mod tests {
                 Box::new(PathSelector {
                     query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                 }),
-                Arc::new(CopyStage {
+                Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
-                    prefix: vec!["copied".to_string()],
+                    dest: vec!["copied".to_string()],
+                    selector: Arc::new(PathSelector { query: vec![] }),
                 }),
             ))],
             parallel: true,
@@ -587,17 +596,19 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![
-                Arc::new(CreateNewSet(Arc::new(CopyStage {
+                Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
-                    prefix: vec!["backup".to_string(), "copied".to_string()],
+                    dest: vec!["backup".to_string(), "copied".to_string()],
+                    selector: Arc::new(PathSelector { query: vec![] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
-                    Arc::new(CopyStage {
+                    Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
-                        prefix: vec!["copied".to_string()],
+                        dest: vec!["copied".to_string()],
+                        selector: Arc::new(PathSelector { query: vec![] }),
                     }),
                 )),
             ],
@@ -705,24 +716,27 @@ mod tests {
         let compose_stage = ComposeStage {
             name: "compose stage".to_string(),
             units: vec![
-                Arc::new(CreateNewSet(Arc::new(CopyStage {
+                Arc::new(CreateNewSet(Arc::new(CopyCut::Move {
                     name: "copy stage".to_string(),
-                    prefix: vec!["backup".to_string(), "copied".to_string()],
+                    dest: vec!["backup".to_string(), "copied".to_string()],
+                    selector: Arc::new(PathSelector { query: vec![] }),
                 }))),
                 Arc::new(ReplaceSubSet(
                     Box::new(PathSelector {
                         query: vec!["d1".to_string(), "d2".to_string(), "**".to_string()],
                     }),
-                    Arc::new(CopyStage {
+                    Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
-                        prefix: vec!["copied".to_string()],
+                        dest: vec!["copied".to_string()],
+                        selector: Arc::new(PathSelector { query: vec![] }),
                     }),
                 )),
                 Arc::new(ReplaceSubSet(
                     Box::new(ExtSelector { ext: ".md".to_string() }),
-                    Arc::new(CopyStage {
+                    Arc::new(CopyCut::Move {
                         name: "copy stage".to_string(),
-                        prefix: vec!["copied ext".to_string()],
+                        dest: vec!["copied ext".to_string()],
+                        selector: Arc::new(PathSelector { query: vec![] }),
                     }),
                 )),
             ],
