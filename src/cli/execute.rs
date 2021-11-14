@@ -50,21 +50,29 @@ impl Executor {
 
     pub fn new(params: ExecutorParams) -> anyhow::Result<Self> {
         let curr_dir = current_dir()?;
-        let input_dir = match params.input_dir {
+        let mut input_dir = match params.input_dir {
             Some(d) => d,
             None => curr_dir.clone(),
         };
-        let output_dir = match params.output_dir {
+        let mut output_dir = match params.output_dir {
             Some(d) => d,
             None => curr_dir.join("output"),
         };
 
+        if input_dir.is_relative() {
+            input_dir = curr_dir.join(input_dir);
+        }
+
+        if output_dir.is_relative() {
+            output_dir = curr_dir.join(output_dir);
+        }
+
         let stage_config = if let Some(config_file) = params.config_path {
-            Executor::read_config(&config_file)?
-        } else if input_dir.join("stage.yaml").exists() {
-            Executor::read_config(&input_dir.join("stage.yaml"))?
-        } else if input_dir.join("stage.json").exists() {
-            Executor::read_config(&input_dir.join("stage.json"))?
+            Executor::read_config(&curr_dir, &config_file)?
+        } else if input_dir.join("stages.yaml").exists() {
+            Executor::read_config(&curr_dir, &input_dir.join("stages.yaml"))?
+        } else if input_dir.join("stages.json").exists() {
+            Executor::read_config(&curr_dir, &input_dir.join("stages.json"))?
         } else {
             Executor::default_config()
         };
@@ -120,7 +128,10 @@ impl Executor {
         ])
     }
 
-    fn read_config(config_file: &Path) -> anyhow::Result<StageValue> {
+    fn read_config(curr_dir: &Path, config_file: &Path) -> anyhow::Result<StageValue> {
+        if config_file.is_relative() {
+            return Executor::read_config(curr_dir, &curr_dir.join(config_file))
+        }
         if !config_file.exists() {
             return Err(PagesError::ElementNotFound(format!("config file {} not found", config_file.to_string_lossy())).into());
         }
