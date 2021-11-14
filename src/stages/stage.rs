@@ -10,6 +10,7 @@ pub trait Stage: Send + Sync {
     }
 }
 
+#[derive(Debug)]
 pub struct ProcessingResult {
     pub stage_name: String,
     pub start: i64,

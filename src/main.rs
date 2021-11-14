@@ -1,5 +1,5 @@
 use clap::{App, Arg};
-use elepages::cli::{run, Parameters};
+use elepages::cli::{Executor, ExecutorParams};
 use std::path::PathBuf;
 
 fn main() {
@@ -23,13 +23,13 @@ fn main() {
         )
         .get_matches();
 
-    let params = Parameters::new(
-        matches.value_of("source").map(PathBuf::from),
-        matches.value_of("dest").map(PathBuf::from),
-        matches.value_of("config").map(PathBuf::from),
-    )
-    .unwrap();
+    let params = ExecutorParams {
+        input_dir: matches.value_of("source").map(PathBuf::from),
+        output_dir: matches.value_of("dest").map(PathBuf::from),
+        config_path: matches.value_of("config").map(PathBuf::from),
+    };
 
-    let execution = run(&params).unwrap();
+    let executor = Executor::new(params).unwrap();
+    let execution = executor.execute();
     println!("{:?}", execution);
 }
