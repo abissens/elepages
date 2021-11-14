@@ -77,12 +77,12 @@ impl Executor {
             Executor::default_config()
         };
 
-        let loader = Box::new(FsLoader::new(input_dir));
+        let loader = Box::new(FsLoader::new(input_dir.clone()));
         let maker = Maker::default();
         let writer = Box::new(FsWriter::new(output_dir)?);
 
         let mut env = Env::new();
-        env.insert("root_path".to_string(), Box::new(current_dir()?));
+        env.insert("root_path".to_string(), Box::new(input_dir));
 
         Ok(Self {
             loader,
@@ -130,7 +130,7 @@ impl Executor {
 
     fn read_config(curr_dir: &Path, config_file: &Path) -> anyhow::Result<StageValue> {
         if config_file.is_relative() {
-            return Executor::read_config(curr_dir, &curr_dir.join(config_file))
+            return Executor::read_config(curr_dir, &curr_dir.join(config_file));
         }
         if !config_file.exists() {
             return Err(PagesError::ElementNotFound(format!("config file {} not found", config_file.to_string_lossy())).into());

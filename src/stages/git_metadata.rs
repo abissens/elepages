@@ -2,7 +2,7 @@ use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
-use git2::Repository;
+use git2::{ErrorCode, Repository};
 use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
@@ -16,8 +16,7 @@ pub struct GitMetadata {
 }
 
 impl GitMetadata {
-    fn process_repository(&self, mut blame_pages: HashMap<String, &Arc<dyn Page>>) -> anyhow::Result<Vec<Arc<dyn Page>>> {
-        let repo = Repository::open(&self.repo_path)?;
+    fn process_repository(&self, repo: Repository, mut blame_pages: HashMap<String, &Arc<dyn Page>>) -> anyhow::Result<Vec<Arc<dyn Page>>> {
         let mut rev_walk = repo.revwalk()?;
         rev_walk.set_sorting(git2::Sort::TIME)?;
         rev_walk.push_head()?;
@@ -94,6 +93,23 @@ impl Stage for GitMetadata {
 
     fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let repo_result = Repository::open(&self.repo_path);
+        if let Err(e) = repo_result {
+            if e.code() == ErrorCode::NotFound {
+                // Ignore not found repository
+                return Ok((
+                    Arc::clone(&bundle),
+                    ProcessingResult {
+                        stage_name: self.name.clone(),
+                        start,
+                        end: DateTime::<Utc>::from(SystemTime::now()).timestamp(),
+                        sub_results: vec![],
+                    },
+                ));
+            }
+            return Err(e.into());
+        }
+        let repo = repo_result.unwrap();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut blame_pages = HashMap::default();
 
@@ -111,7 +127,7 @@ impl Stage for GitMetadata {
         }
 
         if !blame_pages.is_empty() {
-            let mut processed_pages = self.process_repository(blame_pages)?;
+            let mut processed_pages = self.process_repository(repo, blame_pages)?;
             vec_bundle.p.append(&mut processed_pages);
         }
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();

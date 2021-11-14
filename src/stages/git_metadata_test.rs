@@ -16,6 +16,47 @@ mod tests {
     use std::sync::Arc;
 
     #[test]
+    fn ignore_not_initialized_repositories() {
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::File {
+                name: "file_1".to_string(),
+                content: "file content 1".as_bytes().to_vec(),
+                open_options: None,
+            })
+            .unwrap();
+
+        let git_metadata_stage = GitMetadata {
+            name: "git meta stage".to_string(),
+            repo_path: test_folder.get_path().to_path_buf(),
+        };
+
+        let loader = FsLoader::new(test_folder.get_path().to_path_buf());
+        let bundle = loader.load().unwrap();
+
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "git meta stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+
+        actual.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual,
+            &[TestPage {
+                path: vec!["file_1".to_string()],
+                metadata: None,
+                content: "file content 1".to_string()
+            }]
+        );
+    }
+
+    #[test]
     fn load_author_from_git_metadata() {
         let mut test_folder = TmpTestFolder::new().unwrap();
         test_folder.preserve();
