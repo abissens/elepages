@@ -47,7 +47,14 @@ impl Parameters {
                         processor_type: "md".to_string(),
                         config: Default::default(),
                     },
-                    selector: SelectorConfig::Ext { ext: "md".to_string() },
+                    selector: SelectorConfig::Base {
+                        path: None,
+                        tag: None,
+                        tags: None,
+                        ext: Some("md".to_string()),
+                        author: None,
+                        publishing: None,
+                    },
                 }],
             },
             StageValue::Composition {

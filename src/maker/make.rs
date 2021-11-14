@@ -156,21 +156,57 @@ impl Maker {
 
     fn make_selector(config: &SelectorConfig) -> anyhow::Result<Arc<dyn Selector>> {
         let selector: Arc<dyn Selector> = match config {
-            SelectorConfig::Path { path } => Arc::new(PathSelector {
-                query: path.split('/').map(|s| s.to_string()).collect(),
-            }) as Arc<dyn Selector>,
-            SelectorConfig::Tag { tag } => Arc::new(TagSelector { tag: tag.to_string() }) as Arc<dyn Selector>,
-            SelectorConfig::Ext { ext } => Arc::new(ExtSelector { ext: ext.to_string() }) as Arc<dyn Selector>,
-            SelectorConfig::Author { author } => Arc::new(AuthorSelector { author: author.to_string() }) as Arc<dyn Selector>,
-            SelectorConfig::Publishing { publishing } => Arc::new(PublishingDateSelector {
-                query: Maker::make_date_config(publishing)?,
-            }) as Arc<dyn Selector>,
             SelectorConfig::Conjunction { and } => Arc::new(Logical::And(and.iter().map(|sc| Maker::make_selector(sc)).collect::<anyhow::Result<Vec<Arc<dyn Selector>>>>()?)) as Arc<dyn Selector>,
             SelectorConfig::Disjunction { or } => Arc::new(Logical::Or(or.iter().map(|sc| Maker::make_selector(sc)).collect::<anyhow::Result<Vec<Arc<dyn Selector>>>>()?)) as Arc<dyn Selector>,
             SelectorConfig::Not { not } => Arc::new(Logical::Not(Maker::make_selector(not)?)) as Arc<dyn Selector>,
 
-            SelectorConfig::PathShortCut(path) => Maker::make_selector(&SelectorConfig::Path { path: path.to_string() })?,
+            SelectorConfig::PathShortCut(path) => Arc::new(PathSelector {
+                query: path.split('/').map(|s| s.to_string()).collect(),
+            }) as Arc<dyn Selector>,
             SelectorConfig::ConjunctionSelectorConfig(and) => Maker::make_selector(&SelectorConfig::Conjunction { and: and.to_vec() })?,
+            SelectorConfig::Base {
+                path,
+                tag,
+                tags,
+                ext,
+                author,
+                publishing,
+            } => {
+                let mut selectors: Vec<Arc<dyn Selector>> = vec![];
+                if let Some(v) = path {
+                    selectors.push(Arc::new(PathSelector {
+                        query: v.split('/').map(|s| s.to_string()).collect(),
+                    }) as Arc<dyn Selector>)
+                }
+                if let Some(v) = tag {
+                    selectors.push(Arc::new(TagSelector { tag: v.to_string() }) as Arc<dyn Selector>)
+                }
+                if let Some(v) = tags {
+                    if v.len() == 1 {
+                        selectors.push(Arc::new(TagSelector { tag: v[0].to_string() }) as Arc<dyn Selector>)
+                    }
+                    if v.len() > 1 {
+                        selectors.push(Arc::new(Logical::And(v.iter().map(|v| Arc::new(TagSelector { tag: v.to_string() }) as Arc<dyn Selector>).collect())) as Arc<dyn Selector>)
+                    }
+                }
+                if let Some(v) = ext {
+                    selectors.push(Arc::new(ExtSelector { ext: v.to_string() }) as Arc<dyn Selector>)
+                }
+                if let Some(v) = author {
+                    selectors.push(Arc::new(AuthorSelector { author: v.to_string() }) as Arc<dyn Selector>)
+                }
+                if let Some(v) = publishing {
+                    selectors.push(Arc::new(PublishingDateSelector { query: Maker::make_date_config(v)? }) as Arc<dyn Selector>)
+                }
+                if selectors.is_empty() {
+                    return Err(PagesError::ValueParsing("cannot parse selector".to_string()).into());
+                }
+                if selectors.len() == 1 {
+                    selectors.pop().unwrap()
+                } else {
+                    Arc::new(Logical::And(selectors)) as Arc<dyn Selector>
+                }
+            }
         };
 
         Ok(selector)

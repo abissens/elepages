@@ -27,14 +27,23 @@ pub enum DateQueryConfig {
 pub enum SelectorConfig {
     PathShortCut(String),
     ConjunctionSelectorConfig(Vec<SelectorConfig>),
-    Path { path: String },
-    Tag { tag: String },
-    Ext { ext: String },
-    Author { author: String },
-    Publishing { publishing: DateQueryConfig },
-    Conjunction { and: Vec<SelectorConfig> },
-    Disjunction { or: Vec<SelectorConfig> },
-    Not { not: Box<SelectorConfig> },
+    Base {
+        path: Option<String>,
+        tag: Option<String>,
+        tags: Option<Vec<String>>,
+        ext: Option<String>,
+        author: Option<String>,
+        publishing: Option<DateQueryConfig>,
+    },
+    Conjunction {
+        and: Vec<SelectorConfig>,
+    },
+    Disjunction {
+        or: Vec<SelectorConfig>,
+    },
+    Not {
+        not: Box<SelectorConfig>,
+    },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]

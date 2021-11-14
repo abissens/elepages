@@ -50,7 +50,7 @@ mod tests {
 
         let move_stage: StageValue = serde_yaml::from_str(indoc! {"
             ---
-            move: { and: [ {tag: 'a'}, {path: 'a/**'}]}
+            move: { tag: 'a', path: 'a/**' }
             dest: 'moved/dest'
         "})
         .unwrap();
@@ -58,8 +58,13 @@ mod tests {
         assert_eq!(
             move_stage,
             StageValue::Move {
-                move_selector: SelectorConfig::Conjunction {
-                    and: vec![SelectorConfig::Tag { tag: "a".to_string() }, SelectorConfig::Path { path: "a/**".to_string() }]
+                move_selector: SelectorConfig::Base {
+                    path: Some("a/**".to_string()),
+                    tag: Some("a".to_string()),
+                    tags: None,
+                    ext: None,
+                    author: None,
+                    publishing: None
                 },
                 dest: "moved/dest".to_string(),
             }
@@ -74,8 +79,13 @@ mod tests {
         assert_eq!(
             ignore_stage,
             StageValue::Ignore {
-                ignore_selector: SelectorConfig::Publishing {
-                    publishing: DateQueryConfig::AfterDate { after_date: "now".to_string() }
+                ignore_selector: SelectorConfig::Base {
+                    publishing: Some(DateQueryConfig::AfterDate { after_date: "now".to_string() }),
+                    path: None,
+                    tag: None,
+                    tags: None,
+                    ext: None,
+                    author: None,
                 },
             }
         );
@@ -185,7 +195,14 @@ mod tests {
                     ComposeUnitConfig::Create(StageValue::ProcessorWithoutConfigStage("stage_type_4".to_string())),
                     ComposeUnitConfig::Replace {
                         inner: StageValue::ProcessorWithoutConfigStage("stage_type_5".to_string()),
-                        selector: SelectorConfig::Ext { ext: ".md".to_string() }
+                        selector: SelectorConfig::Base {
+                            ext: Some(".md".to_string()),
+                            path: None,
+                            tag: None,
+                            tags: None,
+                            author: None,
+                            publishing: None
+                        }
                     }
                 ]
             }
