@@ -98,7 +98,7 @@ impl Stage for GitMetadata {
             if e.code() == ErrorCode::NotFound {
                 // Ignore not found repository
                 return Ok((
-                    Arc::clone(&bundle),
+                    Arc::clone(bundle),
                     ProcessingResult {
                         stage_name: self.name.clone(),
                         start,

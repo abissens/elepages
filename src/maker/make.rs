@@ -3,7 +3,7 @@ use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
 use crate::pages::{AuthorSelector, DateQuery, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
-use crate::stages::{ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+use crate::stages::{ComposeStage, ComposeUnit, CopyCut, GitMetadata, IndexStage, MdStage, HandlebarsDir, HandlebarsStage, SequenceStage, ShadowPages, Stage, UnionStage};
 use chrono::{DateTime, NaiveDate, Utc};
 use std::any::Any;
 use std::collections::HashMap;
@@ -99,7 +99,7 @@ impl StageMaker for HandlebarsStageMaker {
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
         Ok(Arc::new(HandlebarsStage {
             name: name.unwrap_or("handlebars stage").to_string(),
-            lookup: Arc::new(HandlebarsDir::new(root_path)?),
+            lookup: Arc::new(HandlebarsDir { base_path: root_path.clone() }),
         }))
     }
 }

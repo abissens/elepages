@@ -86,10 +86,10 @@ impl GitRemote {
             return Err(PagesError::ElementNotFound(format!("home dir {} not found", home_dir.to_string_lossy())).into());
         }
 
-        let (local_dir, local_dir_created) = GitRemote::find_or_make_local_dir(home_dir, &remote)?;
+        let (local_dir, local_dir_created) = GitRemote::find_or_make_local_dir(home_dir, remote)?;
 
         if local_dir_created {
-            let repo = RepoBuilder::new().clone(&remote, &local_dir)?;
+            let repo = RepoBuilder::new().clone(remote, &local_dir)?;
             let oid = GitRemote::fetch_local_ref_oid(&repo, reference)?;
             repo.set_head_detached(oid)?;
             repo.checkout_head(Some(CheckoutBuilder::default().force()))?;
@@ -106,7 +106,7 @@ impl GitRemote {
         let obj = match repo.revparse_single(&oid.to_string()) {
             Ok(v) => v,
             Err(_) => {
-                repo.remote_set_url("origin", &remote)?;
+                repo.remote_set_url("origin", remote)?;
                 let mut origin = repo.find_remote("origin")?;
                 origin.connect(Direction::Fetch)?;
                 origin.fetch(&[&oid.to_string()], None, None)?;

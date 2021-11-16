@@ -1,32 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
-    use rustassert::fs::{FileNode, TmpTestFolder};
-
     use crate::pages::test_page::TestPage;
     use crate::pages::{Metadata, Page, PageBundle, VecBundle};
-    use crate::stages::handlebars_stage::{HandlebarsDir, HandlebarsLookup, HandlebarsStage};
-    use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
-
-    #[derive(Debug)]
-    struct LookupTest(Vec<Arc<dyn Page>>);
-
-    impl HandlebarsLookup for LookupTest {
-        fn init_registry(&self, registry: &mut handlebars::Handlebars) -> anyhow::Result<()> {
-            registry.register_template_string("tpl_1", "TPL 1 : {{title}} \n {{content_as_string}}")?;
-            Ok(())
-        }
-
-        fn fetch(&self, _: &Arc<dyn Page>) -> Option<String> {
-            Some("tpl_1".to_string())
-        }
-
-        fn assets(&self) -> anyhow::Result<Vec<Arc<dyn Page>>> {
-            Ok(self.0.iter().map(|p| Arc::clone(p)).collect())
-        }
-    }
+    use crate::stages::{HandlebarsDir, HandlebarsLookup, HandlebarsLookupResult, HandlebarsStage, Stage, TemplateAsset};
+    use rustassert::fs::{FileNode, TmpTestFolder};
+    use std::sync::Arc;
 
     #[test]
     fn apply_handle_bar_template_to_bundle() {
@@ -56,10 +35,16 @@ mod tests {
                 }),
             ],
         });
-
+        let mut registry = handlebars::Handlebars::new();
+        registry.register_template_string("tpl_1", "TPL 1 : {{title}} \n {{content_as_string}}").unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(LookupTest(vec![])),
+            lookup: Arc::new(NewHandlebarsLookupTest {
+                registry,
+                fetch: Some("tpl_1".to_string()),
+                assets: vec![],
+                template_assets: vec![],
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -102,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn apply_handle_bar_template_to_bundle_insert_static_asset_pages() {
+    fn apply_handle_bar_template_to_bundle_and_insert_static_asset_pages() {
         let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
             p: vec![
                 Arc::new(TestPage {
@@ -130,27 +115,34 @@ mod tests {
             ],
         });
 
+        let mut registry = handlebars::Handlebars::new();
+        registry.register_template_string("tpl_1", "TPL 1 : {{title}} \n {{content_as_string}}").unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(LookupTest(vec![
-                Arc::new(TestPage {
-                    path: vec!["a".to_string()],
-                    metadata: None,
-                    content: "a content".to_string(),
-                }),
-                Arc::new(TestPage {
-                    path: vec!["b".to_string()],
-                    metadata: Some(Metadata {
-                        title: Some(Arc::new("b title".to_string())),
-                        summary: None,
-                        authors: Default::default(),
-                        tags: Default::default(),
-                        publishing_date: None,
-                        last_edit_date: None,
+            lookup: Arc::new(NewHandlebarsLookupTest {
+                registry,
+                fetch: Some("tpl_1".to_string()),
+                assets: vec![
+                    Arc::new(TestPage {
+                        path: vec!["a".to_string()],
+                        metadata: None,
+                        content: "a content".to_string(),
                     }),
-                    content: "b content".to_string(),
-                }),
-            ])),
+                    Arc::new(TestPage {
+                        path: vec!["b".to_string()],
+                        metadata: Some(Metadata {
+                            title: Some(Arc::new("b title".to_string())),
+                            summary: None,
+                            authors: Default::default(),
+                            tags: Default::default(),
+                            publishing_date: None,
+                            last_edit_date: None,
+                        }),
+                        content: "b content".to_string(),
+                    }),
+                ],
+                template_assets: vec![],
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -182,6 +174,123 @@ mod tests {
                         last_edit_date: None,
                     }),
                     content: "b content".to_string()
+                },
+                TestPage {
+                    path: vec!["dir".to_string(), "f3.html".to_string()],
+                    metadata: None,
+                    content: "TPL 1 :  \n content 3".to_string(),
+                },
+                TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                    }),
+                    content: "TPL 1 : f1 title \n content 1".to_string(),
+                },
+                TestPage {
+                    path: vec!["f2.htm".to_string()],
+                    metadata: None,
+                    content: "TPL 1 :  \n content 2".to_string(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn apply_handle_bar_template_to_bundle_and_insert_template_asset_pages() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                    }),
+                    content: "content 1".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.htm".to_string()],
+                    metadata: None,
+                    content: "content 2".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir".to_string(), "f3.html".to_string()],
+                    metadata: None,
+                    content: "content 3".to_string(),
+                }),
+            ],
+        });
+
+        let mut registry = handlebars::Handlebars::new();
+        registry.register_template_string("tpl_1", "TPL 1 : {{title}} \n {{content_as_string}}").unwrap();
+        registry.register_template_string("tpl_2", "TPL 2 : TPL 2 Content").unwrap();
+        registry.register_template_string("tpl_3", "TPL 3 : TPL 3 Content").unwrap();
+        let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
+            lookup: Arc::new(NewHandlebarsLookupTest {
+                registry,
+                fetch: Some("tpl_1".to_string()),
+                assets: vec![],
+                template_assets: vec![
+                    TemplateAsset {
+                        path: vec!["a".to_string()],
+                        template_name: "tpl_2".to_string(),
+                        metadata: None,
+                    },
+                    TemplateAsset {
+                        path: vec!["b".to_string()],
+                        template_name: "tpl_3".to_string(),
+                        metadata: Some(Metadata {
+                            title: Some(Arc::new("b title".to_string())),
+                            summary: None,
+                            authors: Default::default(),
+                            tags: Default::default(),
+                            publishing_date: None,
+                            last_edit_date: None,
+                        }),
+                    },
+                ],
+            }),
+        };
+
+        let result_bundle = hb_stage.process(&bundle).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        actual.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["a".to_string()],
+                    metadata: None,
+                    content: "TPL 2 : TPL 2 Content".to_string()
+                },
+                TestPage {
+                    path: vec!["b".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("b title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                    }),
+                    content: "TPL 3 : TPL 3 Content".to_string()
                 },
                 TestPage {
                     path: vec!["dir".to_string(), "f3.html".to_string()],
@@ -250,7 +359,9 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
+            lookup: Arc::new(HandlebarsDir {
+                base_path: test_folder.get_path().join("templates"),
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -343,7 +454,9 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
+            lookup: Arc::new(HandlebarsDir {
+                base_path: test_folder.get_path().join("templates"),
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -446,9 +559,12 @@ mod tests {
                 ],
             })
             .unwrap();
+
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
+            lookup: Arc::new(HandlebarsDir {
+                base_path: test_folder.get_path().join("templates"),
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -585,7 +701,9 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
+            lookup: Arc::new(HandlebarsDir {
+                base_path: test_folder.get_path().join("templates"),
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -752,7 +870,9 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir::new(&test_folder.get_path().join("templates")).unwrap()),
+            lookup: Arc::new(HandlebarsDir {
+                base_path: test_folder.get_path().join("templates"),
+            }),
         };
 
         let result_bundle = hb_stage.process(&bundle).unwrap();
@@ -824,5 +944,49 @@ mod tests {
                 },
             ]
         );
+    }
+    #[derive(Debug)]
+    struct NewHandlebarsLookupTest {
+        registry: handlebars::Handlebars<'static>,
+        fetch: Option<String>,
+        assets: Vec<Arc<dyn Page>>,
+        template_assets: Vec<TemplateAsset>,
+    }
+
+    #[derive(Debug)]
+    struct NewHandlebarsLookupResultTest {
+        registry: handlebars::Handlebars<'static>,
+        fetch: Option<String>,
+        assets: Vec<Arc<dyn Page>>,
+        template_assets: Vec<TemplateAsset>,
+    }
+
+    impl HandlebarsLookupResult for NewHandlebarsLookupResultTest {
+        fn clone_registry(&self) -> handlebars::Handlebars<'static> {
+            self.registry.clone()
+        }
+
+        fn fetch(&self, _: &Arc<dyn Page>) -> Option<String> {
+            self.fetch.clone()
+        }
+
+        fn assets(&self) -> Vec<Arc<dyn Page>> {
+            self.assets.clone()
+        }
+
+        fn template_assets(&self) -> Vec<TemplateAsset> {
+            self.template_assets.clone()
+        }
+    }
+
+    impl HandlebarsLookup for NewHandlebarsLookupTest {
+        fn lookup(&self) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>> {
+            Ok(Arc::new(NewHandlebarsLookupResultTest {
+                registry: self.registry.clone(),
+                fetch: self.fetch.clone(),
+                assets: self.assets.clone(),
+                template_assets: self.template_assets.clone(),
+            }))
+        }
     }
 }
