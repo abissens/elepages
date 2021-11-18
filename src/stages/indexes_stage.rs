@@ -1,4 +1,4 @@
-use crate::pages::{Author, Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{Author, BundleIndex, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -139,7 +139,7 @@ impl Page for CursorPage {
         None
     }
 
-    fn open(&self) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, _: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
         Ok(Box::new(Cursor::new(self.value.clone())))
     }
 }

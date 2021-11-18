@@ -1,5 +1,5 @@
 use crate::cli::writer::Writer;
-use crate::pages::PageBundle;
+use crate::pages::{BundleIndex, PageBundle};
 use rayon::prelude::*;
 use std::fs::{create_dir_all, File};
 use std::path::PathBuf;
@@ -34,7 +34,7 @@ impl Writer for FsWriter {
             }
             create_dir_all(&file_path)?;
         }
-
+        let output_index = BundleIndex::from(bundle);
         // Write pages
         pages
             .par_iter()
@@ -48,7 +48,7 @@ impl Writer for FsWriter {
                     file_path.push(v);
                 }
                 let mut file = File::create(&file_path)?;
-                let mut reader = p.open()?;
+                let mut reader = p.open(&output_index)?;
                 io::copy(&mut reader, &mut file)?;
                 Ok(())
             })

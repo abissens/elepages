@@ -1,4 +1,4 @@
-use crate::pages::{Metadata, Page};
+use crate::pages::{BundleIndex, Metadata, Page};
 use std::cmp::Ordering;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -19,7 +19,16 @@ impl PartialOrd for TestPage {
 impl From<&Arc<dyn Page>> for TestPage {
     fn from(p: &Arc<dyn Page>) -> Self {
         let mut content: String = "".to_string();
-        p.open().unwrap().read_to_string(&mut content).unwrap();
+        p.open(&BundleIndex {
+            all_authors: Default::default(),
+            all_tags: Default::default(),
+            all_pages: vec![],
+            pages_by_author: Default::default(),
+            pages_by_tag: Default::default(),
+        })
+        .unwrap()
+        .read_to_string(&mut content)
+        .unwrap();
         TestPage {
             path: p.path().to_vec(),
             metadata: p.metadata().cloned(),
@@ -37,7 +46,7 @@ impl Page for TestPage {
         self.metadata.as_ref()
     }
 
-    fn open(&self) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, _: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
         Ok(Box::new(Cursor::new(self.content.clone())))
     }
 }

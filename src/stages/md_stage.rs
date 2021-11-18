@@ -1,4 +1,4 @@
-use crate::pages::{Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{BundleIndex, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -67,9 +67,9 @@ impl Page for MdPage {
         self.source.metadata()
     }
 
-    fn open(&self) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
         let mut markdown_input: String = String::new();
-        self.source.open()?.read_to_string(&mut markdown_input)?;
+        self.source.open(output_index)?.read_to_string(&mut markdown_input)?;
 
         let parser = Parser::new(&markdown_input);
         let mut html_output: String = String::with_capacity(markdown_input.len() * 3 / 2);
