@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{PageBundle, VecBundle};
+    use crate::pages::{Env, PageBundle, VecBundle};
     use crate::stages::md_stage::MdStage;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
@@ -52,7 +52,7 @@ mod tests {
         });
 
         let md_stage = MdStage { name: "md stage".to_string() };
-        let result_bundle = md_stage.process(&bundle).unwrap();
+        let result_bundle = md_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

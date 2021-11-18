@@ -1,11 +1,10 @@
 use crate::config::Value;
 use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
-use crate::pages::{AuthorSelector, DateQuery, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
+use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
 use crate::stages::{ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
 use chrono::{DateTime, NaiveDate, Utc};
-use std::any::Any;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -25,37 +24,6 @@ pub struct IndexesStageMaker;
 pub struct MdStageMaker;
 pub struct ShadowStageMaker;
 pub struct HandlebarsStageMaker;
-
-pub struct Env {
-    pub(crate) values: HashMap<String, Box<dyn Any>>,
-}
-
-impl Env {
-    pub fn new() -> Self {
-        Self { values: Default::default() }
-    }
-
-    pub fn get(&self, key: &str) -> Option<&dyn Any> {
-        self.values.get(key).map(|b| b.as_ref())
-    }
-
-    pub fn get_downcast<T: 'static>(&self, key: &str) -> anyhow::Result<Option<&T>> {
-        match self.values.get(key) {
-            None => Ok(None),
-            Some(a) => Ok(a.downcast_ref::<T>()),
-        }
-    }
-
-    pub fn insert(&mut self, key: String, value: Box<dyn Any>) -> Option<Box<dyn Any>> {
-        self.values.insert(key, value)
-    }
-}
-
-impl Default for Env {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 impl StageMaker for GitMetadataStageMaker {
     fn make(&self, name: Option<&str>, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {

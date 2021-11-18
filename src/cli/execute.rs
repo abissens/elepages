@@ -1,7 +1,7 @@
 use crate::cli::writer::Writer;
 use crate::cli::FsWriter;
-use crate::maker::{ComposeUnitConfig, Env, Maker, SelectorConfig, StageValue};
-use crate::pages::{FsLoader, Loader};
+use crate::maker::{ComposeUnitConfig, Maker, SelectorConfig, StageValue};
+use crate::pages::{Env, FsLoader, Loader};
 use crate::pages_error::PagesError;
 use crate::stages::ProcessingResult;
 use std::env::current_dir;
@@ -33,10 +33,10 @@ impl Executor {
         let stage = self.maker.make(None, &self.stage_config, &self.env)?;
         let stage_making_elapsed = start.elapsed();
 
-        let (result_bundle, processing_result) = stage.process(&input_bundle)?;
+        let (result_bundle, processing_result) = stage.process(&input_bundle, &self.env)?;
         let processing_elapsed = start.elapsed();
 
-        self.writer.write(&result_bundle)?;
+        self.writer.write(&result_bundle, &self.env)?;
         let writing_elapsed = start.elapsed();
 
         Ok(Execution {

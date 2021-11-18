@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, BundleIndex, Metadata, PageBundle, VecBundle};
+    use crate::pages::{Author, BundleIndex, Env, Metadata, PageBundle, VecBundle};
     use crate::stages::indexes_stage::IndexStage;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
@@ -39,7 +39,7 @@ mod tests {
             units: vec![Arc::new(ComposeUnit::CreateNewSet(Arc::new(IndexStage { name: "index stage".to_string() })))],
         };
 
-        let result_bundle = index_stage.process(&vec_bundle).unwrap();
+        let result_bundle = index_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -201,7 +201,7 @@ mod tests {
             parallel: true,
             units: vec![Arc::new(ComposeUnit::CreateNewSet(Arc::new(IndexStage { name: "index stage".to_string() })))],
         };
-        let result_bundle = index_stage.process(&vec_bundle).unwrap();
+        let result_bundle = index_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -395,11 +395,11 @@ mod tests {
             println!("{:?}", output_index);
             for page in bundle.pages() {
                 match page.path().join("/").as_str() {
-                    "pages_by_tag.json" => pages_by_tag = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
-                    "pages_by_author.json" => pages_by_author = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
-                    "all_tags.json" => all_tags = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
-                    "all_pages.json" => all_pages = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
-                    "all_authors.json" => all_authors = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
+                    "pages_by_tag.json" => pages_by_tag = serde_json::from_reader(page.open(&output_index, &Env::new()).unwrap()).unwrap(),
+                    "pages_by_author.json" => pages_by_author = serde_json::from_reader(page.open(&output_index, &Env::new()).unwrap()).unwrap(),
+                    "all_tags.json" => all_tags = serde_json::from_reader(page.open(&output_index, &Env::new()).unwrap()).unwrap(),
+                    "all_pages.json" => all_pages = serde_json::from_reader(page.open(&output_index, &Env::new()).unwrap()).unwrap(),
+                    "all_authors.json" => all_authors = serde_json::from_reader(page.open(&output_index, &Env::new()).unwrap()).unwrap(),
                     file => {
                         println!("extra file : {}", file)
                     }

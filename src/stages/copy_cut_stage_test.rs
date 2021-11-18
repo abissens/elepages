@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{PageBundle, PathSelector, VecBundle};
+    use crate::pages::{Env, PageBundle, PathSelector, VecBundle};
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
     use crate::stages::CopyCut;
@@ -42,7 +42,7 @@ mod tests {
             dest: vec!["copied".to_string()],
         };
 
-        let result_bundle = stage.process(&bundle).unwrap();
+        let result_bundle = stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -129,7 +129,7 @@ mod tests {
             dest: vec!["moved".to_string()],
         };
 
-        let result_bundle = stage.process(&bundle).unwrap();
+        let result_bundle = stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -200,7 +200,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = stage.process(&bundle).unwrap();
+        let result_bundle = stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

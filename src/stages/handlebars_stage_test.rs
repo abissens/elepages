@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Metadata, Page, PageBundle, VecBundle};
+    use crate::pages::{Env, Metadata, Page, PageBundle, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
     use crate::stages::{HandlebarsDir, HandlebarsLookup, HandlebarsLookupResult, HandlebarsStage, Stage, TemplateAsset};
     use rustassert::fs::{FileNode, TmpTestFolder};
@@ -47,7 +47,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -145,7 +145,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -262,7 +262,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -364,7 +364,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -459,7 +459,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -567,7 +567,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -706,7 +706,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -875,7 +875,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

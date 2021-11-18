@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, Metadata, PageBundle, VecBundle};
+    use crate::pages::{Author, Env, Metadata, PageBundle, VecBundle};
     use crate::stages::shadow_pages::ShadowPages;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
@@ -29,7 +29,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -113,7 +113,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -217,7 +217,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -306,7 +306,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -429,7 +429,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

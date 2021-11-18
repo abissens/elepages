@@ -1,4 +1,4 @@
-use crate::pages::{BundleIndex, Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{BundleIndex, Env, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -16,7 +16,7 @@ impl Stage for IndexStage {
         self.name.clone()
     }
 
-    fn process(&self, _: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, _: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
 
         let result_bundle = VecBundle {
@@ -85,7 +85,7 @@ impl Page for AllPagesPage {
         None
     }
 
-    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let content = serde_json::to_string(&output_index.all_pages)?;
         Ok(Box::new(Cursor::new(content)))
     }
@@ -100,7 +100,7 @@ impl Page for AllAuthorsPage {
         None
     }
 
-    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let content = serde_json::to_string(&output_index.all_authors)?;
         Ok(Box::new(Cursor::new(content)))
     }
@@ -115,7 +115,7 @@ impl Page for AllTagsPage {
         None
     }
 
-    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let content = serde_json::to_string(&output_index.all_tags)?;
         Ok(Box::new(Cursor::new(content)))
     }
@@ -130,7 +130,7 @@ impl Page for PagesByTagPage {
         None
     }
 
-    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let content = serde_json::to_string(&output_index.pages_by_tag)?;
         Ok(Box::new(Cursor::new(content)))
     }
@@ -145,7 +145,7 @@ impl Page for PagesByAuthorPage {
         None
     }
 
-    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let content = serde_json::to_string(&output_index.pages_by_author)?;
         Ok(Box::new(Cursor::new(content)))
     }

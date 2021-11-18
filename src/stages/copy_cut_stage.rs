@@ -1,4 +1,4 @@
-use crate::pages::{ArcPage, PageBundle, Selector, VecBundle};
+use crate::pages::{ArcPage, Env, PageBundle, Selector, VecBundle};
 use crate::stages::{ProcessingResult, Stage};
 use chrono::{DateTime, Utc};
 use std::any::Any;
@@ -35,7 +35,7 @@ impl Stage for CopyCut {
         }
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let p = match self {
             CopyCut::Copy { selector, dest, .. } => {

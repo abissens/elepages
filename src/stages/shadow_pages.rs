@@ -1,4 +1,4 @@
-use crate::pages::{ArcPage, BundleIndex, Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{ArcPage, BundleIndex, Env, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 pub trait ShadowLoader: Send + Sync {
-    fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex) -> anyhow::Result<Metadata>;
+    fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata>;
 }
 
 pub struct ShadowPages {
@@ -25,7 +25,7 @@ impl Stage for ShadowPages {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let shadow_output_index = BundleIndex::from(bundle);
 
@@ -72,7 +72,7 @@ impl Stage for ShadowPages {
             .map(|metadata_candidate: &MetadataCandidate| {
                 let c_page = Arc::clone(metadata_candidate.page);
                 let path = metadata_candidate.path.clone();
-                metadata_candidate.loader.load(c_page, &shadow_output_index).map(|metadata| LoadedMetadata { path, metadata })
+                metadata_candidate.loader.load(c_page, &shadow_output_index, env).map(|metadata| LoadedMetadata { path, metadata })
             })
             .collect::<anyhow::Result<Vec<LoadedMetadata>>>()?;
 
@@ -173,14 +173,14 @@ struct JsonShadowLoader();
 struct YamlShadowLoader();
 
 impl ShadowLoader for JsonShadowLoader {
-    fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex) -> anyhow::Result<Metadata> {
-        Ok(serde_json::from_reader(page.open(shadow_output_index)?)?)
+    fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata> {
+        Ok(serde_json::from_reader(page.open(shadow_output_index, env)?)?)
     }
 }
 
 impl ShadowLoader for YamlShadowLoader {
-    fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex) -> anyhow::Result<Metadata> {
-        Ok(serde_yaml::from_reader(page.open(shadow_output_index)?)?)
+    fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata> {
+        Ok(serde_yaml::from_reader(page.open(shadow_output_index, env)?)?)
     }
 }
 

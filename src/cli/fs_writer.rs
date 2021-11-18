@@ -1,5 +1,5 @@
 use crate::cli::writer::Writer;
-use crate::pages::{BundleIndex, PageBundle};
+use crate::pages::{BundleIndex, Env, PageBundle};
 use rayon::prelude::*;
 use std::fs::{create_dir_all, File};
 use std::path::PathBuf;
@@ -20,7 +20,7 @@ impl FsWriter {
 }
 
 impl Writer for FsWriter {
-    fn write(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<()> {
+    fn write(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<()> {
         let pages = bundle.pages();
         // Create directories
         for page in pages {
@@ -34,6 +34,7 @@ impl Writer for FsWriter {
             }
             create_dir_all(&file_path)?;
         }
+        // Make output index
         let output_index = BundleIndex::from(bundle);
         // Write pages
         pages
@@ -48,7 +49,7 @@ impl Writer for FsWriter {
                     file_path.push(v);
                 }
                 let mut file = File::create(&file_path)?;
-                let mut reader = p.open(&output_index)?;
+                let mut reader = p.open(&output_index, env)?;
                 io::copy(&mut reader, &mut file)?;
                 Ok(())
             })

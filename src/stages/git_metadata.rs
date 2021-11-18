@@ -1,4 +1,4 @@
-use crate::pages::{ArcPage, Author, Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{ArcPage, Author, Env, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -91,7 +91,7 @@ impl Stage for GitMetadata {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let repo_result = Repository::open(&self.repo_path);
         if let Err(e) = repo_result {

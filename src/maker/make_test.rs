@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::maker::{Env, Maker, StageValue};
-    use crate::pages::{DateQuery, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
+    use crate::maker::{Maker, StageValue};
+    use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
     use crate::stages::{ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
     use chrono::{DateTime, Utc};

@@ -1,4 +1,4 @@
-use crate::pages::{BundleIndex, FsPage, Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, VecBundle};
 use crate::stages::{ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
@@ -43,7 +43,7 @@ impl Stage for HandlebarsStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
 
         let lookup_result = self.lookup.lookup()?;
@@ -115,7 +115,7 @@ impl Page for HandlebarsTemplatePage {
         self.template_asset.metadata.as_ref()
     }
 
-    fn open(&self, _: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, _: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let result = self.registry.render(&self.template_asset.template_name, &self.metadata())?;
         Ok(Box::new(Cursor::new(result)))
     }
@@ -137,13 +137,13 @@ impl Page for HandlebarsPage {
         self.source.metadata()
     }
 
-    fn open(&self, output_index: &BundleIndex) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_index: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>> {
         let mut local_registry = self.registry.clone();
         local_registry.register_helper(
             "content_as_string",
             Box::new(|_: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output| {
                 let mut result = String::new();
-                self.source.open(output_index).map_err(|err| RenderError::new(err.to_string()))?.read_to_string(&mut result)?;
+                self.source.open(output_index, env).map_err(|err| RenderError::new(err.to_string()))?.read_to_string(&mut result)?;
                 out.write(&result)?;
                 Ok(())
             }),

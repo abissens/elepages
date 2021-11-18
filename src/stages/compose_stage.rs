@@ -1,4 +1,4 @@
-use crate::pages::{Page, PageBundle, Selector, VecBundle};
+use crate::pages::{Env, Page, PageBundle, Selector, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -32,7 +32,7 @@ impl ComposeStage {
         })
     }
 
-    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
@@ -44,13 +44,13 @@ impl ComposeStage {
             .map(|unit: &Arc<ComposeUnit>| {
                 let result = match unit.borrow() {
                     ComposeUnit::CreateNewSet(stage) => CompositionResult {
-                        result: stage.process(bundle)?,
+                        result: stage.process(bundle, env)?,
                         selected_set: None,
                     },
                     ComposeUnit::ReplaceSubSet(selector, stage) => {
                         let sub_set_bundle = self.select(selector.as_ref(), bundle);
                         CompositionResult {
-                            result: stage.process(&sub_set_bundle)?,
+                            result: stage.process(&sub_set_bundle, env)?,
                             selected_set: Some(sub_set_bundle),
                         }
                     }
@@ -89,7 +89,7 @@ impl ComposeStage {
         ))
     }
 
-    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
@@ -98,7 +98,7 @@ impl ComposeStage {
         for unit in &self.units {
             match unit.borrow() {
                 ComposeUnit::CreateNewSet(stage) => {
-                    let (bundle, p_result) = stage.process(bundle)?;
+                    let (bundle, p_result) = stage.process(bundle, env)?;
                     sub_results.push(p_result);
                     let mut stage_pages = bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
                     vec_bundle.p.append(&mut stage_pages);
@@ -108,7 +108,7 @@ impl ComposeStage {
                     for p in sub_set_bundle.pages() {
                         replaced_set.insert(p.path().to_vec());
                     }
-                    let (bundle, p_result) = stage.process(&sub_set_bundle)?;
+                    let (bundle, p_result) = stage.process(&sub_set_bundle, env)?;
                     sub_results.push(p_result);
                     let mut stage_pages = bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
                     vec_bundle.p.append(&mut stage_pages);
@@ -139,10 +139,10 @@ impl Stage for ComposeStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         Ok(match self.parallel {
-            true => self.parallel_process(bundle)?,
-            false => self.sequential_process(bundle)?,
+            true => self.parallel_process(bundle, env)?,
+            false => self.sequential_process(bundle, env)?,
         })
     }
 

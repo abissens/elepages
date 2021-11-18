@@ -1,4 +1,4 @@
-use crate::pages::{Page, PageBundle, VecBundle};
+use crate::pages::{Env, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -14,14 +14,14 @@ pub struct UnionStage {
 }
 
 impl UnionStage {
-    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
         let stage_pages_result: Vec<(Arc<dyn PageBundle>, ProcessingResult)> = self
             .stages
             .par_iter()
-            .map(|stage: &Arc<dyn Stage>| stage.process(bundle))
+            .map(|stage: &Arc<dyn Stage>| stage.process(bundle, env))
             .collect::<anyhow::Result<Vec<(Arc<dyn PageBundle>, ProcessingResult)>>>()?;
 
         for (bundle, p_result) in stage_pages_result {
@@ -42,13 +42,13 @@ impl UnionStage {
         ))
     }
 
-    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
 
         for stage in &self.stages {
-            let (bundle, p_result) = stage.process(bundle)?;
+            let (bundle, p_result) = stage.process(bundle, env)?;
             sub_results.push(p_result);
 
             let mut stage_pages = bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
@@ -73,10 +73,10 @@ impl Stage for UnionStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         Ok(match self.parallel {
-            true => self.parallel_process(bundle)?,
-            false => self.sequential_process(bundle)?,
+            true => self.parallel_process(bundle, env)?,
+            false => self.sequential_process(bundle, env)?,
         })
     }
 

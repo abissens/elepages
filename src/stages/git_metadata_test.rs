@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, FsLoader, Loader, Metadata};
+    use crate::pages::{Author, Env, FsLoader, Loader, Metadata};
     use crate::stages::git_metadata::GitMetadata;
     use crate::stages::sequence_stage::SequenceStage;
     use crate::stages::shadow_pages::ShadowPages;
@@ -34,7 +34,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -81,7 +81,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -192,7 +192,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -374,7 +374,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -545,7 +545,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = sequence_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::new()).unwrap();
 
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
@@ -685,7 +685,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load().unwrap();
 
-        let result_bundle = sequence_stage.process(&Arc::new(bundle)).unwrap();
+        let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
