@@ -5,6 +5,7 @@ mod tests {
     use crate::stages::indexes_stage::IndexStage;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
+    use crate::stages::{ComposeStage, ComposeUnit};
     use serde::{Deserialize, Serialize};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
@@ -32,39 +33,98 @@ mod tests {
             })],
         });
 
-        let index_stage = IndexStage { name: "index stage".to_string() };
+        let index_stage = ComposeStage {
+            name: "compose".to_string(),
+            parallel: true,
+            units: vec![Arc::new(ComposeUnit::CreateNewSet(Arc::new(IndexStage { name: "index stage".to_string() })))],
+        };
+
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
-                stage_name: "index stage".to_string(),
-                sub_results: vec![]
+                stage_name: "compose".to_string(),
+                sub_results: vec![TestProcessingResult {
+                    stage_name: "index stage".to_string(),
+                    sub_results: vec![]
+                }]
             }
         );
         assert_eq!(
             IndexPages::from_bundle(&result_bundle.0),
             IndexPages {
                 pages_by_tag: HashMap::from_iter(IntoIter::new([
-                    ("t1".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
-                    ("t2".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
-                    ("t3".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
+                    (
+                        "t1".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        }]))
+                    ),
+                    (
+                        "t2".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        }]))
+                    ),
+                    (
+                        "t3".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        }]))
+                    ),
                 ])),
                 pages_by_author: HashMap::from_iter(IntoIter::new([(
                     "f1 author".to_string(),
-                    HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))
+                    HashSet::from_iter(IntoIter::new([TestPageRef {
+                        path: vec!["dir".to_string(), "f1".to_string()]
+                    }]))
                 ),])),
                 all_tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
-                all_pages: HashSet::from_iter(IntoIter::new([TestPageIndex {
-                    path: vec!["dir".to_string(), "f1".to_string()],
-                    metadata: Some(TestPageIndexMetadata {
-                        title: Some("f1 title".to_string()),
-                        summary: Some("f1 summary".to_string()),
-                        authors: HashSet::from_iter(IntoIter::new(["f1 author".to_string()])),
-                        tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
-                        publishing_date: None,
-                        last_edit_date: None,
-                    })
-                }])),
+                all_pages: HashSet::from_iter(IntoIter::new([
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        },
+                        metadata: Some(TestPageIndexMetadata {
+                            title: Some("f1 title".to_string()),
+                            summary: Some("f1 summary".to_string()),
+                            authors: HashSet::from_iter(IntoIter::new(["f1 author".to_string()])),
+                            tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
+                            publishing_date: None,
+                            last_edit_date: None,
+                        })
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["all_pages.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["all_authors.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["all_tags.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["pages_by_tag.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["pages_by_author.json".to_string()]
+                        },
+                        metadata: None
+                    }
+                ])),
                 all_authors: HashSet::from_iter(IntoIter::new([Author {
                     name: "f1 author".to_string(),
                     contacts: Default::default()
@@ -136,13 +196,20 @@ mod tests {
             ],
         });
 
-        let index_stage = IndexStage { name: "index stage".to_string() };
+        let index_stage = ComposeStage {
+            name: "compose".to_string(),
+            parallel: true,
+            units: vec![Arc::new(ComposeUnit::CreateNewSet(Arc::new(IndexStage { name: "index stage".to_string() })))],
+        };
         let result_bundle = index_stage.process(&vec_bundle).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
-                stage_name: "index stage".to_string(),
-                sub_results: vec![]
+                stage_name: "compose".to_string(),
+                sub_results: vec![TestProcessingResult {
+                    stage_name: "index stage".to_string(),
+                    sub_results: vec![]
+                }]
             }
         );
         let index_pages = IndexPages::from_bundle(&result_bundle.0);
@@ -150,20 +217,48 @@ mod tests {
             index_pages,
             IndexPages {
                 pages_by_tag: HashMap::from_iter(IntoIter::new([
-                    ("t1".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
-                    ("t2".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
-                    ("t3".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()], vec!["f3".to_string()]]))),
-                    ("t4".to_string(), HashSet::from_iter(IntoIter::new([vec!["f3".to_string()]]))),
+                    (
+                        "t1".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        }]))
+                    ),
+                    (
+                        "t2".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        }]))
+                    ),
+                    (
+                        "t3".to_string(),
+                        HashSet::from_iter(IntoIter::new([
+                            TestPageRef {
+                                path: vec!["dir".to_string(), "f1".to_string()]
+                            },
+                            TestPageRef { path: vec!["f3".to_string()] }
+                        ]))
+                    ),
+                    ("t4".to_string(), HashSet::from_iter(IntoIter::new([TestPageRef { path: vec!["f3".to_string()] }]))),
                 ])),
                 pages_by_author: HashMap::from_iter(IntoIter::new([
-                    ("f1 author".to_string(), HashSet::from_iter(IntoIter::new([vec!["dir".to_string(), "f1".to_string()]]))),
-                    ("f3 author 1".to_string(), HashSet::from_iter(IntoIter::new([vec!["f3".to_string()], vec!["f4".to_string()]]))),
-                    ("f3 author 2".to_string(), HashSet::from_iter(IntoIter::new([vec!["f3".to_string()]]))),
+                    (
+                        "f1 author".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        }]))
+                    ),
+                    (
+                        "f3 author 1".to_string(),
+                        HashSet::from_iter(IntoIter::new([TestPageRef { path: vec!["f3".to_string()] }, TestPageRef { path: vec!["f4".to_string()] }]))
+                    ),
+                    ("f3 author 2".to_string(), HashSet::from_iter(IntoIter::new([TestPageRef { path: vec!["f3".to_string()] }]))),
                 ])),
                 all_tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string(), "t4".to_string()])),
                 all_pages: HashSet::from_iter(IntoIter::new([
                     TestPageIndex {
-                        path: vec!["dir".to_string(), "f1".to_string()],
+                        page_ref: TestPageRef {
+                            path: vec!["dir".to_string(), "f1".to_string()]
+                        },
                         metadata: Some(TestPageIndexMetadata {
                             title: Some("f1 title".to_string()),
                             summary: Some("f1 summary".to_string()),
@@ -174,11 +269,11 @@ mod tests {
                         })
                     },
                     TestPageIndex {
-                        path: vec!["f2".to_string()],
+                        page_ref: TestPageRef { path: vec!["f2".to_string()] },
                         metadata: None
                     },
                     TestPageIndex {
-                        path: vec!["f3".to_string()],
+                        page_ref: TestPageRef { path: vec!["f3".to_string()] },
                         metadata: Some(TestPageIndexMetadata {
                             title: Some("f3 title".to_string()),
                             summary: Some("f3 summary".to_string()),
@@ -189,7 +284,7 @@ mod tests {
                         })
                     },
                     TestPageIndex {
-                        path: vec!["f4".to_string()],
+                        page_ref: TestPageRef { path: vec!["f4".to_string()] },
                         metadata: Some(TestPageIndexMetadata {
                             title: Some("f4 title".to_string()),
                             summary: Some("f4 summary".to_string()),
@@ -198,6 +293,36 @@ mod tests {
                             publishing_date: None,
                             last_edit_date: None,
                         })
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["all_pages.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["all_authors.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["all_tags.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["pages_by_tag.json".to_string()]
+                        },
+                        metadata: None
+                    },
+                    TestPageIndex {
+                        page_ref: TestPageRef {
+                            path: vec!["pages_by_author.json".to_string()]
+                        },
+                        metadata: None
                     }
                 ])),
                 all_authors: HashSet::from_iter(IntoIter::new([
@@ -220,7 +345,7 @@ mod tests {
 
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
     struct TestPageIndex {
-        path: Vec<String>,
+        page_ref: TestPageRef,
         metadata: Option<TestPageIndexMetadata>,
     }
 
@@ -240,28 +365,34 @@ mod tests {
 
     impl Hash for TestPageIndex {
         fn hash<H: Hasher>(&self, state: &mut H) {
-            self.path.hash(state)
+            self.page_ref.hash(state)
         }
     }
     impl Eq for TestPageIndex {}
 
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
     struct IndexPages {
-        pages_by_tag: HashMap<String, HashSet<Vec<String>>>,
-        pages_by_author: HashMap<String, HashSet<Vec<String>>>,
+        pages_by_tag: HashMap<String, HashSet<TestPageRef>>,
+        pages_by_author: HashMap<String, HashSet<TestPageRef>>,
         all_tags: HashSet<String>,
         all_pages: HashSet<TestPageIndex>,
         all_authors: HashSet<Author>,
     }
 
+    #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+    struct TestPageRef {
+        pub path: Vec<String>,
+    }
+
     impl IndexPages {
         fn from_bundle(bundle: &Arc<dyn PageBundle>) -> Self {
-            let mut pages_by_tag: HashMap<String, HashSet<Vec<String>>> = Default::default();
-            let mut pages_by_author: HashMap<String, HashSet<Vec<String>>> = Default::default();
+            let mut pages_by_tag: HashMap<String, HashSet<TestPageRef>> = Default::default();
+            let mut pages_by_author: HashMap<String, HashSet<TestPageRef>> = Default::default();
             let mut all_tags: HashSet<String> = Default::default();
             let mut all_pages: HashSet<TestPageIndex> = Default::default();
             let mut all_authors: HashSet<Author> = Default::default();
             let output_index = BundleIndex::from(bundle);
+            println!("{:?}", output_index);
             for page in bundle.pages() {
                 match page.path().join("/").as_str() {
                     "pages_by_tag.json" => pages_by_tag = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
@@ -269,7 +400,9 @@ mod tests {
                     "all_tags.json" => all_tags = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
                     "all_pages.json" => all_pages = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
                     "all_authors.json" => all_authors = serde_json::from_reader(page.open(&output_index).unwrap()).unwrap(),
-                    _ => panic!("should not have other file"),
+                    file => {
+                        println!("extra file : {}", file)
+                    }
                 }
             }
 
