@@ -3,7 +3,7 @@ mod tests {
     use crate::maker::{Env, Maker, StageValue};
     use crate::pages::{DateQuery, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{ComposeStage, CopyCut, GitMetadata, IndexStage, MdStage, HandlebarsDir, HandlebarsStage, SequenceStage, ShadowPages, Stage, UnionStage};
+    use crate::stages::{ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
     use chrono::{DateTime, Utc};
     use indoc::indoc;
     use std::path::PathBuf;

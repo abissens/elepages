@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Author {
     pub name: String,
     #[serde(default = "HashSet::default")]
@@ -81,7 +81,7 @@ impl Metadata {
     }
 }
 
-mod epoch_timestamp {
+pub mod epoch_timestamp {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
