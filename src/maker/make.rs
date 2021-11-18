@@ -1,4 +1,4 @@
-use crate::config::Value;
+use crate::config::{FromValue, Value};
 use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
 use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
@@ -61,13 +61,11 @@ impl StageMaker for ShadowStageMaker {
 }
 
 impl StageMaker for HandlebarsStageMaker {
-    fn make(&self, name: Option<&str>, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        let root_path: &PathBuf = env
-            .get_downcast::<PathBuf>("root_path")?
-            .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
+    fn make(&self, name: Option<&str>, config: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        let template_path = PathBuf::from_str(&String::from_value(config.clone())?)?;
         Ok(Arc::new(HandlebarsStage {
             name: name.unwrap_or("handlebars stage").to_string(),
-            lookup: Arc::new(HandlebarsDir { base_path: root_path.clone() }),
+            lookup: Arc::new(HandlebarsDir { base_path: template_path }),
         }))
     }
 }

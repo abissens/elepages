@@ -46,12 +46,12 @@ mod tests {
             panic!("should downcast to MdStage");
         }
 
-        let hb_stage_config: StageValue = serde_yaml::from_str("handlebars").unwrap();
+        let hb_stage_config: StageValue = serde_yaml::from_str("{type: 'handlebars', config: 'd/e' }").unwrap();
         let hb_stage = Maker::default().make(None, &hb_stage_config, &env).unwrap();
         assert_eq!(hb_stage.name(), "handlebars stage");
         if let Some(hb) = hb_stage.as_any().unwrap().downcast_ref::<HandlebarsStage>() {
             let hbl: &HandlebarsDir = hb.lookup.as_any().unwrap().downcast_ref().unwrap();
-            assert_eq!(&hbl.base_path, &PathBuf::from_str("a/b/c").unwrap());
+            assert_eq!(&hbl.base_path, &PathBuf::from_str("d/e").unwrap());
         } else {
             panic!("should downcast to HandlebarsStage");
         }
@@ -112,7 +112,7 @@ mod tests {
 
         let hb_stage_config: StageValue = serde_yaml::from_str(indoc! {"
             name: handlebars stage renamed
-            stage: handlebars
+            stage: {type: handlebars, config: a/b/c }
         "})
         .unwrap();
         let hb_stage = Maker::default().make(None, &hb_stage_config, &env).unwrap();
@@ -142,7 +142,7 @@ mod tests {
             ---
             - git_metadata
             - md
-            - handlebars
+            - {type: handlebars, config: a/b/c }
         "})
         .unwrap();
 
@@ -226,7 +226,7 @@ mod tests {
               - git_metadata
               - md
               - name: my handlebars
-                stage: handlebars
+                stage: {type: handlebars, config: a/b/c }
         "})
         .unwrap();
 
@@ -251,7 +251,7 @@ mod tests {
               union:
                 - git_metadata
                 - md
-                - handlebars
+                - {type: handlebars, config: a/b/c }
         "})
         .unwrap();
 
@@ -274,7 +274,7 @@ mod tests {
             union:
               - git_metadata
               - md
-              - handlebars
+              - {type: handlebars, config: a/b/c }
         "})
         .unwrap();
 
@@ -298,7 +298,9 @@ mod tests {
                 - git_metadata
                 - inner: git_metadata
                   selector: { path: 'a/b' }
-                - inner: handlebars
+                - inner:
+                    type: handlebars
+                    config: /d/e
                   selector: { ext: '.hbs' }
         "})
         .unwrap();
@@ -350,7 +352,7 @@ mod tests {
                 - git_metadata
                 - inner: git_metadata
                   selector: { path: 'a/b' }
-                - inner: handlebars
+                - inner: {type: handlebars, config: a/b/c }
                   selector: { ext: '.hbs' }
         "})
         .unwrap();
