@@ -27,7 +27,7 @@ impl From<&Arc<dyn Page>> for TestPage {
                 pages_by_author: Default::default(),
                 pages_by_tag: Default::default(),
             },
-            &Env::new(),
+            &Env::test(),
         )
         .unwrap()
         .read_to_string(&mut content)

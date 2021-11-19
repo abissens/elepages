@@ -36,7 +36,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
 
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
@@ -120,7 +120,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -209,7 +209,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -337,7 +337,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -444,7 +444,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -526,7 +526,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -615,7 +615,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -743,7 +743,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

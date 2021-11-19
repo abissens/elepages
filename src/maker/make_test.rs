@@ -13,7 +13,7 @@ mod tests {
     fn build_default_processor_stages_based_on_config() {
         let git_metadata_stage_config: StageValue = serde_yaml::from_str("git_metadata").unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
@@ -26,21 +26,21 @@ mod tests {
         }
 
         let indexes_stage_config: StageValue = serde_yaml::from_str("indexes").unwrap();
-        let indexes_stage = Maker::default().make(None, &indexes_stage_config, &Env::new()).unwrap();
+        let indexes_stage = Maker::default().make(None, &indexes_stage_config, &Env::test()).unwrap();
         assert_eq!(indexes_stage.name(), "index stage");
         if let None = indexes_stage.as_any().unwrap().downcast_ref::<IndexStage>() {
             panic!("should downcast to IndexStage");
         }
 
         let shadow_stage_config: StageValue = serde_yaml::from_str("shadow").unwrap();
-        let shadow_stage = Maker::default().make(None, &shadow_stage_config, &Env::new()).unwrap();
+        let shadow_stage = Maker::default().make(None, &shadow_stage_config, &Env::test()).unwrap();
         assert_eq!(shadow_stage.name(), "shadow pages stage");
         if let None = shadow_stage.as_any().unwrap().downcast_ref::<ShadowPages>() {
             panic!("should downcast to ShadowPages");
         }
 
         let md_stage_config: StageValue = serde_yaml::from_str("md").unwrap();
-        let md_stage = Maker::default().make(None, &md_stage_config, &Env::new()).unwrap();
+        let md_stage = Maker::default().make(None, &md_stage_config, &Env::test()).unwrap();
         assert_eq!(md_stage.name(), "markdown stage");
         if let None = md_stage.as_any().unwrap().downcast_ref::<MdStage>() {
             panic!("should downcast to MdStage");
@@ -65,7 +65,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
@@ -82,7 +82,7 @@ mod tests {
             stage: indexes
         "})
         .unwrap();
-        let indexes_stage = Maker::default().make(None, &indexes_stage_config, &Env::new()).unwrap();
+        let indexes_stage = Maker::default().make(None, &indexes_stage_config, &Env::test()).unwrap();
         assert_eq!(indexes_stage.name(), "index stage renamed");
         if let None = indexes_stage.as_any().unwrap().downcast_ref::<IndexStage>() {
             panic!("should downcast to IndexStage");
@@ -93,7 +93,7 @@ mod tests {
             stage: shadow
         "})
         .unwrap();
-        let shadow_stage = Maker::default().make(None, &shadow_stage_config, &Env::new()).unwrap();
+        let shadow_stage = Maker::default().make(None, &shadow_stage_config, &Env::test()).unwrap();
         assert_eq!(shadow_stage.name(), "shadow pages stage renamed");
         if let None = shadow_stage.as_any().unwrap().downcast_ref::<ShadowPages>() {
             panic!("should downcast to ShadowPages");
@@ -104,7 +104,7 @@ mod tests {
             stage: md
         "})
         .unwrap();
-        let md_stage = Maker::default().make(None, &md_stage_config, &Env::new()).unwrap();
+        let md_stage = Maker::default().make(None, &md_stage_config, &Env::test()).unwrap();
         assert_eq!(md_stage.name(), "markdown stage renamed");
         if let None = md_stage.as_any().unwrap().downcast_ref::<MdStage>() {
             panic!("should downcast to MdStage");
@@ -129,7 +129,7 @@ mod tests {
     fn return_err_when_named_stage_not_found() {
         let config: StageValue = serde_yaml::from_str("some_stage").unwrap();
 
-        if let Err(e) = Maker::default().make(None, &config, &Env::new()) {
+        if let Err(e) = Maker::default().make(None, &config, &Env::test()) {
             assert_eq!(e.to_string(), "stage some_stage not found")
         } else {
             panic!("should return Err");
@@ -146,7 +146,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -169,7 +169,7 @@ mod tests {
         "})
         .unwrap();
 
-        let env = Env::new();
+        let env = Env::test();
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -230,7 +230,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -255,7 +255,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -278,7 +278,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -305,7 +305,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -357,7 +357,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::new();
+        let mut env = Env::test();
         env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();

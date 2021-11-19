@@ -47,7 +47,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -145,7 +145,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -262,7 +262,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -364,7 +364,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -459,7 +459,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -567,7 +567,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -706,7 +706,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -875,7 +875,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

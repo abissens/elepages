@@ -52,7 +52,7 @@ mod tests {
         });
 
         let md_stage = MdStage { name: "md stage".to_string() };
-        let result_bundle = md_stage.process(&bundle, &Env::new()).unwrap();
+        let result_bundle = md_stage.process(&bundle, &Env::test()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
