@@ -2,7 +2,7 @@
 mod tests {
     use crate::pages::fs_loader::FsLoader;
     use crate::pages::test_page::TestPage;
-    use crate::pages::Loader;
+    use crate::pages::{Env, Loader};
     use rustassert::fs::{FileNode, TmpTestFolder};
 
     #[test]
@@ -10,7 +10,7 @@ mod tests {
         let test_folder = TmpTestFolder::new().unwrap();
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         assert_eq!(bundle.pages().len(), 0);
     }
@@ -21,7 +21,7 @@ mod tests {
         let file_path = test_folder.get_path().join("file");
 
         let loader = FsLoader::new(file_path.to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         assert_eq!(bundle.pages().len(), 1);
         assert_eq!(
@@ -39,7 +39,7 @@ mod tests {
         let test_folder = TmpTestFolder::new_from_node(&FileNode::new_file("file", "this is a test file".as_bytes().to_vec())).unwrap();
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         assert_eq!(bundle.pages().len(), 1);
         assert_eq!(
@@ -79,7 +79,7 @@ mod tests {
             .unwrap();
 
         let loader = FsLoader::new(test_folder.get_path().join("d1").to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let mut actual = bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -163,7 +163,7 @@ mod tests {
             .unwrap();
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let mut actual = bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));
@@ -262,7 +262,7 @@ mod tests {
             .unwrap();
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let mut actual = bundle.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
         actual.sort_by_key(|f| f.path.join("/"));

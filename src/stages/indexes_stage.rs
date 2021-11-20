@@ -16,9 +16,9 @@ impl Stage for IndexStage {
         self.name.clone()
     }
 
-    fn process(&self, _: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, _: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
-
+        env.print_vv(&format!("stage {}", self.name()), "generate index pages");
         let result_bundle = VecBundle {
             p: vec![
                 Arc::new(AllPagesPage {

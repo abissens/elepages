@@ -32,7 +32,7 @@ mod tests {
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
         assert_eq!(
@@ -79,7 +79,7 @@ mod tests {
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
         assert_eq!(
@@ -190,7 +190,7 @@ mod tests {
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
         assert_eq!(
@@ -372,7 +372,7 @@ mod tests {
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
         assert_eq!(
@@ -543,7 +543,7 @@ mod tests {
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
 
@@ -683,7 +683,7 @@ mod tests {
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
-        let bundle = loader.load().unwrap();
+        let bundle = loader.load(&Env::test()).unwrap();
 
         let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
         assert_eq!(

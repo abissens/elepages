@@ -21,6 +21,7 @@ impl FsWriter {
 
 impl Writer for FsWriter {
     fn write(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<()> {
+        env.print_v("FS Writer", "start writing pages");
         let pages = bundle.pages();
         // Create directories
         for page in pages {
@@ -32,6 +33,7 @@ impl Writer for FsWriter {
             for path in &path[0..path.len() - 1] {
                 file_path.push(path)
             }
+            env.print_vvv("FS Writer", &format!("creating directories {}", &file_path.to_string_lossy()));
             create_dir_all(&file_path)?;
         }
         // Make output index
@@ -50,6 +52,7 @@ impl Writer for FsWriter {
                 }
                 let mut file = File::create(&file_path)?;
                 let mut reader = p.open(&output_index, env)?;
+                env.print_vv("FS Writer", &format!("writing output file {}", &file_path.to_string_lossy()));
                 io::copy(&mut reader, &mut file)?;
                 Ok(())
             })

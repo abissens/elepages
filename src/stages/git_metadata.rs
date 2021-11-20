@@ -91,11 +91,13 @@ impl Stage for GitMetadata {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        env.print_vv(&format!("stage {}", self.name()), "git metadata extraction started");
         let repo_result = Repository::open(&self.repo_path);
         if let Err(e) = repo_result {
             if e.code() == ErrorCode::NotFound {
+                env.print_vv(&format!("stage {}", self.name()), "no git repository detected");
                 // Ignore not found repository
                 return Ok((
                     Arc::clone(bundle),
@@ -130,6 +132,7 @@ impl Stage for GitMetadata {
             let mut processed_pages = self.process_repository(repo, blame_pages)?;
             vec_bundle.p.append(&mut processed_pages);
         }
+        env.print_vv(&format!("stage {}", self.name()), "git metadata extraction ended");
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),

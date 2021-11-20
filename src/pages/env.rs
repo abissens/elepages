@@ -6,11 +6,16 @@ pub trait Printer {
     fn print(&self, caller: &str, message: &str);
 }
 
+#[allow(clippy::upper_case_acronyms)]
 pub enum PrintLevel {
     V,
     VV,
     VVV,
 }
+
+pub const PRINT_LEVEL_V: PrintLevel = PrintLevel::V;
+pub const PRINT_LEVEL_VV: PrintLevel = PrintLevel::VV;
+pub const PRINT_LEVEL_VVV: PrintLevel = PrintLevel::VVV;
 
 impl PrintLevel {
     pub(crate) fn should_print(&self, print_level: &PrintLevel) -> bool {
@@ -30,18 +35,35 @@ impl PrintLevel {
     }
 }
 pub struct Env {
-    pub(crate) values: HashMap<String, Box<dyn Any + Send + Sync>>,
-    pub(crate) printer: Box<dyn Printer + Send + Sync>,
-    pub(crate) print_level: Option<PrintLevel>,
+    values: HashMap<String, Box<dyn Any + Send + Sync>>,
+    printer: Box<dyn Printer + Send + Sync>,
+    print_level: Option<PrintLevel>,
 }
 
 impl Env {
-    pub fn print(&self, level: &PrintLevel, caller: &str, message: &str) {
+    pub fn can_print(&self, level: &PrintLevel) -> bool {
         if let Some(print_level) = &self.print_level {
-            if print_level.should_print(level) {
-                self.printer.print(caller, message);
-            }
+            return print_level.should_print(level);
         }
+        false
+    }
+
+    pub fn print(&self, level: &PrintLevel, caller: &str, message: &str) {
+        if self.can_print(level) {
+            self.printer.print(caller, message);
+        }
+    }
+
+    pub fn print_v(&self, caller: &str, message: &str) {
+        self.print(&PRINT_LEVEL_V, caller, message)
+    }
+
+    pub fn print_vv(&self, caller: &str, message: &str) {
+        self.print(&PRINT_LEVEL_VV, caller, message)
+    }
+
+    pub fn print_vvv(&self, caller: &str, message: &str) {
+        self.print(&PRINT_LEVEL_VVV, caller, message)
     }
 
     pub fn new(printer: Box<dyn Printer + Send + Sync>, print_level: Option<PrintLevel>) -> Self {
@@ -72,11 +94,15 @@ impl Env {
     pub fn test() -> Self {
         Self::new(Box::new(NoopPrinter), None)
     }
+
+    pub fn default_for_level(level: Option<PrintLevel>) -> Self {
+        Self::new(Box::new(DefaultPrinter), level)
+    }
 }
 
 impl Default for Env {
     fn default() -> Self {
-        Self::new(Box::new(DefaultPrinter), Some(PrintLevel::V))
+        Env::default_for_level(Some(PrintLevel::V))
     }
 }
 
@@ -84,7 +110,7 @@ pub struct DefaultPrinter;
 
 impl Printer for DefaultPrinter {
     fn print(&self, caller: &str, message: &str) {
-        println!("{} [{}] {}", Utc::now().to_rfc3339(), caller, message)
+        println!("{} [{}] {}", Utc::now().format("%Y-%b-%d %T"), caller, message)
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::cli::writer::Writer;
 use crate::cli::FsWriter;
 use crate::maker::{ComposeUnitConfig, Maker, SelectorConfig, StageValue};
-use crate::pages::{Env, FsLoader, Loader};
+use crate::pages::{Env, FsLoader, Loader, PrintLevel};
 use crate::pages_error::PagesError;
 use crate::stages::ProcessingResult;
 use std::env::current_dir;
@@ -21,13 +21,14 @@ pub struct ExecutorParams {
     pub input_dir: Option<PathBuf>,
     pub output_dir: Option<PathBuf>,
     pub config_path: Option<PathBuf>,
+    pub print_level: Option<PrintLevel>,
 }
 
 impl Executor {
     pub fn execute(&self) -> anyhow::Result<Execution> {
         let start = Instant::now();
 
-        let input_bundle = self.loader.load()?;
+        let input_bundle = self.loader.load(&self.env)?;
         let loading_elapsed = start.elapsed();
 
         let stage = self.maker.make(None, &self.stage_config, &self.env)?;
@@ -81,7 +82,7 @@ impl Executor {
         let maker = Maker::default();
         let writer = Box::new(FsWriter::new(output_dir)?);
 
-        let mut env = Env::default();
+        let mut env = Env::default_for_level(params.print_level);
         env.insert("root_path".to_string(), Box::new(input_dir));
 
         Ok(Self {

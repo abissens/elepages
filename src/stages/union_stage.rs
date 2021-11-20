@@ -16,6 +16,7 @@ pub struct UnionStage {
 impl UnionStage {
     fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        env.print_vv(&format!("stage {}", self.name()), "union stage processing started");
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
         let stage_pages_result: Vec<(Arc<dyn PageBundle>, ProcessingResult)> = self
@@ -30,6 +31,7 @@ impl UnionStage {
                 vec_bundle.p.push(Arc::clone(page));
             }
         }
+        env.print_vv(&format!("stage {}", self.name()), "union stage processing ended");
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
@@ -44,6 +46,7 @@ impl UnionStage {
 
     fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        env.print_vv(&format!("stage {}", self.name()), "union stage processing started");
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
 
@@ -56,6 +59,7 @@ impl UnionStage {
         }
 
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        env.print_vv(&format!("stage {}", self.name()), "union stage processing ended");
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

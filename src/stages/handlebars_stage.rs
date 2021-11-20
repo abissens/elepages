@@ -13,7 +13,7 @@ use std::sync::Arc;
 use std::time::SystemTime;
 
 pub trait HandlebarsLookup: Sync + Send + Debug {
-    fn lookup(&self) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>>;
+    fn lookup(&self, env: &Env) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>>;
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }
@@ -43,10 +43,10 @@ impl Stage for HandlebarsStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
-
-        let lookup_result = self.lookup.lookup()?;
+        env.print_vv(&format!("stage {}", self.name()), "handlebars processing started");
+        let lookup_result = self.lookup.lookup(env)?;
         let root_repository = lookup_result.clone_registry();
 
         // Fetch pages
@@ -82,7 +82,7 @@ impl Stage for HandlebarsStage {
                 })
                 .collect(),
         );
-
+        env.print_vv(&format!("stage {}", self.name()), "handlebars processing ended");
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(result_bundle),
@@ -209,7 +209,8 @@ impl HandlebarsLookupResult for HandlebarsDirResult {
 }
 
 impl HandlebarsLookup for HandlebarsDir {
-    fn lookup(&self) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>> {
+    fn lookup(&self, env: &Env) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>> {
+        env.print_vv("HandlebarsDir", &format!("handlebars lookup from dir {}", &self.base_path.to_string_lossy()));
         let mut result = HandlebarsDirResult {
             registry: Handlebars::new(),
             pages: Default::default(),
@@ -251,7 +252,7 @@ impl HandlebarsLookup for HandlebarsDir {
             }
             Ok(())
         })?;
-
+        env.print_vv("HandlebarsDir", &format!("handlebars lookup from dir {} ended", &self.base_path.to_string_lossy()));
         Ok(Arc::new(result))
     }
 

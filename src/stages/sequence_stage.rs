@@ -28,10 +28,12 @@ impl Stage for SequenceStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let mut sub_results = vec![];
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let mut sub_results = vec![];
+        env.print_vv(&format!("stage {}", self.name()), "sequence processing started");
         let result_bundle = SequenceStage::sequence_process(Arc::clone(bundle), &self.stages, &mut sub_results, env)?;
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        env.print_vv(&format!("stage {}", self.name()), "sequence processing ended");
         Ok((
             result_bundle,
             ProcessingResult {

@@ -27,6 +27,7 @@ impl Stage for ShadowPages {
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        env.print_vv(&format!("stage {}", self.name()), "shadow metadata page processing started");
         let shadow_output_index = BundleIndex::from(bundle);
 
         let mut vec_bundle = VecBundle { p: vec![] };
@@ -134,7 +135,7 @@ impl Stage for ShadowPages {
                 vec_bundle.p.push(page.change_meta(current_metadata));
             }
         }
-
+        env.print_vv(&format!("stage {}", self.name()), "shadow metadata page processing ended");
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
@@ -174,12 +175,14 @@ struct YamlShadowLoader();
 
 impl ShadowLoader for JsonShadowLoader {
     fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata> {
+        env.print_vvv("json shadow loader", &format!("loading from page {}", page.path().join("/")));
         Ok(serde_json::from_reader(page.open(shadow_output_index, env)?)?)
     }
 }
 
 impl ShadowLoader for YamlShadowLoader {
     fn load(&self, page: Arc<dyn Page>, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata> {
+        env.print_vvv("yaml shadow loader", &format!("loading from page {}", page.path().join("/")));
         Ok(serde_yaml::from_reader(page.open(shadow_output_index, env)?)?)
     }
 }

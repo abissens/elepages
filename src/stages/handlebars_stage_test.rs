@@ -980,7 +980,7 @@ mod tests {
     }
 
     impl HandlebarsLookup for NewHandlebarsLookupTest {
-        fn lookup(&self) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>> {
+        fn lookup(&self, _: &Env) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>> {
             Ok(Arc::new(NewHandlebarsLookupResultTest {
                 registry: self.registry.clone(),
                 fetch: self.fetch.clone(),
