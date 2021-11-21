@@ -67,6 +67,13 @@ pub enum StageValue {
     Composition {
         compose: Vec<ComposeUnitConfig>,
     },
+    Append {
+        append: Box<StageValue>,
+    },
+    Replace {
+        by: Box<StageValue>,
+        replace: SelectorConfig,
+    },
     ProcessorStage {
         #[serde(alias = "type")]
         processor_type: String,

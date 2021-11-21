@@ -3,7 +3,7 @@ use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
 use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
-use crate::stages::{ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+use crate::stages::{AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
 use chrono::{DateTime, NaiveDate, Utc};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -246,6 +246,15 @@ impl Maker {
                     selector,
                 })
             }
+            StageValue::Append { append } => Arc::new(AppendStage {
+                name: name.unwrap_or("append stage").to_string(),
+                inner: self.make(None, append, env)?,
+            }),
+            StageValue::Replace { replace, by } => Arc::new(ReplaceStage {
+                name: name.unwrap_or("replace stage").to_string(),
+                inner: self.make(None, by, env)?,
+                selector: Maker::make_selector(replace)?,
+            }),
         };
 
         Ok(stage)

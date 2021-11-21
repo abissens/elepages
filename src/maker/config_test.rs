@@ -90,6 +90,41 @@ mod tests {
             }
         );
 
+        let append_stage: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            append: stage_type
+        "})
+        .unwrap();
+
+        assert_eq!(
+            append_stage,
+            StageValue::Append {
+                append: Box::new(StageValue::ProcessorWithoutConfigStage("stage_type".to_string()))
+            }
+        );
+
+        let replace_stage: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            replace: { tag: 'a', path: 'a/**' }
+            by: stage_type
+        "})
+        .unwrap();
+
+        assert_eq!(
+            replace_stage,
+            StageValue::Replace {
+                replace: SelectorConfig::Base {
+                    path: Some("a/**".to_string()),
+                    tag: Some("a".to_string()),
+                    tags: None,
+                    ext: None,
+                    author: None,
+                    publishing: None
+                },
+                by: Box::new(StageValue::ProcessorWithoutConfigStage("stage_type".to_string()))
+            }
+        );
+
         let sequence: StageValue = serde_yaml::from_str(indoc! {"
             ---
             - type: stage_type_1

@@ -3,7 +3,7 @@ mod tests {
     use crate::maker::{Maker, StageValue};
     use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, SequenceStage, ShadowPages, Stage, UnionStage};
+    use crate::stages::{AppendStage, ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
     use chrono::{DateTime, Utc};
     use indoc::indoc;
     use std::path::PathBuf;
@@ -155,6 +155,112 @@ mod tests {
         seq.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
         seq.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
         seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+    }
+
+    #[test]
+    fn build_copy_stage() {
+        let config: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            copy: 'a/**'
+            dest: 'copied/dest'
+        "})
+        .unwrap();
+
+        let mut env = Env::test();
+        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+
+        let stage = Maker::default().make(None, &config, &env).unwrap();
+
+        let copy_cut = stage.as_any().unwrap().downcast_ref::<CopyCut>().expect("CopyCut");
+        match copy_cut {
+            CopyCut::Copy { selector, dest, name } => {
+                assert_eq!(name, "copy stage");
+                assert_eq!(dest, &["copied", "dest"]);
+                let selector = selector.as_any().unwrap().downcast_ref::<PathSelector>().expect("PathSelector");
+                assert_eq!(selector.query, vec!["a".to_string(), "**".to_string()]);
+            }
+            _ => panic!("CopyCut::Copy"),
+        };
+    }
+
+    #[test]
+    fn build_move_stage() {
+        let config: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            move: 'a/**'
+            dest: 'moved/dest'
+        "})
+        .unwrap();
+
+        let mut env = Env::test();
+        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+
+        let stage = Maker::default().make(None, &config, &env).unwrap();
+
+        let copy_cut = stage.as_any().unwrap().downcast_ref::<CopyCut>().expect("CopyCut");
+        match copy_cut {
+            CopyCut::Move { selector, dest, name } => {
+                assert_eq!(name, "move stage");
+                assert_eq!(dest, &["moved", "dest"]);
+                let selector = selector.as_any().unwrap().downcast_ref::<PathSelector>().expect("PathSelector");
+                assert_eq!(selector.query, vec!["a".to_string(), "**".to_string()]);
+            }
+            _ => panic!("CopyCut::Move"),
+        };
+    }
+
+    #[test]
+    fn build_ignore_stage() {
+        let config: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            ignore: 'a/**'
+        "})
+        .unwrap();
+
+        let stage = Maker::default().make(None, &config, &Env::test()).unwrap();
+
+        let copy_cut = stage.as_any().unwrap().downcast_ref::<CopyCut>().expect("CopyCut");
+        match copy_cut {
+            CopyCut::Ignore { selector, name } => {
+                assert_eq!(name, "ignore stage");
+                let selector = selector.as_any().unwrap().downcast_ref::<PathSelector>().expect("PathSelector");
+                assert_eq!(selector.query, vec!["a".to_string(), "**".to_string()]);
+            }
+            _ => panic!("CopyCut::Ignore"),
+        };
+    }
+
+    #[test]
+    fn build_append_stage() {
+        let config: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            append: indexes
+        "})
+        .unwrap();
+
+        let stage = Maker::default().make(None, &config, &Env::test()).unwrap();
+
+        let append_stage = stage.as_any().unwrap().downcast_ref::<AppendStage>().expect("AppendStage");
+        assert_eq!(append_stage.name, "append stage");
+        let index_stage = append_stage.inner.as_any().unwrap().downcast_ref::<IndexStage>().expect("IndexStage");
+        assert_eq!(index_stage.name, "index stage");
+    }
+
+    #[test]
+    fn build_replace_stage() {
+        let config: StageValue = serde_yaml::from_str(indoc! {"
+            ---
+            replace: 'a/**'
+            by: indexes
+        "})
+        .unwrap();
+
+        let stage = Maker::default().make(None, &config, &Env::test()).unwrap();
+
+        let replace_stage = stage.as_any().unwrap().downcast_ref::<ReplaceStage>().expect("ReplaceStage");
+        assert_eq!(replace_stage.name, "replace stage");
+        let index_stage = replace_stage.inner.as_any().unwrap().downcast_ref::<IndexStage>().expect("IndexStage");
+        assert_eq!(index_stage.name, "index stage");
     }
 
     #[test]
