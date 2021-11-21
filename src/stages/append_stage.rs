@@ -17,13 +17,13 @@ impl Stage for AppendStage {
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
-        env.print_vv(&format!("stage {}", self.name), "start composing");
+        env.print_vv(&format!("stage {}", self.name), "start appending");
         let mut vec_bundle = VecBundle { p: bundle.pages().to_vec() };
 
         let (inner_bundle, inner_result) = self.inner.process(bundle, env)?;
         vec_bundle.p.append(&mut inner_bundle.pages().to_vec());
 
-        env.print_vv(&format!("stage {}", self.name), "compose ended");
+        env.print_vv(&format!("stage {}", self.name), "append ended");
         let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
         Ok((
             Arc::new(vec_bundle),
