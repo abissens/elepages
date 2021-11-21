@@ -1,3 +1,5 @@
+mod append_stage;
+mod append_stage_test;
 mod compose_stage;
 mod compose_stage_test;
 mod copy_cut_stage;
@@ -21,6 +23,7 @@ mod test_stage;
 mod union_stage;
 mod union_stage_test;
 
+pub use self::append_stage::*;
 pub use self::compose_stage::*;
 pub use self::copy_cut_stage::*;
 pub use self::git_metadata::*;
