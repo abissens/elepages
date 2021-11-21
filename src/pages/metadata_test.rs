@@ -3,7 +3,7 @@ mod tests {
     use crate::pages::{Author, Metadata};
     use chrono::DateTime;
     use std::array::IntoIter;
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
     use std::sync::Arc;
 
@@ -16,6 +16,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let m2 = Metadata {
@@ -25,6 +26,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
             last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+            data: HashMap::default(),
         };
 
         let result = m1.merge(&m2).unwrap();
@@ -44,6 +46,7 @@ mod tests {
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
             publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
             last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+            data: HashMap::default(),
         };
 
         let m2 = Metadata {
@@ -53,6 +56,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
             last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T19:00:00-08:00").unwrap().timestamp()),
+            data: HashMap::default(),
         };
 
         let result = m1.merge(&m2).unwrap();
@@ -86,6 +90,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let m2 = Metadata {
@@ -112,6 +117,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let result = m1.merge(&m2).unwrap();
@@ -142,6 +148,7 @@ mod tests {
                 tags: HashSet::new(),
                 publishing_date: None,
                 last_edit_date: None,
+                data: HashMap::default(),
             }
         );
     }
@@ -155,6 +162,7 @@ mod tests {
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let m2 = Metadata {
@@ -164,6 +172,7 @@ mod tests {
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let m3 = Metadata {
@@ -173,6 +182,7 @@ mod tests {
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let m4 = Metadata {
@@ -182,6 +192,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         };
 
         let result1 = m1.merge(&m2).unwrap();
@@ -203,6 +214,7 @@ mod tests {
                 ])),
                 publishing_date: None,
                 last_edit_date: None,
+                data: HashMap::default(),
             }
         );
 
@@ -215,6 +227,7 @@ mod tests {
                 tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                 publishing_date: None,
                 last_edit_date: None,
+                data: HashMap::default(),
             }
         );
 
@@ -227,6 +240,7 @@ mod tests {
                 tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                 publishing_date: None,
                 last_edit_date: None,
+                data: HashMap::default(),
             }
         );
 
@@ -239,6 +253,7 @@ mod tests {
                 tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                 publishing_date: None,
                 last_edit_date: None,
+                data: HashMap::default(),
             }
         );
     }
@@ -269,6 +284,7 @@ mod tests {
             tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
             publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
             last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+            data: HashMap::default(),
         };
 
         let result = m.merge(&m).unwrap();

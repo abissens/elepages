@@ -3,7 +3,7 @@ mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Metadata, Page, PageProxy};
     use chrono::DateTime;
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use std::sync::Arc;
 
     #[test]
@@ -51,6 +51,7 @@ mod tests {
                 tags: HashSet::new(),
                 publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
                 last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+                data: HashMap::default(),
             }),
             content: "".to_string(),
         });
@@ -68,6 +69,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
             last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+            data: HashMap::default(),
         }))
     }
 
@@ -82,6 +84,7 @@ mod tests {
                 tags: HashSet::new(),
                 publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T16:00:00-08:00").unwrap().timestamp()),
                 last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T17:00:00-08:00").unwrap().timestamp()),
+                data: HashMap::default(),
             }),
             content: "".to_string(),
         });
@@ -95,6 +98,7 @@ mod tests {
                 tags: HashSet::new(),
                 publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
                 last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T19:00:00-08:00").unwrap().timestamp()),
+                data: HashMap::default(),
             }),
             inner: Arc::clone(&test_page),
         };
@@ -106,6 +110,7 @@ mod tests {
             tags: HashSet::new(),
             publishing_date: Some(DateTime::parse_from_rfc3339("2021-10-20T18:00:00-08:00").unwrap().timestamp()),
             last_edit_date: Some(DateTime::parse_from_rfc3339("2021-10-20T19:00:00-08:00").unwrap().timestamp()),
+            data: HashMap::default(),
         }))
     }
 }

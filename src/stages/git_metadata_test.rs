@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, Env, FsLoader, Loader, Metadata};
     use crate::stages::git_metadata::GitMetadata;
@@ -11,7 +12,7 @@ mod tests {
     use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
     use std::array::IntoIter;
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
     use std::sync::Arc;
 
@@ -107,6 +108,7 @@ mod tests {
                     tags: Default::default(),
                     publishing_date: None,
                     last_edit_date: commit_time,
+                    data: HashMap::default(),
                 }),
                 content: "file content 1".to_string()
             }]
@@ -219,6 +221,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 11".to_string(),
                 },
@@ -234,6 +237,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 1".to_string(),
                 },
@@ -249,6 +253,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -264,6 +269,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 3".to_string(),
                 },
@@ -279,6 +285,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_3,
+                        data: HashMap::default(),
                     }),
                     content: indoc! {"
                         file content 1
@@ -400,6 +407,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 11".to_string(),
                 },
@@ -415,6 +423,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 1".to_string(),
                 },
@@ -430,6 +439,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -445,6 +455,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_2,
+                        data: HashMap::default(),
                     }),
                     content: "file content 3".to_string(),
                 },
@@ -460,6 +471,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time_1,
+                        data: HashMap::default(),
                     }),
                     content: indoc! {"
                         file content 1
@@ -581,6 +593,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: None,
                         last_edit_date: commit_time,
+                        data: HashMap::default(),
                     }),
                     content: "file content 1".to_string(),
                 },
@@ -596,6 +609,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: None,
                         last_edit_date: commit_time,
+                        data: HashMap::default(),
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -611,6 +625,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time,
+                        data: HashMap::default(),
                     }),
                     content: "file content 3".to_string(),
                 }
@@ -640,6 +655,8 @@ mod tests {
                         content: indoc! {"
                             lastEditDate: 2021-10-20T17:00:00-08:00
                             tags: [t1, t2]
+                            data:
+                              some_key: some_value
                         "}
                         .as_bytes()
                         .to_vec(),
@@ -719,6 +736,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: None,
                         last_edit_date: Some(1634778000),
+                        data: HashMap::from_iter(IntoIter::new([("some_key".to_string(), Value::String("some_value".to_string()))])),
                     }),
                     content: "file content 1".to_string(),
                 },
@@ -734,6 +752,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: None,
                         last_edit_date: commit_time,
+                        data: HashMap::default(),
                     }),
                     content: "file content 2".to_string(),
                 },
@@ -749,6 +768,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: commit_time,
+                        data: HashMap::default(),
                     }),
                     content: "file content 3".to_string(),
                 }

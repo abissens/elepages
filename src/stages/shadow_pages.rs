@@ -113,6 +113,7 @@ impl Stage for ShadowPages {
                             tags: Default::default(),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                         .clone();
                 } else {
@@ -124,6 +125,7 @@ impl Stage for ShadowPages {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }
                 }
 

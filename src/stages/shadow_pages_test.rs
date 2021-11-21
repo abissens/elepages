@@ -7,7 +7,7 @@ mod tests {
     use crate::stages::test_stage::TestProcessingResult;
     use indoc::indoc;
     use std::array::IntoIter;
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
     use std::sync::Arc;
 
@@ -50,6 +50,7 @@ mod tests {
                     tags: Default::default(),
                     publishing_date: None,
                     last_edit_date: None,
+                    data: HashMap::default(),
                 }),
                 content: "'a' content".to_string()
             },]
@@ -135,6 +136,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'a' content".to_string()
                 },
@@ -156,6 +158,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: Some(1634778000),
+                        data: HashMap::default(),
                     }),
                     content: "'b' content".to_string()
                 },
@@ -177,6 +180,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: Some(1634778000),
+                        data: HashMap::default(),
                     }),
                     content: "'c' content".to_string()
                 },
@@ -328,6 +332,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'c' content".to_string()
                 },
@@ -340,6 +345,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'d' content".to_string()
                 },
@@ -352,6 +358,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'e' content".to_string()
                 },
@@ -454,6 +461,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: Some(1634778000),
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'c' content".to_string()
                 },
@@ -466,6 +474,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'d' content".to_string()
                 },
@@ -478,6 +487,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: "'e' content".to_string()
                 },

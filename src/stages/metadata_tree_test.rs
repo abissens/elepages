@@ -15,6 +15,7 @@ mod tests {
             tags: Default::default(),
             publishing_date: None,
             last_edit_date: None,
+            data: HashMap::default(),
         }
     }
 

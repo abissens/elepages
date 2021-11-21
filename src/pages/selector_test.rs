@@ -4,6 +4,7 @@ mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, DateQuery, ExtSelector, Logical, Metadata, PageBundle, PublishingDateSelector, TagSelector, VecBundle};
     use chrono::DateTime;
+    use std::collections::HashMap;
     use std::sync::Arc;
 
     #[macro_export]
@@ -34,7 +35,8 @@ mod tests {
                             authors: Default::default(),
                             tags: $result.iter().map(|s| Arc::new(s.to_string())).collect(),
                             publishing_date: None,
-                            last_edit_date: None
+                            last_edit_date: None,
+                            data: HashMap::default(),
                         }),
                         content: "".to_string()
                 })), +
@@ -59,7 +61,8 @@ mod tests {
                             })).collect(),
                             tags: Default::default(),
                             publishing_date: None,
-                            last_edit_date: None
+                            last_edit_date: None,
+                            data: HashMap::default(),
                         }),
                         content: "".to_string()
                 })), +
@@ -81,7 +84,8 @@ mod tests {
                             authors: Default::default(),
                             tags: Default::default(),
                             publishing_date: $result,
-                            last_edit_date: None
+                            last_edit_date: None,
+                            data: HashMap::default(),
                         }),
                         content: "".to_string()
                 })), +

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, BundleIndex, Env, Metadata, PageBundle, VecBundle};
     use crate::stages::indexes_stage::IndexStage;
@@ -28,6 +29,7 @@ mod tests {
                     tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                     publishing_date: None,
                     last_edit_date: None,
+                    data: HashMap::default(),
                 }),
                 content: String::new(),
             })],
@@ -92,6 +94,7 @@ mod tests {
                             tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                     },
                     TestPageIndex {
@@ -149,6 +152,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: None,
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: String::new(),
                 }),
@@ -175,6 +179,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
                         publishing_date: None,
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: String::new(),
                 }),
@@ -190,6 +195,7 @@ mod tests {
                         tags: HashSet::default(),
                         publishing_date: None,
                         last_edit_date: None,
+                        data: HashMap::default(),
                     }),
                     content: String::new(),
                 }),
@@ -266,6 +272,7 @@ mod tests {
                             tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                     },
                     TestPageIndex {
@@ -281,6 +288,7 @@ mod tests {
                             tags: HashSet::from_iter(IntoIter::new(["t3".to_string(), "t4".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                     },
                     TestPageIndex {
@@ -292,6 +300,7 @@ mod tests {
                             tags: HashSet::default(),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                     },
                     TestPageIndex {
@@ -361,6 +370,8 @@ mod tests {
         publishing_date: Option<i64>,
         #[serde(alias = "lastEditDate")]
         last_edit_date: Option<i64>,
+        #[serde(default = "HashMap::default")]
+        data: HashMap<String, Value>,
     }
 
     impl Hash for TestPageIndex {

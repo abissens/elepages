@@ -1,6 +1,7 @@
+use crate::config::Value;
 use crate::pages_error::PagesError;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
@@ -54,6 +55,8 @@ pub struct Metadata {
     pub publishing_date: Option<i64>,
     #[serde(with = "epoch_timestamp", default, alias = "lastEditDate")]
     pub last_edit_date: Option<i64>,
+    #[serde(default = "HashMap::default")]
+    pub data: HashMap<String, Value>,
 }
 
 impl Metadata {
@@ -65,6 +68,7 @@ impl Metadata {
             tags: self.tags.clone(),
             publishing_date: self.publishing_date.or(parent.publishing_date),
             last_edit_date: self.last_edit_date.or(parent.last_edit_date),
+            data: self.data.clone(),
         };
 
         for p_author in &parent.authors {
@@ -75,6 +79,12 @@ impl Metadata {
 
         for tag in &parent.tags {
             result.tags.insert(tag.clone());
+        }
+
+        for (key, value) in &parent.data {
+            if !self.data.contains_key(key) {
+                result.data.insert(key.to_string(), value.clone());
+            }
         }
 
         Ok(result)

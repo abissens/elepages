@@ -62,6 +62,7 @@ impl GitMetadata {
                             tags: m.tags.clone(),
                             publishing_date: m.publishing_date,
                             last_edit_date,
+                            data: m.data.clone(),
                         }
                     } else {
                         Metadata {
@@ -71,6 +72,7 @@ impl GitMetadata {
                             tags: HashSet::default(),
                             publishing_date: None,
                             last_edit_date,
+                            data: HashMap::default(),
                         }
                     }))
                 }

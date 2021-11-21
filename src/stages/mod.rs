@@ -14,6 +14,7 @@ mod md_stage;
 mod md_stage_test;
 mod metadata_tree;
 mod metadata_tree_test;
+mod path_generator_stage;
 mod replace_stage;
 mod replace_stage_test;
 mod sequence_stage;
