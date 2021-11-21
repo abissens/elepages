@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::pages::{Author, Metadata};
     use chrono::DateTime;
     use std::array::IntoIter;
@@ -32,6 +33,103 @@ mod tests {
         let result = m1.merge(&m2).unwrap();
 
         assert_eq!(result, m2);
+    }
+
+    #[test]
+    fn metadata_merge_data_attributes() {
+        let m1 = Metadata {
+            title: None,
+            summary: None,
+            authors: HashSet::new(),
+            tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
+            data: HashMap::from_iter(IntoIter::new([
+                ("a".to_string(), Value::String("a".to_string())),
+                (
+                    "b".to_string(),
+                    Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())]),
+                ),
+                ("c".to_string(), Value::I32(10)),
+            ])),
+        };
+
+        let m2 = Metadata {
+            title: None,
+            summary: None,
+            authors: HashSet::new(),
+            tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
+            data: HashMap::default(),
+        };
+
+        let m3 = Metadata {
+            title: None,
+            summary: None,
+            authors: HashSet::new(),
+            tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
+            data: HashMap::from_iter(IntoIter::new([("d".to_string(), Value::I32(20)), ("e".to_string(), Value::I32(30))])),
+        };
+
+        let m4 = Metadata {
+            title: None,
+            summary: None,
+            authors: HashSet::new(),
+            tags: HashSet::new(),
+            publishing_date: None,
+            last_edit_date: None,
+            data: HashMap::from_iter(IntoIter::new([("c".to_string(), Value::I32(20)), ("d".to_string(), Value::I32(30))])),
+        };
+
+        let result_1 = m1.merge(&m2).unwrap();
+        let result_2 = m1.merge(&m3).unwrap();
+        let result_3 = m1.merge(&m4).unwrap();
+
+        assert_eq!(result_1, m1);
+        assert_eq!(
+            result_2,
+            Metadata {
+                title: None,
+                summary: None,
+                authors: HashSet::new(),
+                tags: HashSet::new(),
+                publishing_date: None,
+                last_edit_date: None,
+                data: HashMap::from_iter(IntoIter::new([
+                    ("a".to_string(), Value::String("a".to_string())),
+                    (
+                        "b".to_string(),
+                        Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())])
+                    ),
+                    ("c".to_string(), Value::I32(10)),
+                    ("d".to_string(), Value::I32(20)),
+                    ("e".to_string(), Value::I32(30)),
+                ])),
+            }
+        );
+        assert_eq!(
+            result_3,
+            Metadata {
+                title: None,
+                summary: None,
+                authors: HashSet::new(),
+                tags: HashSet::new(),
+                publishing_date: None,
+                last_edit_date: None,
+                data: HashMap::from_iter(IntoIter::new([
+                    ("a".to_string(), Value::String("a".to_string())),
+                    (
+                        "b".to_string(),
+                        Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())])
+                    ),
+                    ("c".to_string(), Value::I32(10)),
+                    ("d".to_string(), Value::I32(30)),
+                ])),
+            }
+        );
     }
 
     #[test]

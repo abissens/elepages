@@ -29,7 +29,14 @@ mod tests {
                     tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                     publishing_date: None,
                     last_edit_date: None,
-                    data: HashMap::default(),
+                    data: HashMap::from_iter(IntoIter::new([
+                        ("a".to_string(), Value::String("a".to_string())),
+                        (
+                            "b".to_string(),
+                            Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())]),
+                        ),
+                        ("c".to_string(), Value::I32(10)),
+                    ])),
                 }),
                 content: String::new(),
             })],
@@ -94,7 +101,14 @@ mod tests {
                             tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
-                            data: HashMap::default(),
+                            data: HashMap::from_iter(IntoIter::new([
+                                ("a".to_string(), Value::String("a".to_string())),
+                                (
+                                    "b".to_string(),
+                                    Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())])
+                                ),
+                                ("c".to_string(), Value::I32(10)),
+                            ])),
                         })
                     },
                     TestPageIndex {

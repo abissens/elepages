@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, BundleIndex, Metadata, MetadataIndex, PageBundle, PageIndex, PageRef, VecBundle};
     use std::array::IntoIter;
@@ -44,6 +45,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                         publishing_date: None,
                         last_edit_date: None,
+                        data: HashMap::default(),
                     })
                 }],
                 all_authors: HashSet::from_iter(IntoIter::new([Author {
@@ -97,7 +99,14 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: HashMap::default(),
+                        data: HashMap::from_iter(IntoIter::new([
+                            ("a".to_string(), Value::String("a".to_string())),
+                            (
+                                "b".to_string(),
+                                Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())]),
+                            ),
+                            ("c".to_string(), Value::I32(10)),
+                        ])),
                     }),
                     content: String::new(),
                 }),
@@ -164,6 +173,14 @@ mod tests {
                             tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::from_iter(IntoIter::new([
+                                ("a".to_string(), Value::String("a".to_string())),
+                                (
+                                    "b".to_string(),
+                                    Value::Vec(vec![Value::String("1".to_string()), Value::String("2".to_string()), Value::String("3".to_string())])
+                                ),
+                                ("c".to_string(), Value::I32(10)),
+                            ])),
                         })
                     },
                     PageIndex {
@@ -179,6 +196,7 @@ mod tests {
                             tags: HashSet::from_iter(IntoIter::new(["t3".to_string(), "t4".to_string()])),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                     },
                     PageIndex {
@@ -190,6 +208,7 @@ mod tests {
                             tags: HashSet::default(),
                             publishing_date: None,
                             last_edit_date: None,
+                            data: HashMap::default(),
                         })
                     }
                 ],

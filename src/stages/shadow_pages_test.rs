@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, Env, Metadata, PageBundle, VecBundle};
     use crate::stages::shadow_pages::ShadowPages;
@@ -85,7 +86,8 @@ mod tests {
                         "authors": [{"name": "a1"}, {"name": "a2", "contacts": ["c1", "c2"]}],
                         "tags": ["t1", "t2", "t3"],
                         "publishingDate": "2021-10-20T16:00:00-08:00",
-                        "lastEditDate": "2021-10-20T17:00:00-08:00"
+                        "lastEditDate": "2021-10-20T17:00:00-08:00",
+                        "data": {"a": 10}
                     }"#
                     .to_string(),
                 }),
@@ -107,6 +109,8 @@ mod tests {
                         tags: [t1, t2, t3]
                         publishingDate: 2021-10-20T16:00:00-08:00
                         lastEditDate: 2021-10-20T17:00:00-08:00
+                        data:
+                          a: 10
                     "}
                     .to_string(),
                 }),
@@ -158,7 +162,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: Some(1634778000),
-                        data: HashMap::default(),
+                        data: HashMap::from_iter(IntoIter::new([("a".to_string(), Value::I32(10))])),
                     }),
                     content: "'b' content".to_string()
                 },
@@ -180,7 +184,7 @@ mod tests {
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
                         publishing_date: Some(1634774400),
                         last_edit_date: Some(1634778000),
-                        data: HashMap::default(),
+                        data: HashMap::from_iter(IntoIter::new([("a".to_string(), Value::I32(10))])),
                     }),
                     content: "'c' content".to_string()
                 },

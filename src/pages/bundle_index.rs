@@ -1,3 +1,4 @@
+use crate::config::Value;
 use crate::pages::{Author, Metadata, PageBundle};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
@@ -35,6 +36,8 @@ pub struct MetadataIndex {
     pub publishing_date: Option<i64>,
     #[serde(with = "super::epoch_timestamp", default, alias = "lastEditDate")]
     pub last_edit_date: Option<i64>,
+    #[serde(default = "HashMap::default")]
+    pub data: HashMap<String, Value>,
 }
 
 impl From<&Metadata> for MetadataIndex {
@@ -46,6 +49,7 @@ impl From<&Metadata> for MetadataIndex {
             tags: m.tags.iter().map(|v| v.to_string()).collect(),
             publishing_date: m.publishing_date,
             last_edit_date: m.last_edit_date,
+            data: m.data.clone(),
         }
     }
 }
