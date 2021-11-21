@@ -49,8 +49,8 @@ pub enum SelectorConfig {
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 pub enum ComposeUnitConfig {
-    Create(StageValue),
-    Replace { inner: StageValue, selector: SelectorConfig },
+    Create { append: StageValue },
+    Replace { by: StageValue, replace: SelectorConfig },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]

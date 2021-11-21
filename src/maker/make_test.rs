@@ -400,14 +400,12 @@ mod tests {
         let config: StageValue = serde_yaml::from_str(indoc! {"
             ---
             compose:
-                - md
-                - git_metadata
-                - inner: git_metadata
-                  selector: { path: 'a/b' }
-                - inner:
-                    type: handlebars
-                    config: /d/e
-                  selector: { ext: '.hbs' }
+                - append: md
+                - append: git_metadata
+                - by: git_metadata
+                  replace: { path: 'a/b' }
+                - by: {type: handlebars, config: a/b/c }
+                  replace: { ext: '.hbs' }
         "})
         .unwrap();
 
@@ -454,12 +452,12 @@ mod tests {
             name: my compose
             stage:
               compose:
-                - md
-                - git_metadata
-                - inner: git_metadata
-                  selector: { path: 'a/b' }
-                - inner: {type: handlebars, config: a/b/c }
-                  selector: { ext: '.hbs' }
+                - append: md
+                - append: git_metadata
+                - by: git_metadata
+                  replace: { path: 'a/b' }
+                - by: {type: handlebars, config: a/b/c }
+                  replace: { ext: '.hbs' }
         "})
         .unwrap();
 

@@ -199,15 +199,18 @@ mod tests {
         let compose: StageValue = serde_yaml::from_str(indoc! {"
             ---
             compose:
-                - type: stage_type_1
-                  config:
-                    a: some text
-                - type: stage_type_2
-                  config: ~
-                - type: stage_type_3
-                - stage_type_4
-                - inner: stage_type_5
-                  selector: { ext: '.md' }
+                - append:
+                    type: stage_type_1
+                    config:
+                        a: some text
+                - append:
+                    type: stage_type_2
+                    config: ~
+                - append:
+                    type: stage_type_3
+                - append: stage_type_4
+                - replace: { ext: '.md' }
+                  by: stage_type_5
         "})
         .unwrap();
 
@@ -215,22 +218,30 @@ mod tests {
             compose,
             StageValue::Composition {
                 compose: vec![
-                    ComposeUnitConfig::Create(StageValue::ProcessorStage {
-                        processor_type: "stage_type_1".to_string(),
-                        config: Value::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), Value::String("some text".to_string()))]))),
-                    }),
-                    ComposeUnitConfig::Create(StageValue::ProcessorStage {
-                        processor_type: "stage_type_2".to_string(),
-                        config: Value::None,
-                    }),
-                    ComposeUnitConfig::Create(StageValue::ProcessorStage {
-                        processor_type: "stage_type_3".to_string(),
-                        config: Value::None,
-                    }),
-                    ComposeUnitConfig::Create(StageValue::ProcessorWithoutConfigStage("stage_type_4".to_string())),
+                    ComposeUnitConfig::Create {
+                        append: StageValue::ProcessorStage {
+                            processor_type: "stage_type_1".to_string(),
+                            config: Value::Map(HashMap::from_iter(IntoIter::new([("a".to_string(), Value::String("some text".to_string()))]))),
+                        }
+                    },
+                    ComposeUnitConfig::Create {
+                        append: StageValue::ProcessorStage {
+                            processor_type: "stage_type_2".to_string(),
+                            config: Value::None,
+                        }
+                    },
+                    ComposeUnitConfig::Create {
+                        append: StageValue::ProcessorStage {
+                            processor_type: "stage_type_3".to_string(),
+                            config: Value::None,
+                        }
+                    },
+                    ComposeUnitConfig::Create {
+                        append: StageValue::ProcessorWithoutConfigStage("stage_type_4".to_string())
+                    },
                     ComposeUnitConfig::Replace {
-                        inner: StageValue::ProcessorWithoutConfigStage("stage_type_5".to_string()),
-                        selector: SelectorConfig::Base {
+                        by: StageValue::ProcessorWithoutConfigStage("stage_type_5".to_string()),
+                        replace: SelectorConfig::Base {
                             ext: Some(".md".to_string()),
                             path: None,
                             tag: None,

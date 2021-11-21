@@ -196,10 +196,10 @@ impl Maker {
                     .iter()
                     .map(|value| {
                         Ok(match value {
-                            ComposeUnitConfig::Create(value) => Arc::new(ComposeUnit::CreateNewSet(self.make(None, value, env)?)),
+                            ComposeUnitConfig::Create { append: value } => Arc::new(ComposeUnit::CreateNewSet(self.make(None, value, env)?)),
                             ComposeUnitConfig::Replace {
-                                selector: selector_config,
-                                inner: stage_value,
+                                replace: selector_config,
+                                by: stage_value,
                             } => {
                                 let selector = Maker::make_selector(selector_config)?;
                                 Arc::new(ComposeUnit::ReplaceSubSet(selector, self.make(None, stage_value, env)?))

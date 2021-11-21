@@ -106,11 +106,11 @@ impl Executor {
             },
             StageValue::Composition {
                 compose: vec![ComposeUnitConfig::Replace {
-                    inner: StageValue::ProcessorStage {
+                    by: StageValue::ProcessorStage {
                         processor_type: "md".to_string(),
                         config: Default::default(),
                     },
-                    selector: SelectorConfig::Base {
+                    replace: SelectorConfig::Base {
                         path: None,
                         tag: None,
                         tags: None,
@@ -121,10 +121,12 @@ impl Executor {
                 }],
             },
             StageValue::Composition {
-                compose: vec![ComposeUnitConfig::Create(StageValue::ProcessorStage {
-                    processor_type: "indexes".to_string(),
-                    config: Default::default(),
-                })],
+                compose: vec![ComposeUnitConfig::Create {
+                    append: StageValue::ProcessorStage {
+                        processor_type: "indexes".to_string(),
+                        config: Default::default(),
+                    },
+                }],
             },
         ])
     }
