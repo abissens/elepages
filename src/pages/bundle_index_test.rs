@@ -2,7 +2,7 @@
 mod tests {
     use crate::config::Value;
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, BundleIndex, Metadata, MetadataIndex, PageBundle, PageIndex, PageRef, VecBundle};
+    use crate::pages::{Author, BundleIndex, DateIndex, Metadata, MetadataIndex, PageBundle, PageIndex, PageRef, VecBundle};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
@@ -21,8 +21,8 @@ mod tests {
                         contacts: Default::default(),
                     })])),
                     tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
-                    publishing_date: None,
-                    last_edit_date: None,
+                    publishing_date: Some(1637582000),
+                    last_edit_date: Some(1637581000),
                     data: HashMap::default(),
                 }),
                 content: String::new(),
@@ -43,8 +43,38 @@ mod tests {
                         summary: Some("f1 summary".to_string()),
                         authors: HashSet::from_iter(IntoIter::new(["f1 author".to_string()])),
                         tags: HashSet::from_iter(IntoIter::new(["t1".to_string(), "t2".to_string(), "t3".to_string()])),
-                        publishing_date: None,
-                        last_edit_date: None,
+                        publishing_date: Some(DateIndex {
+                            timestamp: 1637582000,
+                            i_year: 2021,
+                            short_year: "21".to_string(),
+                            i_month: 11,
+                            month: "11".to_string(),
+                            short_month: "Nov".to_string(),
+                            long_month: "November".to_string(),
+                            i_day: 22,
+                            day: "22".to_string(),
+                            short_day: "Mon".to_string(),
+                            long_day: "Monday".to_string(),
+                            i_hour: 11,
+                            i_minute: 53,
+                            i_second: 20
+                        }),
+                        last_edit_date: Some(DateIndex {
+                            timestamp: 1637581000,
+                            i_year: 2021,
+                            short_year: "21".to_string(),
+                            i_month: 11,
+                            month: "11".to_string(),
+                            short_month: "Nov".to_string(),
+                            long_month: "November".to_string(),
+                            i_day: 22,
+                            day: "22".to_string(),
+                            short_day: "Mon".to_string(),
+                            long_day: "Monday".to_string(),
+                            i_hour: 11,
+                            i_minute: 36,
+                            i_second: 40
+                        }),
                         data: HashMap::default(),
                     })
                 }],
