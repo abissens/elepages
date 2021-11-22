@@ -1,4 +1,4 @@
-use crate::pages::{BundleIndex, Env, Metadata};
+use crate::pages::{BundleIndex, Env, Metadata, PageIndex};
 use std::fmt::Debug;
 use std::io::Read;
 use std::sync::Arc;
@@ -6,7 +6,7 @@ use std::sync::Arc;
 pub trait Page: Debug + Send + Sync {
     fn path(&self) -> &[String];
     fn metadata(&self) -> Option<&Metadata>;
-    fn open(&self, output_index: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>>;
+    fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>>;
 }
 
 pub trait ArcPage {
@@ -54,8 +54,8 @@ impl Page for PageProxy {
         }
     }
 
-    fn open(&self, output_bundle: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>> {
-        self.inner.open(output_bundle, env)
+    fn open(&self, output_page: &PageIndex, output_bundle: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>> {
+        self.inner.open(output_page, output_bundle, env)
     }
 }
 

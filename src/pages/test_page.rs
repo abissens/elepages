@@ -1,4 +1,4 @@
-use crate::pages::{BundleIndex, Env, Metadata, Page};
+use crate::pages::{BundleIndex, Env, Metadata, Page, PageIndex};
 use std::cmp::Ordering;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -20,6 +20,7 @@ impl From<&Arc<dyn Page>> for TestPage {
     fn from(p: &Arc<dyn Page>) -> Self {
         let mut content: String = "".to_string();
         p.open(
+            &PageIndex::from(p),
             &BundleIndex {
                 all_authors: Default::default(),
                 all_tags: Default::default(),
@@ -49,7 +50,7 @@ impl Page for TestPage {
         self.metadata.as_ref()
     }
 
-    fn open(&self, _: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, _: &PageIndex, _: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         Ok(Box::new(Cursor::new(self.content.clone())))
     }
 }

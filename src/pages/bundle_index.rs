@@ -1,5 +1,5 @@
 use crate::config::Value;
-use crate::pages::{Author, Metadata, PageBundle};
+use crate::pages::{Author, Metadata, Page, PageBundle};
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
@@ -96,6 +96,16 @@ impl From<&Metadata> for MetadataIndex {
         }
     }
 }
+
+impl From<&Arc<dyn Page>> for PageIndex {
+    fn from(page: &Arc<dyn Page>) -> Self {
+        PageIndex {
+            page_ref: PageRef { path: page.path().to_vec() },
+            metadata: page.metadata().map(MetadataIndex::from),
+        }
+    }
+}
+
 impl From<&Arc<dyn PageBundle>> for BundleIndex {
     fn from(bundle: &Arc<dyn PageBundle>) -> Self {
         let mut result = BundleIndex {
@@ -106,11 +116,9 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             pages_by_tag: Default::default(),
         };
         for page in bundle.pages() {
-            let page_ref = PageRef { path: page.path().to_vec() };
-            result.all_pages.push(PageIndex {
-                page_ref: page_ref.clone(),
-                metadata: page.metadata().map(MetadataIndex::from),
-            });
+            let page_index = PageIndex::from(page);
+            let page_ref = page_index.page_ref.clone();
+            result.all_pages.push(page_index);
             if let Some(metadata) = page.metadata() {
                 for tag in &metadata.tags {
                     result.all_tags.insert(tag.to_string());

@@ -1,4 +1,4 @@
-use crate::pages::{BundleIndex, Env, Metadata, Page};
+use crate::pages::{BundleIndex, Env, Metadata, Page, PageIndex};
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -29,7 +29,7 @@ impl Page for FsPage {
         None
     }
 
-    fn open(&self, _: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, _: &PageIndex, _: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         Ok(Box::new(File::open(self.file_path.as_path())?))
     }
 }
