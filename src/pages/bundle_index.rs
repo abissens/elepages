@@ -4,6 +4,7 @@ use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
 use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use urlencoding::encode;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BundleIndex {
@@ -70,6 +71,8 @@ impl From<i64> for DateIndex {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct MetadataIndex {
     pub title: Option<String>,
+    #[serde(alias = "urlTitle")]
+    pub url_title: Option<String>,
     pub summary: Option<String>,
     #[serde(default = "HashSet::default")]
     pub authors: HashSet<String>,
@@ -87,6 +90,7 @@ impl From<&Metadata> for MetadataIndex {
     fn from(m: &Metadata) -> Self {
         MetadataIndex {
             title: m.title.as_ref().map(|v| v.to_string()),
+            url_title: m.title.as_ref().map(|v| encode(v.replace(|c: char| c.is_whitespace(), "_").to_lowercase().as_str()).to_string()),
             summary: m.summary.as_ref().map(|v| v.to_string()),
             authors: m.authors.iter().map(|v| v.name.to_string()).collect(),
             tags: m.tags.iter().map(|v| v.to_string()).collect(),
