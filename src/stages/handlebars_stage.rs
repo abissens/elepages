@@ -4,6 +4,7 @@ use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, Output, RenderContext, RenderError};
 use rayon::prelude::*;
+use serde::Serialize;
 use std::any::Any;
 use std::collections::HashSet;
 use std::fmt::Debug;
@@ -128,6 +129,13 @@ struct HandlebarsPage {
     template_name: String,
 }
 
+#[derive(Serialize)]
+pub struct PageData<'a> {
+    pub current_metadata: Option<&'a Metadata>,
+    pub page: &'a PageIndex,
+    pub index: &'a BundleIndex,
+}
+
 impl Page for HandlebarsPage {
     fn path(&self) -> &[String] {
         self.source.path()
@@ -151,7 +159,14 @@ impl Page for HandlebarsPage {
                 Ok(())
             }),
         );
-        let result = (&local_registry).render(&self.template_name, &self.metadata())?;
+        let result = (&local_registry).render(
+            &self.template_name,
+            &PageData {
+                current_metadata: self.metadata(),
+                page: output_page,
+                index: output_index,
+            },
+        )?;
         Ok(Box::new(Cursor::new(result)))
     }
 }

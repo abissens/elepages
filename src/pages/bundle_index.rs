@@ -6,7 +6,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use urlencoding::encode;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct BundleIndex {
     pub all_authors: HashSet<Author>,
     pub all_tags: HashSet<String>,
