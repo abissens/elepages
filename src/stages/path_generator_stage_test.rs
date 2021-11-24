@@ -38,7 +38,7 @@ mod tests {
                         last_edit_date: None,
                         data: HashMap::from_iter(IntoIter::new([(
                             "path".to_string(),
-                            Value::String("page/{{publishing_date.short_year}}/{{publishing_date.short_month}}/{{publishing_date.day}}".to_string()),
+                            Value::String("page/{{short_year}}/{{short_month}}/{{day}}".to_string()),
                         )])),
                     }),
                     content: "test content".to_string(),
@@ -137,7 +137,7 @@ mod tests {
                         last_edit_date: None,
                         data: HashMap::from_iter(IntoIter::new([(
                             "path".to_string(),
-                            Value::String("page/{{publishing_date.short_year}}/{{publishing_date.short_month}}/{{publishing_date.day}}".to_string())
+                            Value::String("page/{{short_year}}/{{short_month}}/{{day}}".to_string()),
                         ),])),
                     }),
                     content: "test content".to_string(),
