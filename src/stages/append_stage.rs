@@ -16,7 +16,7 @@ impl Stage for AppendStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name), "start appending");
         let mut vec_bundle = VecBundle { p: bundle.pages().to_vec() };
 
@@ -24,7 +24,7 @@ impl Stage for AppendStage {
         vec_bundle.p.append(&mut inner_bundle.pages().to_vec());
 
         env.print_vv(&format!("stage {}", self.name), "append ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

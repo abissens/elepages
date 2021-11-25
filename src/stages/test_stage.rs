@@ -39,7 +39,7 @@ impl Stage for TestStage {
     }
 
     fn process(&self, _: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         let result_bundle = match &self.bundle {
             Some(b) => {
                 let mut l = self.launched.lock().unwrap();
@@ -51,7 +51,7 @@ impl Stage for TestStage {
                 _ => panic!("should have bundle or error"),
             },
         };
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             result_bundle?,
             ProcessingResult {

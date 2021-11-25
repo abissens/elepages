@@ -60,7 +60,7 @@ impl Stage for PathGenerator {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         let mut result = VecBundle { p: vec![] };
         env.print_vv(&format!("stage {}", self.name()), "path generation");
 
@@ -99,7 +99,7 @@ impl Stage for PathGenerator {
         }
 
         env.print_vv(&format!("stage {}", self.name()), "path generation ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
 
         Ok((
             Arc::new(result),

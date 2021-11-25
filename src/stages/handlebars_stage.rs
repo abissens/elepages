@@ -45,7 +45,7 @@ impl Stage for HandlebarsStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "handlebars processing started");
         let lookup_result = self.lookup.lookup(env)?;
         let root_repository = lookup_result.clone_registry();
@@ -84,7 +84,7 @@ impl Stage for HandlebarsStage {
                 .collect(),
         );
         env.print_vv(&format!("stage {}", self.name()), "handlebars processing ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(result_bundle),
             ProcessingResult {

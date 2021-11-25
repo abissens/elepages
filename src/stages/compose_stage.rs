@@ -33,7 +33,7 @@ impl ComposeStage {
     }
 
     fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "start composing");
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
@@ -79,7 +79,7 @@ impl ComposeStage {
             }
         }
         env.print_vv(&format!("stage {}", self.name()), "compose ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {
@@ -92,7 +92,7 @@ impl ComposeStage {
     }
 
     fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name), "start composing");
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut replaced_set = HashSet::new();
@@ -125,7 +125,7 @@ impl ComposeStage {
             }
         }
         env.print_vv(&format!("stage {}", self.name), "compose ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

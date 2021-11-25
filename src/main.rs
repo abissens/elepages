@@ -1,4 +1,3 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
 use clap::{App, Arg};
 use elepages::cli::{Execution, Executor, ExecutorParams};
 use elepages::pages::{Env, PrintLevel, PRINT_LEVEL_VVV};
@@ -62,9 +61,10 @@ fn print_execution(execution: Execution, env: &Env) {
 }
 
 fn print_execution_result(result: &ProcessingResult, env: &Env, shift: &str) {
-    let start = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(result.end, 0), Utc);
-    let end = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(result.end, 0), Utc);
-    env.print_vvv("main", &format!("{}{} processed from {} to {}", shift, result.stage_name, start.format("%T"), end.format("%T")));
+    env.print_vvv(
+        "main",
+        &format!("{}{} processed from {} to {}", shift, result.stage_name, result.start.format("%T"), result.end.format("%T")),
+    );
     for sub_result in &result.sub_results {
         print_execution_result(sub_result, env, &format!("{}    ", shift));
     }

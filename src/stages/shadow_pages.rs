@@ -26,7 +26,7 @@ impl Stage for ShadowPages {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "shadow metadata page processing started");
         let shadow_output_index = BundleIndex::from(bundle);
 
@@ -142,7 +142,7 @@ impl Stage for ShadowPages {
             }
         }
         env.print_vv(&format!("stage {}", self.name()), "shadow metadata page processing ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

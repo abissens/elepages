@@ -18,7 +18,7 @@ impl Stage for MdStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "md processing");
         let vec_bundle = VecBundle {
             p: bundle
@@ -36,7 +36,7 @@ impl Stage for MdStage {
                 })
                 .collect(),
         };
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

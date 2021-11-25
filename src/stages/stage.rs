@@ -1,4 +1,5 @@
 use crate::pages::{Env, PageBundle};
+use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::sync::Arc;
 
@@ -13,7 +14,7 @@ pub trait Stage: Send + Sync {
 #[derive(Debug)]
 pub struct ProcessingResult {
     pub stage_name: String,
-    pub start: i64,
-    pub end: i64,
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
     pub sub_results: Vec<ProcessingResult>,
 }

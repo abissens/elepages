@@ -36,7 +36,7 @@ impl Stage for CopyCut {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), &format!("{:?}", self));
         let p = match self {
             CopyCut::Copy { selector, dest, .. } => {
@@ -70,7 +70,7 @@ impl Stage for CopyCut {
                     .collect()
             }
         };
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
 
         Ok((
             Arc::new(VecBundle { p }),

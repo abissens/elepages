@@ -94,7 +94,7 @@ impl Stage for GitMetadata {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "git metadata extraction started");
         let repo_result = Repository::open(&self.repo_path);
         if let Err(e) = repo_result {
@@ -106,7 +106,7 @@ impl Stage for GitMetadata {
                     ProcessingResult {
                         stage_name: self.name.clone(),
                         start,
-                        end: DateTime::<Utc>::from(SystemTime::now()).timestamp(),
+                        end: DateTime::<Utc>::from(SystemTime::now()),
                         sub_results: vec![],
                     },
                 ));
@@ -135,7 +135,7 @@ impl Stage for GitMetadata {
             vec_bundle.p.append(&mut processed_pages);
         }
         env.print_vv(&format!("stage {}", self.name()), "git metadata extraction ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {

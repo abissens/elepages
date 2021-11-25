@@ -18,7 +18,7 @@ impl Stage for ReplaceStage {
     }
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
-        let start = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name), "start replacing");
 
         let sub_set_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
@@ -41,7 +41,7 @@ impl Stage for ReplaceStage {
         }
 
         env.print_vv(&format!("stage {}", self.name), "replacing ended");
-        let end = DateTime::<Utc>::from(SystemTime::now()).timestamp();
+        let end = DateTime::<Utc>::from(SystemTime::now());
         Ok((
             Arc::new(vec_bundle),
             ProcessingResult {
