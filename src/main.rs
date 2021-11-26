@@ -28,7 +28,7 @@ fn main() {
 
     let params = ExecutorParams {
         input_dir: matches.value_of("source").map(PathBuf::from),
-        output_dir: matches.value_of("dest").map(PathBuf::from),
+        output_dir: matches.value_of("destination").map(PathBuf::from),
         config_path: matches.value_of("config").map(PathBuf::from),
         print_level: match matches.occurrences_of("v") {
             0 => None,
@@ -63,7 +63,7 @@ fn print_execution(execution: Execution, env: &Env) {
 fn print_execution_result(result: &ProcessingResult, env: &Env, shift: &str) {
     env.print_vvv(
         "main",
-        &format!("{}{} processed from {} to {}", shift, result.stage_name, result.start.format("%T"), result.end.format("%T")),
+        &format!("{}{} processed from {} to {}", shift, result.stage_name, result.start.format("%T %f"), result.end.format("%T %f")),
     );
     for sub_result in &result.sub_results {
         print_execution_result(sub_result, env, &format!("{}    ", shift));

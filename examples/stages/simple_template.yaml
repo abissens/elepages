@@ -1,0 +1,6 @@
+---
+- shadow
+- append: indexes
+- replace: { ext: '.md' }
+  by: md
+- {type: handlebars, config: './templates/simple_template' }
