@@ -2,7 +2,7 @@ use crate::pages::{BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecB
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
-use pulldown_cmark::{html, Parser};
+use pulldown_cmark::{html, Parser, Options};
 use std::any::Any;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -71,8 +71,13 @@ impl Page for MdPage {
     fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>> {
         let mut markdown_input: String = String::new();
         self.source.open(output_page, output_index, env)?.read_to_string(&mut markdown_input)?;
-
-        let parser = Parser::new(&markdown_input);
+        let mut options = Options::empty();
+        options.insert(Options::ENABLE_TABLES);
+        options.insert(Options::ENABLE_FOOTNOTES);
+        options.insert(Options::ENABLE_SMART_PUNCTUATION);
+        options.insert(Options::ENABLE_TASKLISTS);
+        options.insert(Options::ENABLE_STRIKETHROUGH);
+        let parser = Parser::new_ext(&markdown_input, options);
         let mut html_output: String = String::with_capacity(markdown_input.len() * 3 / 2);
         html::push_html(&mut html_output, parser);
 

@@ -21,6 +21,22 @@ Integer magna nibh, finibus vel efficitur sit amet, maximus sed lacus. Maecenas 
 
 Aliquam vitae lacus magna. Curabitur eget efficitur eros. Sed eleifend justo mattis tellus viverra viverra. Sed eget risus et dui porta tincidunt. Donec fermentum feugiat tortor, in consequat odio aliquam quis. Proin in laoreet lectus, ut volutpat libero. Curabitur semper egestas accumsan. Pellentesque iaculis ex ac elit vestibulum cursus. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Praesent at lectus maximus, pulvinar sapien a, rhoncus elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nullam tristique feugiat blandit.
 
-```java
-System.out.println("ok");
+```javascript
+    function bogosort(arr) {
+        while((() => {
+            for(let i = 1; i < arr.length; i++){
+                if (arr[i-1] > arr[i])
+                    return true;
+            }
+            return false;
+        })()) {
+            let count = arr.length;
+            while(count > 0){
+                let index = Math.floor(Math.random() * count);
+                count--;
+                arr[count] = arr[index] + (arr[index] = arr[count], 0) ;
+            }
+        }
+        return arr;
+    }
 ```

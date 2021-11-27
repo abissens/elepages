@@ -1,6 +1,10 @@
 ---
 - shadow
+- git_metadata
 - append: indexes
 - replace: { ext: '.md' }
   by: md
-- {type: handlebars, config: './templates/simple_template' }
+- replace: { ext: '.html' }
+  by:
+    type: handlebars
+    config: './templates/simple_template'
