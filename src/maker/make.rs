@@ -26,15 +26,22 @@ pub struct ShadowStageMaker;
 pub struct HandlebarsStageMaker;
 
 impl StageMaker for GitMetadataStageMaker {
-    fn make(&self, name: Option<&str>, _: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+    fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let root_path: &PathBuf = env
             .get_downcast::<PathBuf>("root_path")?
             .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
-
+        let (repo_path, pages_rel_path) = match config {
+            Value::String(config_repo_path) => {
+                let p = PathBuf::from_str(config_repo_path)?;
+                let r = root_path.canonicalize()?.strip_prefix(&p.canonicalize()?)?.to_path_buf();
+                (p, Some(r))
+            }
+            _ => (root_path.to_path_buf(), None),
+        };
         Ok(Arc::new(GitMetadata {
             name: name.unwrap_or("git metadata stage").to_string(),
-            repo_path: root_path.to_path_buf(),
-            pages_rel_path: None,
+            repo_path,
+            pages_rel_path,
         }))
     }
 }

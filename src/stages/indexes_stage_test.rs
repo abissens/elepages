@@ -417,7 +417,6 @@ mod tests {
             let mut all_pages: HashSet<TestPageIndex> = Default::default();
             let mut all_authors: HashSet<Author> = Default::default();
             let output_index = BundleIndex::from(bundle);
-            println!("{:?}", output_index);
             for page in bundle.pages() {
                 let page_index = PageIndex::from(page);
                 match page.path().join("/").as_str() {
@@ -426,9 +425,7 @@ mod tests {
                     "all_tags.json" => all_tags = serde_json::from_reader(page.open(&page_index, &output_index, &Env::test()).unwrap()).unwrap(),
                     "all_pages.json" => all_pages = serde_json::from_reader(page.open(&page_index, &output_index, &Env::test()).unwrap()).unwrap(),
                     "all_authors.json" => all_authors = serde_json::from_reader(page.open(&page_index, &output_index, &Env::test()).unwrap()).unwrap(),
-                    file => {
-                        println!("extra file : {}", file)
-                    }
+                    _ => {}
                 }
             }
 

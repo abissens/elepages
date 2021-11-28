@@ -108,10 +108,7 @@ impl Stage for GitMetadata {
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
-        env.print_vv(
-            &format!("stage {} --> {:?} / {:?}", self.name(), &self.repo_path, &self.pages_rel_path),
-            "git metadata extraction started",
-        );
+        env.print_vv(&format!("stage {}", self.name()), "git metadata extraction started");
         if let Some(page_rel_path) = self.pages_rel_path.as_ref() {
             if !self.repo_path.join(page_rel_path).exists() {
                 return Err(PagesError::ElementNotFound(format!("path not found in repository : {}", page_rel_path.to_string_lossy())).into());

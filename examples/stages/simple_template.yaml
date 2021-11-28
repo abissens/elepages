@@ -1,6 +1,7 @@
 ---
 - shadow
-- git_metadata
+- type: git_metadata
+  config: '..'
 - append: indexes
 - replace: { ext: '.md' }
   by: md
