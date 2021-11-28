@@ -66,7 +66,8 @@ impl Stage for ShadowPages {
         }
 
         // retain only shadow pages
-        metadata_candidates.retain(|c| all_paths.contains(c.path.as_slice()));
+        let root_metadata_path = vec!["pages".to_string()];
+        metadata_candidates.retain(|c| c.path == root_metadata_path || all_paths.contains(c.path.as_slice()));
 
         let loaded_metadata_vec: Vec<LoadedMetadata> = metadata_candidates
             .par_iter()
@@ -88,6 +89,10 @@ impl Stage for ShadowPages {
             metadata_tree.push(&loaded_metadata.path, loaded_metadata.metadata)?
         }
 
+        let mut root_metadata_vec = vec![];
+        metadata_tree.get_metadata_from_path(&root_metadata_path, &mut root_metadata_vec);
+        let root_metadata = if root_metadata_vec.len() == 1 { root_metadata_vec[0].metadata.cloned() } else { None };
+
         let metadata_pages_set = metadata_candidates.iter().map(|c| c.page.path().to_vec()).collect::<HashSet<Vec<String>>>();
 
         // push non metadata pages to result bundle
@@ -96,8 +101,14 @@ impl Stage for ShadowPages {
                 // get path metadata
                 let mut metadata_vec = vec![];
                 metadata_tree.get_metadata_from_path(page.path(), &mut metadata_vec);
-                if metadata_vec.is_empty() {
+                if metadata_vec.is_empty() && root_metadata.is_none() {
                     vec_bundle.p.push(Arc::clone(page));
+                    continue;
+                } else if metadata_vec.is_empty() && page.metadata().is_none() {
+                    vec_bundle.p.push(page.change_meta(root_metadata.clone().unwrap()));
+                    continue;
+                } else if metadata_vec.is_empty() {
+                    vec_bundle.p.push(page.change_meta(page.metadata().unwrap().merge(root_metadata.as_ref().unwrap())?));
                     continue;
                 }
                 let mut current_metadata: Metadata;
@@ -137,6 +148,9 @@ impl Stage for ShadowPages {
                     if let Some(m) = metadata_node.metadata {
                         current_metadata = current_metadata.merge(m)?;
                     }
+                }
+                if let Some(rm) = &root_metadata {
+                    current_metadata = current_metadata.merge(rm)?;
                 }
                 vec_bundle.p.push(page.change_meta(current_metadata));
             }
