@@ -105,7 +105,17 @@ impl Stage for ShadowPages {
                     vec_bundle.p.push(Arc::clone(page));
                     continue;
                 } else if metadata_vec.is_empty() && page.metadata().is_none() {
-                    vec_bundle.p.push(page.change_meta(root_metadata.clone().unwrap()));
+                    // default metadata
+                    let current_metadata = Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    };
+                    vec_bundle.p.push(page.change_meta(current_metadata.merge(root_metadata.as_ref().unwrap())?));
                     continue;
                 } else if metadata_vec.is_empty() {
                     vec_bundle.p.push(page.change_meta(page.metadata().unwrap().merge(root_metadata.as_ref().unwrap())?));
