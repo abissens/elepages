@@ -1,0 +1,11 @@
+---
+- shadow
+- type: git_metadata
+  config: '..'
+- append: indexes
+- replace: { ext: '.md' }
+  by: md
+- replace: { ext: '.html' }
+  by:
+    type: handlebars
+    config: './templates/partial_template'

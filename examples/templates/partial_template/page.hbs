@@ -1,0 +1,39 @@
+{{#> page_layout}}
+{{#*inline "content"}}
+
+<div class="page-header">
+    <h2>
+        {{#if page.metadata.title}}
+          {{page.metadata.title}}
+        {{else}}
+         Untitled
+        {{/if}}
+    </h2>
+
+    {{#if page.metadata.authors}}
+    <h3> by
+      {{#each page.metadata.authors}}
+        <span>{{this}}</span>{{#unless @last}}, {{/unless}}
+      {{/each}}
+    </h3>
+    {{/if}}
+
+    <div class="page-last-edit">
+        Last edit : {{page.metadata.last_edit_date.day}}, {{page.metadata.last_edit_date.short_month}} {{page.metadata.last_edit_date.short_year}}
+    </div>
+
+
+    <br/>
+    <div class="page-tags">
+        {{#each page.metadata.tags}}
+        <h4>{{this}}</h4>
+        {{/each}}
+    </div>
+</div>
+
+<div class="page-content">
+    {{content_as_string}}
+</div>
+
+{{/inline}}
+{{/page_layout}}

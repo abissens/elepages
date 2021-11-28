@@ -26,6 +26,10 @@
   {{/each}}
 </h3>
 {{/if}}
+<br/>
+{{#each page.metadata.tags}}
+<h4 style="display: inline">{{this}}</h4>{{#unless @last}}, {{/unless}}
+{{/each}}
 <div>
     {{content_as_string}}
 </div>

@@ -7,32 +7,24 @@
     <title>{{page.metadata.title}}</title>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/default.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
-
+    <script>hljs.highlightAll();</script>
     <link rel="stylesheet" href="/assets/css/common.css">
-
-    <style>
-        body {
-            background: black;
-            color: white;
-        }
-    </style>
 </head>
 <body>
 
-<h2>{{page.metadata.title}}</h2>
-{{#if page.metadata.authors}}
-<h3> by
-  {{#each page.metadata.authors}}
-    <span>{{this}}</span>
-  {{/each}}
-</h3>
-{{/if}}
-<br/>
-{{#each page.metadata.tags}}
-<h4 style="display: inline">{{this}}</h4>{{#unless @last}}, {{/unless}}
-{{/each}}
-<div>
-    {{content_as_string}}
+<div class="layout-wrapper">
+    <div class="layout-menu">
+
+    </div>
+
+    <div class="layout-header">
+
+    </div>
+
+    <div class="layout-content">
+        {{> content}}
+    </div>
 </div>
+
 </body>
 </html>
