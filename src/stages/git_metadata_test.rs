@@ -14,6 +14,8 @@ mod tests {
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
+    use std::path::PathBuf;
+    use std::str::FromStr;
     use std::sync::Arc;
 
     #[test]
@@ -30,6 +32,7 @@ mod tests {
         let git_metadata_stage = GitMetadata {
             name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
+            pages_rel_path: None,
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
@@ -77,6 +80,7 @@ mod tests {
         let git_metadata_stage = GitMetadata {
             name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
+            pages_rel_path: None,
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
@@ -189,6 +193,7 @@ mod tests {
         let git_metadata_stage = GitMetadata {
             name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
+            pages_rel_path: None,
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
@@ -299,6 +304,169 @@ mod tests {
     }
 
     #[test]
+    fn load_only_for_rel_path() {
+        let mut test_folder = TmpTestFolder::new().unwrap();
+        test_folder.preserve();
+        let repo = Repository::init(test_folder.get_path()).unwrap();
+        repo.config().unwrap().set_str("user.name", "user_1").unwrap();
+        repo.config().unwrap().set_str("user.email", "user_1@pages.io").unwrap();
+
+        test_folder
+            .write(&FileNode::File {
+                name: "file_1".to_string(),
+                content: "file content 1\n".as_bytes().to_vec(),
+                open_options: None,
+            })
+            .unwrap();
+        commit(&repo, "Initial commit");
+
+        test_folder
+            .write(&FileNode::Dir {
+                name: "d1".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "f1".to_string(),
+                        content: "file content 1".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "f2".to_string(),
+                        content: "file content 2".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "f3".to_string(),
+                        content: "file content 3".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::Dir {
+                        name: "d11".to_string(),
+                        sub: vec![FileNode::File {
+                            name: "f11".to_string(),
+                            content: "file content 11".as_bytes().to_vec(),
+                            open_options: None,
+                        }],
+                    },
+                ],
+            })
+            .unwrap();
+
+        repo.config().unwrap().set_str("user.name", "user_2").unwrap();
+        repo.config().unwrap().set_str("user.email", "user_2@pages.io").unwrap();
+
+        let commit_time_2 = commit(&repo, "Second commit");
+
+        test_folder
+            .write(&FileNode::File {
+                name: "file_1".to_string(),
+                content: indoc! {"
+                        file content 1
+                        file content 2
+                        file content 3
+                    "}
+                .as_bytes()
+                .to_vec(),
+                open_options: None,
+            })
+            .unwrap();
+
+        repo.config().unwrap().set_str("user.name", "user_3").unwrap();
+        repo.config().unwrap().set_str("user.email", "user_3@pages.io").unwrap();
+        commit(&repo, "Third commit");
+
+        let git_metadata_stage = GitMetadata {
+            name: "git meta stage".to_string(),
+            repo_path: test_folder.get_path().to_path_buf(),
+            pages_rel_path: Some(PathBuf::from_str("d1").unwrap()),
+        };
+
+        let loader = FsLoader::new(test_folder.get_path().join(PathBuf::from_str("d1").unwrap()).to_path_buf());
+        let bundle = loader.load(&Env::test()).unwrap();
+
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "git meta stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+
+        actual.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["d11".to_string(), "f11".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "user_2".to_string(),
+                            contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
+                        })])),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: commit_time_2,
+                        data: HashMap::default(),
+                    }),
+                    content: "file content 11".to_string(),
+                },
+                TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "user_2".to_string(),
+                            contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
+                        })])),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: commit_time_2,
+                        data: HashMap::default(),
+                    }),
+                    content: "file content 1".to_string(),
+                },
+                TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "user_2".to_string(),
+                            contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
+                        })])),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: commit_time_2,
+                        data: HashMap::default(),
+                    }),
+                    content: "file content 2".to_string(),
+                },
+                TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "user_2".to_string(),
+                            contacts: HashSet::from_iter(IntoIter::new(["user_2@pages.io".to_string()])),
+                        })])),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: commit_time_2,
+                        data: HashMap::default(),
+                    }),
+                    content: "file content 3".to_string(),
+                },
+            ]
+        );
+    }
+
+    #[test]
     fn ignore_uncommitted_files() {
         let mut test_folder = TmpTestFolder::new().unwrap();
         test_folder.preserve();
@@ -376,6 +544,7 @@ mod tests {
         let git_metadata_stage = GitMetadata {
             name: "git meta stage".to_string(),
             repo_path: test_folder.get_path().to_path_buf(),
+            pages_rel_path: None,
         };
 
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
@@ -550,6 +719,7 @@ mod tests {
                 Arc::new(GitMetadata {
                     name: "git meta stage".to_string(),
                     repo_path: test_folder.get_path().to_path_buf(),
+                    pages_rel_path: None,
                 }),
             ],
         };
@@ -695,6 +865,7 @@ mod tests {
                 Arc::new(GitMetadata {
                     name: "git meta stage".to_string(),
                     repo_path: test_folder.get_path().to_path_buf(),
+                    pages_rel_path: None,
                 }),
             ],
         };

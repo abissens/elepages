@@ -34,6 +34,7 @@ impl StageMaker for GitMetadataStageMaker {
         Ok(Arc::new(GitMetadata {
             name: name.unwrap_or("git metadata stage").to_string(),
             repo_path: root_path.to_path_buf(),
+            pages_rel_path: None,
         }))
     }
 }

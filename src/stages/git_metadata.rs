@@ -1,4 +1,5 @@
 use crate::pages::{ArcPage, Author, Env, Metadata, Page, PageBundle, VecBundle};
+use crate::pages_error::PagesError;
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
@@ -13,6 +14,7 @@ use std::time::SystemTime;
 pub struct GitMetadata {
     pub name: String,
     pub repo_path: PathBuf,
+    pub pages_rel_path: Option<PathBuf>,
 }
 
 impl GitMetadata {
@@ -23,6 +25,11 @@ impl GitMetadata {
 
         let mut result = vec![];
         let mut commit_id = rev_walk.next();
+        let prefix: String = self
+            .pages_rel_path
+            .as_ref()
+            .map(|p| p.iter().map(|s| s.to_string_lossy().to_string()).collect::<Vec<String>>().join("/") + "/")
+            .unwrap_or_else(|| "".to_string());
 
         while !blame_pages.is_empty() && commit_id.is_some() {
             let commit = repo.find_commit(commit_id.unwrap()?)?;
@@ -35,7 +42,13 @@ impl GitMetadata {
             let current_tree = commit.tree()?;
 
             let diff = repo.diff_tree_to_tree(parent_tree.as_ref(), Some(&current_tree), None).unwrap();
-            let commit_files: HashSet<String> = diff.deltas().filter_map(|d| d.new_file().path().map(|p| p.to_string_lossy().to_string())).collect();
+            let commit_files: HashSet<String> = diff
+                .deltas()
+                .filter_map(|d| {
+                    let fp = d.new_file().path().map(|p| p.to_string_lossy().to_string());
+                    fp.as_ref()?.strip_prefix(&prefix).map(|s| s.to_string())
+                })
+                .collect();
             for commit_file in &commit_files {
                 if let Some(origin_page) = blame_pages.remove(commit_file) {
                     let origin_metadata = origin_page.metadata();
@@ -95,7 +108,15 @@ impl Stage for GitMetadata {
 
     fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
-        env.print_vv(&format!("stage {}", self.name()), "git metadata extraction started");
+        env.print_vv(
+            &format!("stage {} --> {:?} / {:?}", self.name(), &self.repo_path, &self.pages_rel_path),
+            "git metadata extraction started",
+        );
+        if let Some(page_rel_path) = self.pages_rel_path.as_ref() {
+            if !self.repo_path.join(page_rel_path).exists() {
+                return Err(PagesError::ElementNotFound(format!("path not found in repository : {}", page_rel_path.to_string_lossy())).into());
+            }
+        }
         let repo_result = Repository::open(&self.repo_path);
         if let Err(e) = repo_result {
             if e.code() == ErrorCode::NotFound {
