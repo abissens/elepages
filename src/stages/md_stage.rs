@@ -2,7 +2,7 @@ use crate::pages::{BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecB
 use crate::stages::stage::Stage;
 use crate::stages::ProcessingResult;
 use chrono::{DateTime, Utc};
-use pulldown_cmark::{html, Parser, Options};
+use pulldown_cmark::{html, Options, Parser};
 use std::any::Any;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
