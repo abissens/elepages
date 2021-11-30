@@ -300,4 +300,150 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn sort_generated_index_pages() {
+        let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(1637583000),
+                        last_edit_date: None,
+                        data: Default::default(),
+                    }),
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(1637582000),
+                        last_edit_date: None,
+                        data: Default::default(),
+                    }),
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(1637584000),
+                        last_edit_date: None,
+                        data: Default::default(),
+                    }),
+                    content: String::new(),
+                }),
+            ],
+        });
+
+        let bundle_index = BundleIndex::from(&vec_bundle);
+
+        assert_eq!(
+            bundle_index,
+            BundleIndex {
+                all_pages: vec![
+                    PageIndex {
+                        page_ref: PageRef { path: vec!["f2".to_string()] },
+                        metadata: Some(MetadataIndex {
+                            title: None,
+                            url_title: None,
+                            summary: None,
+                            authors: Default::default(),
+                            tags: Default::default(),
+                            publishing_date: Some(DateIndex {
+                                timestamp: 1637582000,
+                                i_year: 2021,
+                                short_year: "21".to_string(),
+                                i_month: 11,
+                                month: "11".to_string(),
+                                short_month: "Nov".to_string(),
+                                long_month: "November".to_string(),
+                                i_day: 22,
+                                day: "22".to_string(),
+                                short_day: "Mon".to_string(),
+                                long_day: "Monday".to_string(),
+                                i_hour: 11,
+                                i_minute: 53,
+                                i_second: 20
+                            }),
+                            last_edit_date: None,
+                            data: Default::default()
+                        })
+                    },
+                    PageIndex {
+                        page_ref: PageRef { path: vec!["f1".to_string()] },
+                        metadata: Some(MetadataIndex {
+                            title: None,
+                            url_title: None,
+                            summary: None,
+                            authors: Default::default(),
+                            tags: Default::default(),
+                            publishing_date: Some(DateIndex {
+                                timestamp: 1637583000,
+                                i_year: 2021,
+                                short_year: "21".to_string(),
+                                i_month: 11,
+                                month: "11".to_string(),
+                                short_month: "Nov".to_string(),
+                                long_month: "November".to_string(),
+                                i_day: 22,
+                                day: "22".to_string(),
+                                short_day: "Mon".to_string(),
+                                long_day: "Monday".to_string(),
+                                i_hour: 12,
+                                i_minute: 10,
+                                i_second: 00
+                            }),
+                            last_edit_date: None,
+                            data: Default::default()
+                        })
+                    },
+                    PageIndex {
+                        page_ref: PageRef { path: vec!["f3".to_string()] },
+                        metadata: Some(MetadataIndex {
+                            title: None,
+                            url_title: None,
+                            summary: None,
+                            authors: Default::default(),
+                            tags: Default::default(),
+                            publishing_date: Some(DateIndex {
+                                timestamp: 1637584000,
+                                i_year: 2021,
+                                short_year: "21".to_string(),
+                                i_month: 11,
+                                month: "11".to_string(),
+                                short_month: "Nov".to_string(),
+                                long_month: "November".to_string(),
+                                i_day: 22,
+                                day: "22".to_string(),
+                                short_day: "Mon".to_string(),
+                                long_day: "Monday".to_string(),
+                                i_hour: 12,
+                                i_minute: 26,
+                                i_second: 40
+                            }),
+                            last_edit_date: None,
+                            data: Default::default()
+                        })
+                    },
+                ],
+
+                pages_by_tag: HashMap::default(),
+                pages_by_author: HashMap::default(),
+                all_tags: HashSet::default(),
+                all_authors: HashSet::default()
+            }
+        );
+    }
 }

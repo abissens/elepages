@@ -2,6 +2,7 @@ use crate::config::Value;
 use crate::pages::{Author, Metadata, Page, PageBundle};
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
 use serde::Serialize;
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use urlencoding::encode;
@@ -135,6 +136,10 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
                 }
             }
         }
+        result.all_pages.sort_by(|a, b| match (&a.metadata, &b.metadata) {
+            (Some(ma), Some(mb)) => ma.publishing_date.as_ref().map(|v| v.timestamp).cmp(&mb.publishing_date.as_ref().map(|v| v.timestamp)),
+            _ => Ordering::Equal,
+        });
         result
     }
 }
