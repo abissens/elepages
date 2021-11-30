@@ -107,6 +107,13 @@ struct HandlebarsTemplatePage {
     template_asset: TemplateAsset,
 }
 
+#[derive(Serialize)]
+pub struct TemplateData<'a> {
+    pub page: &'a PageIndex,
+    pub index: &'a BundleIndex,
+}
+
+
 impl Page for HandlebarsTemplatePage {
     fn path(&self) -> &[String] {
         &self.template_asset.path
@@ -116,8 +123,11 @@ impl Page for HandlebarsTemplatePage {
         self.template_asset.metadata.as_ref()
     }
 
-    fn open(&self, _: &PageIndex, _: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
-        let result = self.registry.render(&self.template_asset.template_name, &self.metadata())?;
+    fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
+        let result = self.registry.render(&self.template_asset.template_name, &TemplateData{
+            page: output_page,
+            index: output_index
+        })?;
         Ok(Box::new(Cursor::new(result)))
     }
 }
@@ -252,7 +262,7 @@ impl HandlebarsLookup for HandlebarsDir {
                 // asset.<asset name>.hbs format
                 let mut asset_path = rel_path.components().map(|c| c.as_os_str().to_str().unwrap_or_default().to_string()).collect::<Vec<_>>();
                 asset_path.pop();
-                asset_path.push(name[5..name.len() - 3].to_string()); // asset.<name>.hbs -> <name>
+                asset_path.push(name[6..name.len() - 3].to_string()); // asset.<name>.hbs -> <name>
                 let template_name: String = asset_path.join("/");
 
                 result.registry.register_template_file(&template_name, entry_path)?;
