@@ -143,3 +143,105 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
         result
     }
 }
+
+pub struct BundlePagination {
+    pub skip: Option<usize>,
+    pub limit: Option<usize>,
+}
+
+pub trait BundleQuery {
+    fn do_match(&self, page: &PageIndex) -> bool;
+}
+
+pub struct TagQuery(pub String);
+pub struct AuthorQuery(pub String);
+pub struct AndQuery(pub Vec<Box<dyn BundleQuery>>);
+pub struct OrQuery(pub Vec<Box<dyn BundleQuery>>);
+pub struct NotQuery(pub Box<dyn BundleQuery>);
+pub struct AlwaysQuery;
+
+impl BundleQuery for TagQuery {
+    fn do_match(&self, page: &PageIndex) -> bool {
+        if let Some(m) = &page.metadata {
+            for tag in &m.tags {
+                if tag == &self.0 {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
+impl BundleQuery for AuthorQuery {
+    fn do_match(&self, page: &PageIndex) -> bool {
+        if let Some(m) = &page.metadata {
+            for author in &m.authors {
+                if author == &self.0 {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
+impl BundleQuery for AndQuery {
+    fn do_match(&self, page: &PageIndex) -> bool {
+        for q in &self.0 {
+            if !q.do_match(page) {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl BundleQuery for OrQuery {
+    fn do_match(&self, page: &PageIndex) -> bool {
+        for q in &self.0 {
+            if q.do_match(page) {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+impl BundleQuery for NotQuery {
+    fn do_match(&self, page: &PageIndex) -> bool {
+        !self.0.do_match(page)
+    }
+}
+
+impl BundleQuery for AlwaysQuery {
+    fn do_match(&self, _: &PageIndex) -> bool {
+        true
+    }
+}
+
+impl BundleIndex {
+    pub fn query(&self, q: &dyn BundleQuery, p: &BundlePagination) -> Vec<&PageIndex> {
+        let mut result = vec![];
+        let mut matched_counter = 0;
+        for page in &self.all_pages {
+            if q.do_match(page) {
+                matched_counter += 1;
+                match p.skip {
+                    None => result.push(page),
+                    Some(skip) => {
+                        if skip < matched_counter {
+                            result.push(page);
+                        }
+                    }
+                }
+                if let Some(limit) = p.limit {
+                    if result.len() == limit {
+                        return result;
+                    }
+                }
+            }
+        }
+        result
+    }
+}

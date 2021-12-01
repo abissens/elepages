@@ -113,7 +113,6 @@ pub struct TemplateData<'a> {
     pub index: &'a BundleIndex,
 }
 
-
 impl Page for HandlebarsTemplatePage {
     fn path(&self) -> &[String] {
         &self.template_asset.path
@@ -124,10 +123,13 @@ impl Page for HandlebarsTemplatePage {
     }
 
     fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
-        let result = self.registry.render(&self.template_asset.template_name, &TemplateData{
-            page: output_page,
-            index: output_index
-        })?;
+        let result = self.registry.render(
+            &self.template_asset.template_name,
+            &TemplateData {
+                page: output_page,
+                index: output_index,
+            },
+        )?;
         Ok(Box::new(Cursor::new(result)))
     }
 }

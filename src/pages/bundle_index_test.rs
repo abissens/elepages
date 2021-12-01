@@ -2,7 +2,7 @@
 mod tests {
     use crate::config::Value;
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Author, BundleIndex, DateIndex, Metadata, MetadataIndex, PageBundle, PageIndex, PageRef, VecBundle};
+    use crate::pages::{AlwaysQuery, AndQuery, Author, AuthorQuery, BundleIndex, BundlePagination, DateIndex, Metadata, MetadataIndex, OrQuery, PageBundle, PageIndex, PageRef, TagQuery, VecBundle};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
@@ -445,5 +445,173 @@ mod tests {
                 all_authors: HashSet::default()
             }
         );
+    }
+
+    #[test]
+    fn query_bundle_index() {
+        let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["dir".to_string(), "f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: Some(Arc::new("f1 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "f1 author".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: None,
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: Some(Arc::new("f3 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "f3 author 1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "f3 author 2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: Some(Arc::new("f4 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "f3 author".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: String::new(),
+                }),
+            ],
+        });
+
+        let bundle_index = BundleIndex::from(&vec_bundle);
+
+        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: None, limit: None });
+        assert_eq!(result, bundle_index.all_pages.iter().collect::<Vec<&PageIndex>>());
+
+        let result = bundle_index.query(
+            &OrQuery(vec![Box::new(AuthorQuery("f3 author".to_string())), Box::new(AuthorQuery("f1 author".to_string()))]),
+            &BundlePagination { skip: None, limit: None },
+        );
+        assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap(), bundle_index.all_pages.get(3).unwrap()]);
+
+        let result = bundle_index.query(&TagQuery("t1".to_string()), &BundlePagination { skip: None, limit: None });
+        assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap()]);
+
+        let result = bundle_index.query(
+            &AndQuery(vec![Box::new(TagQuery("t3".to_string())), Box::new(TagQuery("t2".to_string()))]),
+            &BundlePagination { skip: None, limit: None },
+        );
+        assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap()]);
+    }
+
+    #[test]
+    fn paginate_bundle_index_query() {
+        let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["dir".to_string(), "f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: Some(Arc::new("f1 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "f1 author".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: None,
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: Some(Arc::new("f3 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "f3 author 1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "f3 author 2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: Some(Arc::new("f4 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "f3 author".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: String::new(),
+                }),
+            ],
+        });
+
+        let bundle_index = BundleIndex::from(&vec_bundle);
+
+        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: None, limit: None });
+        assert_eq!(result, bundle_index.all_pages.iter().collect::<Vec<&PageIndex>>());
+
+        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: None, limit: Some(2) });
+        assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap(), bundle_index.all_pages.get(1).unwrap()]);
+
+        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: Some(1), limit: Some(1) });
+        assert_eq!(result, vec![bundle_index.all_pages.get(1).unwrap()]);
+
+        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: Some(2), limit: None });
+        assert_eq!(result, vec![bundle_index.all_pages.get(2).unwrap(), bundle_index.all_pages.get(3).unwrap()]);
     }
 }
