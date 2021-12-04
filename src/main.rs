@@ -23,6 +23,14 @@ fn main() {
                 .help("stages configuration file (yaml/json formats)")
                 .takes_value(true),
         )
+        .arg(Arg::with_name("git_path").long("git-path").help("git metadata path").takes_value(true))
+        .arg(
+            Arg::with_name("handlebars_path")
+                .short("hbs")
+                .long("handlebars-path")
+                .help("handlebars template path")
+                .takes_value(true),
+        )
         .arg(Arg::with_name("v").short("v").multiple(true).help("Sets the level of verbosity"))
         .get_matches();
 
@@ -30,6 +38,8 @@ fn main() {
         input_dir: matches.value_of("source").map(PathBuf::from),
         output_dir: matches.value_of("destination").map(PathBuf::from),
         config_path: matches.value_of("config").map(PathBuf::from),
+        git_repo_path_config: matches.value_of("git_path").map(|v| v.to_string()),
+        handlebars_path_config: matches.value_of("handlebars_path").map(|v| v.to_string()),
         print_level: match matches.occurrences_of("v") {
             0 => None,
             1 => Some(PrintLevel::V),

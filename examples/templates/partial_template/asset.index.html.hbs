@@ -2,7 +2,7 @@
 {{#*inline "content"}}
 
 <div class="page-content">
-      {{#each index.all_pages}}
+      {{#each (bundle_query "{tag: a}")}}
         <div class="page-header">
             <h2>
                 {{#if this.metadata.title}}

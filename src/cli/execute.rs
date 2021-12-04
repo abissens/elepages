@@ -1,6 +1,7 @@
 use crate::cli::writer::Writer;
 use crate::cli::FsWriter;
-use crate::maker::{ComposeUnitConfig, Maker, SelectorConfig, StageValue};
+use crate::config::Value;
+use crate::maker::{Maker, SelectorConfig, StageValue};
 use crate::pages::{Env, FsLoader, Loader, PrintLevel};
 use crate::pages_error::PagesError;
 use crate::stages::ProcessingResult;
@@ -21,6 +22,8 @@ pub struct ExecutorParams {
     pub input_dir: Option<PathBuf>,
     pub output_dir: Option<PathBuf>,
     pub config_path: Option<PathBuf>,
+    pub git_repo_path_config: Option<String>,
+    pub handlebars_path_config: Option<String>,
     pub print_level: Option<PrintLevel>,
 }
 
@@ -51,12 +54,12 @@ impl Executor {
 
     pub fn new(params: ExecutorParams) -> anyhow::Result<Self> {
         let curr_dir = current_dir()?;
-        let mut input_dir = match params.input_dir {
-            Some(d) => d,
+        let mut input_dir = match &params.input_dir {
+            Some(d) => d.clone(),
             None => curr_dir.clone(),
         };
-        let mut output_dir = match params.output_dir {
-            Some(d) => d,
+        let mut output_dir = match &params.output_dir {
+            Some(d) => d.clone(),
             None => curr_dir.join("output"),
         };
 
@@ -75,7 +78,7 @@ impl Executor {
         } else if input_dir.join("stages.json").exists() {
             Executor::read_config(&curr_dir, &input_dir.join("stages.json"))?
         } else {
-            Executor::default_config()
+            Executor::default_config(&params)
         };
 
         let loader = Box::new(FsLoader::new(input_dir.clone()));
@@ -94,41 +97,57 @@ impl Executor {
         })
     }
 
-    fn default_config() -> StageValue {
-        StageValue::Sequence(vec![
+    fn default_config(params: &ExecutorParams) -> StageValue {
+        let mut stages = vec![
             StageValue::ProcessorStage {
                 processor_type: "shadow".to_string(),
                 config: Default::default(),
             },
             StageValue::ProcessorStage {
                 processor_type: "git_metadata".to_string(),
-                config: Default::default(),
+                config: match &params.git_repo_path_config {
+                    None => Default::default(),
+                    Some(config) => Value::String(config.to_string()),
+                },
             },
-            StageValue::Composition {
-                compose: vec![ComposeUnitConfig::Replace {
-                    by: StageValue::ProcessorStage {
-                        processor_type: "md".to_string(),
-                        config: Default::default(),
-                    },
-                    replace: SelectorConfig::Base {
-                        path: None,
-                        tag: None,
-                        tags: None,
-                        ext: Some("md".to_string()),
-                        author: None,
-                        publishing: None,
-                    },
-                }],
+            StageValue::Append {
+                append: Box::new(StageValue::ProcessorStage {
+                    processor_type: "indexes".to_string(),
+                    config: Default::default(),
+                }),
             },
-            StageValue::Composition {
-                compose: vec![ComposeUnitConfig::Create {
-                    append: StageValue::ProcessorStage {
-                        processor_type: "indexes".to_string(),
-                        config: Default::default(),
-                    },
-                }],
+            StageValue::Replace {
+                by: Box::new(StageValue::ProcessorStage {
+                    processor_type: "md".to_string(),
+                    config: Default::default(),
+                }),
+                replace: SelectorConfig::Base {
+                    path: None,
+                    tag: None,
+                    tags: None,
+                    ext: Some(".md".to_string()),
+                    author: None,
+                    publishing: None,
+                },
             },
-        ])
+        ];
+        if let Some(handlebars_config) = &params.handlebars_path_config {
+            stages.push(StageValue::Replace {
+                by: Box::new(StageValue::ProcessorStage {
+                    processor_type: "handlebars".to_string(),
+                    config: Value::String(handlebars_config.to_string()),
+                }),
+                replace: SelectorConfig::Base {
+                    path: None,
+                    tag: None,
+                    tags: None,
+                    ext: Some(".html".to_string()),
+                    author: None,
+                    publishing: None,
+                },
+            })
+        }
+        StageValue::Sequence(stages)
     }
 
     fn read_config(curr_dir: &Path, config_file: &Path) -> anyhow::Result<StageValue> {
