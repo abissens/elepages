@@ -1,8 +1,8 @@
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
-use crate::stages::{ProcessingResult, Stage};
+use crate::stages::{PageContentHelper, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
-use handlebars::{Context, Handlebars, Helper, Output, RenderContext, RenderError};
+use handlebars::Handlebars;
 use rayon::prelude::*;
 use serde::Serialize;
 use std::any::Any;
@@ -161,14 +161,11 @@ impl Page for HandlebarsPage {
         let mut local_registry = self.registry.clone();
         local_registry.register_helper(
             "content_as_string",
-            Box::new(|_: &Helper, _: &Handlebars, _: &Context, _: &mut RenderContext, out: &mut dyn Output| {
-                let mut result = String::new();
-                self.source
-                    .open(output_page, output_index, env)
-                    .map_err(|err| RenderError::new(err.to_string()))?
-                    .read_to_string(&mut result)?;
-                out.write(&result)?;
-                Ok(())
+            Box::new(PageContentHelper {
+                source: &self.source,
+                output_page,
+                output_index,
+                env,
             }),
         );
         let result = (&local_registry).render(
