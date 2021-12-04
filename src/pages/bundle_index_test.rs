@@ -354,7 +354,7 @@ mod tests {
             BundleIndex {
                 all_pages: vec![
                     PageIndex {
-                        page_ref: PageRef { path: vec!["f2".to_string()] },
+                        page_ref: PageRef { path: vec!["f3".to_string()] },
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -362,7 +362,7 @@ mod tests {
                             authors: Default::default(),
                             tags: Default::default(),
                             publishing_date: Some(DateIndex {
-                                timestamp: 1637582000,
+                                timestamp: 1637584000,
                                 i_year: 2021,
                                 short_year: "21".to_string(),
                                 i_month: 11,
@@ -373,9 +373,9 @@ mod tests {
                                 day: "22".to_string(),
                                 short_day: "Mon".to_string(),
                                 long_day: "Monday".to_string(),
-                                i_hour: 11,
-                                i_minute: 53,
-                                i_second: 20
+                                i_hour: 12,
+                                i_minute: 26,
+                                i_second: 40
                             }),
                             last_edit_date: None,
                             data: Default::default()
@@ -410,7 +410,7 @@ mod tests {
                         })
                     },
                     PageIndex {
-                        page_ref: PageRef { path: vec!["f3".to_string()] },
+                        page_ref: PageRef { path: vec!["f2".to_string()] },
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -418,7 +418,7 @@ mod tests {
                             authors: Default::default(),
                             tags: Default::default(),
                             publishing_date: Some(DateIndex {
-                                timestamp: 1637584000,
+                                timestamp: 1637582000,
                                 i_year: 2021,
                                 short_year: "21".to_string(),
                                 i_month: 11,
@@ -429,16 +429,15 @@ mod tests {
                                 day: "22".to_string(),
                                 short_day: "Mon".to_string(),
                                 long_day: "Monday".to_string(),
-                                i_hour: 12,
-                                i_minute: 26,
-                                i_second: 40
+                                i_hour: 11,
+                                i_minute: 53,
+                                i_second: 20
                             }),
                             last_edit_date: None,
                             data: Default::default()
                         })
                     },
                 ],
-
                 pages_by_tag: HashMap::default(),
                 pages_by_author: HashMap::default(),
                 all_tags: HashSet::default(),

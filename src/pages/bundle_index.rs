@@ -137,7 +137,7 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             }
         }
         result.all_pages.sort_by(|a, b| match (&a.metadata, &b.metadata) {
-            (Some(ma), Some(mb)) => ma.publishing_date.as_ref().map(|v| v.timestamp).cmp(&mb.publishing_date.as_ref().map(|v| v.timestamp)),
+            (Some(ma), Some(mb)) => mb.publishing_date.as_ref().map(|v| v.timestamp).cmp(&ma.publishing_date.as_ref().map(|v| v.timestamp)),
             _ => Ordering::Equal,
         });
         result

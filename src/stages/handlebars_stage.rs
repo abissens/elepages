@@ -1,5 +1,5 @@
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
-use crate::stages::{PageContentHelper, ProcessingResult, Stage};
+use crate::stages::{BundleQueryHelper, PageContentHelper, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
@@ -123,7 +123,9 @@ impl Page for HandlebarsTemplatePage {
     }
 
     fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
-        let result = self.registry.render(
+        let mut local_registry = self.registry.clone();
+        local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
+        let result = local_registry.render(
             &self.template_asset.template_name,
             &TemplateData {
                 page: output_page,
@@ -168,6 +170,7 @@ impl Page for HandlebarsPage {
                 env,
             }),
         );
+        local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
         let result = (&local_registry).render(
             &self.template_name,
             &PageData {
@@ -261,7 +264,7 @@ impl HandlebarsLookup for HandlebarsDir {
                 // asset.<asset name>.hbs format
                 let mut asset_path = rel_path.components().map(|c| c.as_os_str().to_str().unwrap_or_default().to_string()).collect::<Vec<_>>();
                 asset_path.pop();
-                asset_path.push(name[6..name.len() - 3].to_string()); // asset.<name>.hbs -> <name>
+                asset_path.push(name[6..name.len() - 4].to_string()); // asset.<name>.hbs -> <name>
                 let template_name: String = asset_path.join("/");
 
                 result.registry.register_template_file(&template_name, entry_path)?;

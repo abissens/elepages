@@ -1,11 +1,14 @@
 #[cfg(test)]
 mod tests {
     use crate::pages::test_page::TestPage;
-    use crate::pages::{Env, Metadata, Page, PageBundle, VecBundle};
+    use crate::pages::{Author, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::{HandlebarsDir, HandlebarsLookup, HandlebarsLookupResult, HandlebarsStage, Stage, TemplateAsset};
+    use crate::stages::{AppendStage, HandlebarsDir, HandlebarsLookup, HandlebarsLookupResult, HandlebarsStage, Stage, TemplateAsset};
+    use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
-    use std::collections::HashMap;
+    use std::array::IntoIter;
+    use std::collections::{HashMap, HashSet};
+    use std::iter::FromIterator;
     use std::sync::Arc;
 
     #[test]
@@ -970,6 +973,153 @@ mod tests {
             ]
         );
     }
+
+    #[test]
+    fn apply_bundle_query_helper() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![FileNode::File {
+                    name: "asset.index.html.hbs".to_string(),
+                    content: indoc! {"
+                            {{#each (bundle_query \"{tag: t1}\") }}
+                            <h1>{{this.metadata.title}}</h1>
+                            {{/each}}
+                            {{#each (bundle_query \"{tags: [t1, t2]}\") }}
+                            <h2>{{this.metadata.title}}</h2>
+                            {{/each}}
+                            {{#each (bundle_query \"{author: 'a1'}\") }}
+                            <h3>{{this.metadata.title}}</h3>
+                            {{/each}}
+                            {{#each (bundle_query \"and: [{author: a1}, {tag: t3}]\") }}
+                            <h4>{{this.metadata.title}}</h4>
+                            {{/each}}
+                            {{#each (bundle_query \"and: [{author: a1}, {tag: t4}]\") }}
+                            <h4>{{this.metadata.title}}</h4>
+                            {{/each}}"}
+                    .as_bytes()
+                    .to_vec(),
+                    open_options: None,
+                }],
+            })
+            .unwrap();
+
+        let stages = AppendStage {
+            name: "append".to_string(),
+            inner: Arc::new(HandlebarsStage {
+                name: "hb stage".to_string(),
+                lookup: Arc::new(HandlebarsDir {
+                    base_path: test_folder.get_path().join("templates"),
+                }),
+            }),
+        };
+
+        let result_bundle = stages.process(&bundle, &Env::test()).unwrap();
+
+        let index_page = result_bundle
+            .0
+            .pages()
+            .iter()
+            .find(|p| p.path() == vec!["index.html"].as_slice())
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &BundleIndex::from(&result_bundle.0), &Env::test())
+                    .unwrap()
+                    .read_to_string(&mut content)
+                    .unwrap();
+                content
+            })
+            .unwrap();
+        assert_eq!(
+            index_page,
+            indoc! {"
+                <h1>f5 title</h1>
+                <h1>f4 title</h1>
+                <h1>f3 title</h1>
+                <h2>f4 title</h2>
+                <h2>f3 title</h2>
+                <h3>f4 title</h3>
+                <h3>f3 title</h3>
+                <h4>f3 title</h4>
+                "
+            }
+        );
+    }
+
     #[derive(Debug)]
     struct NewHandlebarsLookupTest {
         registry: handlebars::Handlebars<'static>,
