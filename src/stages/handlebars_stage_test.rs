@@ -38,7 +38,7 @@ mod tests {
             ],
         });
         let mut registry = handlebars::Handlebars::new();
-        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{content_as_string}}").unwrap();
+        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{page_content}}").unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
             lookup: Arc::new(NewHandlebarsLookupTest {
@@ -120,7 +120,7 @@ mod tests {
         });
 
         let mut registry = handlebars::Handlebars::new();
-        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{content_as_string}}").unwrap();
+        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{page_content}}").unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
             lookup: Arc::new(NewHandlebarsLookupTest {
@@ -239,7 +239,7 @@ mod tests {
         });
 
         let mut registry = handlebars::Handlebars::new();
-        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{content_as_string}}").unwrap();
+        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{page_content}}").unwrap();
         registry.register_template_string("tpl_2", "TPL 2 : TPL 2 Content").unwrap();
         registry.register_template_string("tpl_3", "TPL 3 : TPL 3 Content").unwrap();
         let hb_stage = HandlebarsStage {
@@ -364,7 +364,7 @@ mod tests {
                 name: "templates".to_string(),
                 sub: vec![FileNode::File {
                     name: "page.hbs".to_string(),
-                    content: "TPL root : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                    content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                     open_options: None,
                 }],
             })
@@ -452,14 +452,14 @@ mod tests {
                 sub: vec![
                     FileNode::File {
                         name: "page.hbs".to_string(),
-                        content: "TPL root : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                         open_options: None,
                     },
                     FileNode::Dir {
                         name: "dir".to_string(),
                         sub: vec![FileNode::File {
                             name: "page.hbs".to_string(),
-                            content: "TPL dir : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                            content: "TPL dir : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                             open_options: None,
                         }],
                     },
@@ -554,7 +554,7 @@ mod tests {
                 sub: vec![
                     FileNode::File {
                         name: "page.hbs".to_string(),
-                        content: "TPL root : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                         open_options: None,
                     },
                     FileNode::Dir {
@@ -562,12 +562,12 @@ mod tests {
                         sub: vec![
                             FileNode::File {
                                 name: "page.hbs".to_string(),
-                                content: "TPL dir : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                                content: "TPL dir : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                             FileNode::File {
                                 name: "page.f4.html.hbs".to_string(),
-                                content: "TPL f4 : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                                content: "TPL f4 : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                         ],
@@ -682,7 +682,7 @@ mod tests {
                 sub: vec![
                     FileNode::File {
                         name: "page.hbs".to_string(),
-                        content: "TPL root : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                         open_options: None,
                     },
                     FileNode::File {
@@ -700,17 +700,17 @@ mod tests {
                             },
                             FileNode::File {
                                 name: "page.hbs".to_string(),
-                                content: "TPL dir : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                                content: "TPL dir : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                             FileNode::File {
                                 name: "page.f4.html.hbs".to_string(),
-                                content: "{{#> base}}{{#*inline \"page\"}}inner: {{content_as_string}}{{/inline}} {{/base}}".as_bytes().to_vec(),
+                                content: "{{#> base}}{{#*inline \"page\"}}inner: {{page_content}}{{/inline}} {{/base}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                             FileNode::File {
                                 name: "page.f5.html.hbs".to_string(),
-                                content: "{{#> dir/base}}{{#*inline \"page\"}}inner: {{content_as_string}}{{/inline}} {{/dir/base}}".as_bytes().to_vec(),
+                                content: "{{#> dir/base}}{{#*inline \"page\"}}inner: {{page_content}}{{/inline}} {{/dir/base}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                         ],
@@ -842,7 +842,7 @@ mod tests {
                     },
                     FileNode::File {
                         name: "page.hbs".to_string(),
-                        content: "TPL root : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                         open_options: None,
                     },
                     FileNode::File {
@@ -865,17 +865,17 @@ mod tests {
                             },
                             FileNode::File {
                                 name: "page.hbs".to_string(),
-                                content: "TPL dir : {{page.metadata.title}} \n {{content_as_string}}".as_bytes().to_vec(),
+                                content: "TPL dir : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                             FileNode::File {
                                 name: "page.f4.html.hbs".to_string(),
-                                content: "{{#> base}}{{#*inline \"page\"}}inner: {{content_as_string}}{{/inline}} {{/base}}".as_bytes().to_vec(),
+                                content: "{{#> base}}{{#*inline \"page\"}}inner: {{page_content}}{{/inline}} {{/base}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                             FileNode::File {
                                 name: "page.f5.html.hbs".to_string(),
-                                content: "{{#> dir/base}}{{#*inline \"page\"}}inner: {{content_as_string}}{{/inline}} {{/dir/base}}".as_bytes().to_vec(),
+                                content: "{{#> dir/base}}{{#*inline \"page\"}}inner: {{page_content}}{{/inline}} {{/dir/base}}".as_bytes().to_vec(),
                                 open_options: None,
                             },
                             FileNode::Dir {

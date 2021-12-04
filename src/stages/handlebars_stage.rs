@@ -160,7 +160,7 @@ impl Page for HandlebarsPage {
     fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>> {
         let mut local_registry = self.registry.clone();
         local_registry.register_helper(
-            "content_as_string",
+            "page_content",
             Box::new(PageContentHelper {
                 source: &self.source,
                 output_page,
