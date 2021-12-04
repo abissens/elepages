@@ -7,7 +7,6 @@ mod copy_cut_stage_test;
 mod git_metadata;
 mod git_metadata_test;
 mod handlebars_registry_helpers;
-mod handlebars_registry_helpers_test;
 mod handlebars_stage;
 mod handlebars_stage_test;
 mod indexes_stage;

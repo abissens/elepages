@@ -1,7 +1,7 @@
 use crate::config::Value;
 use crate::pages::{Author, Metadata, Page, PageBundle};
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -12,6 +12,7 @@ pub struct BundleIndex {
     pub all_authors: HashSet<Author>,
     pub all_tags: HashSet<String>,
     pub all_pages: Vec<PageIndex>,
+    pub pages_with_metadata: Vec<PageIndex>,
     pub pages_by_author: HashMap<String, Vec<PageRef>>,
     pub pages_by_tag: HashMap<String, Vec<PageRef>>,
 }
@@ -117,14 +118,16 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             all_authors: Default::default(),
             all_tags: Default::default(),
             all_pages: vec![],
+            pages_with_metadata: vec![],
             pages_by_author: Default::default(),
             pages_by_tag: Default::default(),
         };
         for page in bundle.pages() {
             let page_index = PageIndex::from(page);
             let page_ref = page_index.page_ref.clone();
-            result.all_pages.push(page_index);
+            result.all_pages.push(page_index.clone());
             if let Some(metadata) = page.metadata() {
+                result.pages_with_metadata.push(page_index);
                 for tag in &metadata.tags {
                     result.all_tags.insert(tag.to_string());
                     result.pages_by_tag.entry(tag.to_string()).or_insert_with(Vec::new).push(page_ref.clone());
@@ -140,10 +143,16 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             (Some(ma), Some(mb)) => mb.publishing_date.as_ref().map(|v| v.timestamp).cmp(&ma.publishing_date.as_ref().map(|v| v.timestamp)),
             _ => Ordering::Equal,
         });
+
+        result.pages_with_metadata.sort_by(|a, b| match (&a.metadata, &b.metadata) {
+            (Some(ma), Some(mb)) => mb.publishing_date.as_ref().map(|v| v.timestamp).cmp(&ma.publishing_date.as_ref().map(|v| v.timestamp)),
+            _ => Ordering::Equal,
+        });
         result
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BundlePagination {
     pub skip: Option<usize>,
     pub limit: Option<usize>,
@@ -224,7 +233,7 @@ impl BundleIndex {
     pub fn query(&self, q: &dyn BundleQuery, p: &BundlePagination) -> Vec<&PageIndex> {
         let mut result = vec![];
         let mut matched_counter = 0;
-        for page in &self.all_pages {
+        for page in &self.pages_with_metadata {
             if q.do_match(page) {
                 matched_counter += 1;
                 match p.skip {

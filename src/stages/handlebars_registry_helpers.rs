@@ -1,4 +1,4 @@
-use crate::pages::{AndQuery, AuthorQuery, BundleIndex, BundlePagination, BundleQuery, Env, NotQuery, OrQuery, Page, PageIndex, TagQuery};
+use crate::pages::{AlwaysQuery, AndQuery, AuthorQuery, BundleIndex, BundlePagination, BundleQuery, Env, NotQuery, OrQuery, Page, PageIndex, TagQuery};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -54,10 +54,30 @@ pub struct BundleQueryHelper<'a> {
 
 impl HelperDef for BundleQueryHelper<'_> {
     fn call_inner<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
-        let param = h.param(0).and_then(|v| v.value().as_str()).unwrap_or("");
-        let value: BundleQueryValue = serde_yaml::from_str(param).map_err(|err| RenderError::new(err.to_string()))?;
-        let bundle_query: Box<dyn BundleQuery> = <Box<dyn BundleQuery>>::from(&value);
-        let pages = self.output_index.query(bundle_query.as_ref(), &BundlePagination { skip: None, limit: None });
+        let param1 = h.param(0).and_then(|v| v.value().as_str());
+        let param2 = h.param(1).and_then(|v| v.value().as_str());
+
+        let value: Option<BundleQueryValue> = match param1 {
+            None => None,
+            Some(param) => {
+                if param.is_empty() {
+                    None
+                } else {
+                    Some(serde_yaml::from_str(param).map_err(|err| RenderError::new(err.to_string()))?)
+                }
+            }
+        };
+        let pagination: BundlePagination = match param2 {
+            None => BundlePagination { skip: None, limit: None },
+            Some(param) => serde_yaml::from_str(param).map_err(|err| RenderError::new(err.to_string()))?,
+        };
+
+        let bundle_query: Box<dyn BundleQuery> = match value {
+            None => Box::new(AlwaysQuery),
+            Some(value) => <Box<dyn BundleQuery>>::from(&value),
+        };
+
+        let pages = self.output_index.query(bundle_query.as_ref(), &pagination);
         Ok(ScopedJson::Derived(serde_json::to_value(pages)?))
     }
 }
