@@ -280,7 +280,7 @@ mod tests {
               dest: 'copied/dest'
             - move: [{tag: 'draft'}, {publishing: {afterDate: '2021-10-20'}}]
               dest: 'moved/dest'
-            - ignore: {publishing: {afterTime: '2021-10-20T22:00:00+00:00'}}
+            - ignore: {publishing: {afterTime: '2021-10-20T22:00:00'}}
         "})
         .unwrap();
 

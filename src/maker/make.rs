@@ -6,7 +6,7 @@ use crate::pages_error::PagesError;
 use crate::stages::{
     AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
 };
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -108,32 +108,32 @@ impl Maker {
                     let ts = DateTime::<Utc>::from(SystemTime::now()).date().and_hms(0, 0, 0).timestamp();
                     return Ok(DateQuery::Before(ts));
                 }
-                let ts = DateTime::<Utc>::from_utc(NaiveDate::from_str(before_date)?.and_hms(0, 0, 0), Utc);
-                Ok(DateQuery::Before(ts.timestamp()))
+                let ts = NaiveDate::from_str(before_date)?.and_hms(0, 0, 0).timestamp();
+                Ok(DateQuery::Before(ts))
             }
             DateQueryConfig::AfterDate { after_date } => {
                 if after_date == "now" {
                     let ts = DateTime::<Utc>::from(SystemTime::now()).date().and_hms(23, 59, 59).timestamp();
                     return Ok(DateQuery::After(ts));
                 }
-                let ts = DateTime::<Utc>::from_utc(NaiveDate::from_str(after_date)?.and_hms(23, 59, 59), Utc);
-                Ok(DateQuery::After(ts.timestamp()))
+                let ts = NaiveDate::from_str(after_date)?.and_hms(23, 59, 59).timestamp();
+                Ok(DateQuery::After(ts))
             }
             DateQueryConfig::BeforeTime { before_time } => {
                 if before_time == "now" {
                     let ts = DateTime::<Utc>::from(SystemTime::now()).timestamp();
                     return Ok(DateQuery::Before(ts));
                 }
-                let ts = DateTime::<Utc>::from_str(before_time)?;
-                Ok(DateQuery::Before(ts.timestamp()))
+                let ts = NaiveDateTime::from_str(before_time)?.timestamp();
+                Ok(DateQuery::Before(ts))
             }
             DateQueryConfig::AfterTime { after_time } => {
                 if after_time == "now" {
                     let ts = DateTime::<Utc>::from(SystemTime::now()).timestamp();
                     return Ok(DateQuery::After(ts));
                 }
-                let ts = DateTime::<Utc>::from_str(after_time)?;
-                Ok(DateQuery::After(ts.timestamp()))
+                let ts = NaiveDateTime::from_str(after_time)?.timestamp();
+                Ok(DateQuery::After(ts))
             }
         }
     }

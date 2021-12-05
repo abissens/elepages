@@ -92,8 +92,9 @@ impl Metadata {
 }
 
 pub mod epoch_timestamp {
-    use chrono::{DateTime, TimeZone, Utc};
+    use chrono::{DateTime, NaiveDate, NaiveDateTime, TimeZone, Utc};
     use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+    use std::str::FromStr;
 
     pub fn serialize<S>(ts: &Option<i64>, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -108,7 +109,15 @@ pub mod epoch_timestamp {
     {
         let result = match Option::<String>::deserialize(deserializer)? {
             None => None,
-            Some(dt) => Some(DateTime::parse_from_rfc3339(&dt).map_err(D::Error::custom)?.timestamp()),
+            Some(dt) => {
+                if let Ok(ts) = NaiveDate::from_str(&dt).map(|e| e.and_hms(0, 0, 0).timestamp()) {
+                    Some(ts)
+                } else if let Ok(ts) = NaiveDateTime::from_str(&dt).map(|e| e.timestamp()) {
+                    Some(ts)
+                } else {
+                    Some(DateTime::parse_from_rfc3339(&dt).map_err(D::Error::custom)?.timestamp())
+                }
+            }
         };
         Ok(result)
     }
