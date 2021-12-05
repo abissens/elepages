@@ -3,7 +3,9 @@ mod tests {
     use crate::maker::{Maker, StageValue};
     use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{AppendStage, ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
+    use crate::stages::{
+        AppendStage, ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
+    };
     use chrono::{DateTime, Utc};
     use indoc::indoc;
     use std::path::PathBuf;
@@ -54,6 +56,13 @@ mod tests {
             assert_eq!(&hbl.base_path, &PathBuf::from_str("d/e").unwrap());
         } else {
             panic!("should downcast to HandlebarsStage");
+        }
+
+        let path_generator_stage_config: StageValue = serde_yaml::from_str("path_generator").unwrap();
+        let path_generator_stage = Maker::default().make(None, &path_generator_stage_config, &Env::test()).unwrap();
+        assert_eq!(path_generator_stage.name(), "path generator stage");
+        if let None = path_generator_stage.as_any().unwrap().downcast_ref::<PathGenerator>() {
+            panic!("should downcast to MdStage");
         }
     }
 

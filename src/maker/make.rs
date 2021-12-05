@@ -3,7 +3,9 @@ use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
 use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
-use crate::stages::{AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
+use crate::stages::{
+    AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
+};
 use chrono::{DateTime, NaiveDate, Utc};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -24,6 +26,7 @@ pub struct IndexesStageMaker;
 pub struct MdStageMaker;
 pub struct ShadowStageMaker;
 pub struct HandlebarsStageMaker;
+pub struct PathGeneratorStageMaker;
 
 impl StageMaker for GitMetadataStageMaker {
     fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
@@ -78,6 +81,12 @@ impl StageMaker for HandlebarsStageMaker {
     }
 }
 
+impl StageMaker for PathGeneratorStageMaker {
+    fn make(&self, name: Option<&str>, _: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        Ok(Arc::new(PathGenerator::new(name.unwrap_or("path generator stage").to_string())))
+    }
+}
+
 impl Maker {
     pub fn default() -> Self {
         let mut processor_stage_makers = HashMap::new();
@@ -87,6 +96,7 @@ impl Maker {
         processor_stage_makers.insert("md".into(), Box::new(MdStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("handlebars".into(), Box::new(HandlebarsStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("path_generator".into(), Box::new(PathGeneratorStageMaker) as Box<dyn StageMaker>);
 
         Maker { processor_stage_makers }
     }

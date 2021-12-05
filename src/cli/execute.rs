@@ -147,6 +147,20 @@ impl Executor {
                 },
             })
         }
+        stages.push(StageValue::Replace {
+            by: Box::new(StageValue::ProcessorStage {
+                processor_type: "path_generator".to_string(),
+                config: Value::None,
+            }),
+            replace: SelectorConfig::Base {
+                path: None,
+                tag: None,
+                tags: None,
+                ext: Some(".html".to_string()),
+                author: None,
+                publishing: None,
+            },
+        });
         StageValue::Sequence(stages)
     }
 
