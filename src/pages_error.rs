@@ -7,6 +7,7 @@ pub enum PagesError {
     MetadataTree(String),
     ElementNotFound(String),
     ValueParsing(String),
+    Conflict(String),
 }
 
 impl Display for PagesError {
@@ -16,6 +17,7 @@ impl Display for PagesError {
             PagesError::MetadataTree(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::ElementNotFound(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::ValueParsing(s) => f.write_fmt(format_args!("{}", s)),
+            PagesError::Conflict(s) => f.write_fmt(format_args!("{}", s)),
         }
     }
 }

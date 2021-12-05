@@ -1,7 +1,9 @@
 use crate::cli::writer::Writer;
 use crate::pages::{BundleIndex, Env, PageBundle, PageIndex};
+use crate::pages_error::PagesError;
 use rayon::prelude::*;
-use std::fs::{create_dir_all, File};
+use std::collections::HashSet;
+use std::fs::{create_dir_all, remove_dir_all, remove_file, File};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::{fs, io};
@@ -23,9 +25,29 @@ impl Writer for FsWriter {
     fn write(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<()> {
         env.print_v("FS Writer", "start writing pages");
         let pages = bundle.pages();
+        let mut all_paths = HashSet::new();
+
+        // Clean output directory
+        if self.path.exists() {
+            let existing_paths = fs::read_dir(&self.path)?;
+
+            for path in existing_paths {
+                let path = path?.path();
+                env.print_vv("FS Writer", &format!("removing {}", path.to_string_lossy()));
+                if path.is_dir() {
+                    remove_dir_all(path)?;
+                } else {
+                    remove_file(path)?;
+                }
+            }
+        }
         // Create directories
         for page in pages {
             let path = page.path();
+            if all_paths.contains(path) {
+                return Err(PagesError::Conflict(format!("conflicting path {}", path.join("/"))).into());
+            }
+            all_paths.insert(path);
             if path.len() < 2 {
                 continue;
             }
