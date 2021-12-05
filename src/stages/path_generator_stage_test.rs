@@ -321,4 +321,167 @@ mod tests {
             ]
         );
     }
+
+    #[test]
+    fn generate_page_paths_based_on_regexp_pattern() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([(
+                            "path".to_string(),
+                            Value::Vec(vec![Value::String("^d1/d2".to_string()), Value::String("{{path_join path}}/index.html".to_string())]),
+                        )])),
+                    }),
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "f2".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([(
+                            "path".to_string(),
+                            Value::Vec(vec![
+                                Value::Vec(vec![Value::String("^d1/d2".to_string()), Value::String("{{path_join path 0 -2}}/index_1.html".to_string())]),
+                                Value::Vec(vec![Value::String(r"f\d{1}$".to_string()), Value::String("{{path_join path 0 -2}}/index_2.html".to_string())]),
+                                Value::Vec(vec![Value::String("^d4".to_string()), Value::String("{{path_join path 0 -2}}/index_3.html".to_string())]),
+                            ]),
+                        )])),
+                    }),
+                    content: "test content".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([(
+                            "path".to_string(),
+                            Value::Vec(vec![Value::String("^d1/d2".to_string()), Value::String("{{path_join path 0 -2}}/{{file_name}}/index.html".to_string())]),
+                        )])),
+                    }),
+                    content: "test content".to_string(),
+                }),
+            ],
+        });
+
+        let path_generator = PathGenerator::new("path generator".to_string());
+
+        let result_bundle = path_generator.process(&bundle, &Env::test()).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "path generator".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        actual.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["d1".to_string(), "d2".to_string(), "f3".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([(
+                            "path".to_string(),
+                            Value::Vec(vec![Value::String("^d1/d2".to_string()), Value::String("{{path_join path 0 -2}}/{{file_name}}/index.html".to_string())])
+                        )])),
+                    }),
+                    content: "test content".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([(
+                            "path".to_string(),
+                            Value::Vec(vec![Value::String("^d1/d2".to_string()), Value::String("{{path_join path}}/index.html".to_string())])
+                        )])),
+                    }),
+                    content: "test content".to_string(),
+                },
+                TestPage {
+                    path: vec!["d1".to_string(), "index_2.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([(
+                            "path".to_string(),
+                            Value::Vec(vec![
+                                Value::Vec(vec![Value::String("^d1/d2".to_string()), Value::String("{{path_join path 0 -2}}/index_1.html".to_string())]),
+                                Value::Vec(vec![Value::String(r"f\d{1}$".to_string()), Value::String("{{path_join path 0 -2}}/index_2.html".to_string())]),
+                                Value::Vec(vec![Value::String("^d4".to_string()), Value::String("{{path_join path 0 -2}}/index_3.html".to_string())]),
+                            ]),
+                        )])),
+                    }),
+                    content: "test content".to_string(),
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn generate_page_returns_err_when_malformed_regexp() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![Arc::new(TestPage {
+                path: vec!["d1".to_string(), "f1".to_string()],
+                metadata: Some(Metadata {
+                    title: None,
+                    summary: None,
+                    authors: Default::default(),
+                    tags: Default::default(),
+                    publishing_date: None,
+                    last_edit_date: None,
+                    data: HashMap::from_iter(IntoIter::new([(
+                        "path".to_string(),
+                        Value::Vec(vec![Value::String("^[a".to_string()), Value::String("{{path_join path}}/index.html".to_string())]),
+                    )])),
+                }),
+                content: "test content".to_string(),
+            })],
+        });
+
+        let path_generator = PathGenerator::new("path generator".to_string());
+
+        let result_bundle = path_generator.process(&bundle, &Env::test());
+        if let Err(err) = result_bundle {
+            if let Some(regex::Error::Syntax(s)) = err.downcast_ref::<regex::Error>() {
+                assert_eq!(s, "regex parse error:\n    ^[a\n     ^\nerror: unclosed character class");
+            }
+        } else {
+            panic!("should rise regexp parsing error")
+        }
+    }
 }

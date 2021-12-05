@@ -4,4 +4,5 @@ authors:
   - name: Ipsum
     contacts: [ ipsum@mail.io ]
 data:
-  path: '{{path_join path 0 -2}}/index.html'
+  path:
+    - ['\.html$', '{{path_join path 0 -2}}/index.html']

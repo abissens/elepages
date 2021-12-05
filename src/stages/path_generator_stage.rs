@@ -3,10 +3,13 @@ use crate::pages::{ArcPage, DateIndex, Env, MetadataIndex, PageBundle, VecBundle
 use crate::stages::{ProcessingResult, Stage};
 use chrono::{DateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, Output, RenderContext, RenderError};
+use regex::Regex;
 use serde::Serialize;
 use std::any::Any;
 use std::cmp;
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 use std::time::SystemTime;
 
@@ -65,11 +68,52 @@ impl Stage for PathGenerator {
         env.print_vv(&format!("stage {}", self.name()), "path generation");
 
         let mut candidates = vec![];
-        for page in bundle.pages() {
+        let mut regexp_map: HashMap<String, Regex> = Default::default();
+        let mut pattern_fn = |path_value: &Value, page_path: &[String]| -> anyhow::Result<String> {
+            if let Ok(pattern) = <Vec<String>>::from_value(path_value.clone()) {
+                if pattern.len() >= 2 {
+                    let p = pattern.get(0).unwrap();
+                    let path = pattern.get(1).unwrap();
+                    if !regexp_map.contains_key(p) {
+                        regexp_map.insert(p.to_string(), Regex::new(p)?);
+                    }
+                    if regexp_map.get(p).unwrap().is_match(&page_path.join("/")) {
+                        return Ok(path.to_string());
+                    }
+                }
+            }
+            Err(IgnoreErr.into())
+        };
+        'outer: for page in bundle.pages() {
             if let Some(Some(path_value)) = page.metadata().map(|m| m.data.get("path")) {
                 if let Ok(path) = String::from_value(path_value.clone()) {
                     candidates.push((page, path));
                     continue;
+                }
+                let page_path = page.path();
+                let single_pattern_result = pattern_fn(path_value, page_path);
+                if let Ok(path) = single_pattern_result {
+                    candidates.push((page, path));
+                    continue;
+                }
+                if let Err(err) = single_pattern_result {
+                    if err.downcast_ref::<IgnoreErr>().is_none() {
+                        return Err(err);
+                    }
+                }
+                if let Value::Vec(multiple_patterns) = path_value {
+                    for pattern_value in multiple_patterns {
+                        let single_pattern_result = pattern_fn(pattern_value, page_path);
+                        if let Ok(path) = single_pattern_result {
+                            candidates.push((page, path));
+                            continue 'outer;
+                        }
+                        if let Err(err) = single_pattern_result {
+                            if err.downcast_ref::<IgnoreErr>().is_none() {
+                                return Err(err);
+                            }
+                        }
+                    }
                 }
             }
             result.p.push(Arc::clone(page));
@@ -238,3 +282,14 @@ impl<'a> From<(&'a [String], &'a [String], &'a str, &'a MetadataIndex)> for Path
         }
     }
 }
+
+#[derive(Debug)]
+struct IgnoreErr;
+
+impl Display for IgnoreErr {
+    fn fmt(&self, _: &mut Formatter<'_>) -> std::fmt::Result {
+        Ok(())
+    }
+}
+
+impl Error for IgnoreErr {}
