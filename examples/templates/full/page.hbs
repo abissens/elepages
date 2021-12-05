@@ -25,7 +25,7 @@
         </div>
         <div class="sidebar">
              <h3>Last posts</h3>
-            {{#each (bundle_query "" "{limit: 5}")}}
+            {{#each (bundle_query "{path: '**/*.html'}" "{limit: 5}")}}
               <a class="post_entry" href="{{this.page_uri}}">
                 <h4>{{this.metadata.title}}</h4>
                 <h3 class="publishing_date">{{ date_format this.metadata.publishing_date.timestamp }}</h3>

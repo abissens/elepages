@@ -2,7 +2,7 @@
 {{#*inline "title"}} Ele pages {{/inline}}
 {{#*inline "content"}}
 
-    {{#each (bundle_query "" "{}")}}
+    {{#each (bundle_query "{path: '**/*.html'}")}}
       <div class="index_entry">
         <a href="{{this.page_uri}}"><h4>{{this.metadata.title}}</h4></a>
         <h3 class="publishing_date">{{ date_format this.metadata.publishing_date.timestamp }}</h3>

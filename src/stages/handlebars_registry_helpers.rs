@@ -1,4 +1,4 @@
-use crate::pages::{AlwaysQuery, AndQuery, AuthorQuery, BundleIndex, BundlePagination, BundleQuery, Env, NotQuery, OrQuery, Page, PageIndex, TagQuery};
+use crate::pages::{AlwaysQuery, AndQuery, AuthorQuery, BundleIndex, BundlePagination, BundleQuery, Env, NotQuery, OrQuery, Page, PageIndex, PathQuery, TagQuery};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
 use serde::{Deserialize, Serialize};
@@ -26,6 +26,7 @@ impl HelperDef for PageContentHelper<'_> {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[serde(untagged)]
 pub enum BundleQueryValue {
+    Path { path: String },
     Tag { tag: String },
     Tags { tags: Vec<String> },
     Author { author: String },
@@ -45,6 +46,7 @@ impl From<&BundleQueryValue> for Box<dyn BundleQuery> {
             BundleQueryValue::And { and } => Box::new(AndQuery(and.iter().map(<Box<dyn BundleQuery>>::from).collect())),
             BundleQueryValue::Or { or } => Box::new(OrQuery(or.iter().map(<Box<dyn BundleQuery>>::from).collect())),
             BundleQueryValue::Not { not } => Box::new(NotQuery(<Box<dyn BundleQuery>>::from(not.as_ref()))),
+            BundleQueryValue::Path { path } => Box::new(PathQuery(path.split('/').map(|s| s.to_string()).collect())),
         }
     }
 }

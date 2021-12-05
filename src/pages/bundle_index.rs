@@ -1,5 +1,5 @@
 use crate::config::Value;
-use crate::pages::{Author, Metadata, Page, PageBundle};
+use crate::pages::{Author, Metadata, Page, PageBundle, PathSelector};
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -12,7 +12,6 @@ pub struct BundleIndex {
     pub all_authors: HashSet<Author>,
     pub all_tags: HashSet<String>,
     pub all_pages: Vec<PageIndex>,
-    pub pages_with_metadata: Vec<PageIndex>,
     pub pages_by_author: HashMap<String, Vec<PageRef>>,
     pub pages_by_tag: HashMap<String, Vec<PageRef>>,
 }
@@ -131,7 +130,6 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             all_authors: Default::default(),
             all_tags: Default::default(),
             all_pages: vec![],
-            pages_with_metadata: vec![],
             pages_by_author: Default::default(),
             pages_by_tag: Default::default(),
         };
@@ -140,7 +138,6 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             let page_ref = page_index.page_ref.clone();
             result.all_pages.push(page_index.clone());
             if let Some(metadata) = page.metadata() {
-                result.pages_with_metadata.push(page_index);
                 for tag in &metadata.tags {
                     result.all_tags.insert(tag.to_string());
                     result.pages_by_tag.entry(tag.to_string()).or_insert_with(Vec::new).push(page_ref.clone());
@@ -157,10 +154,6 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
             _ => Ordering::Equal,
         });
 
-        result.pages_with_metadata.sort_by(|a, b| match (&a.metadata, &b.metadata) {
-            (Some(ma), Some(mb)) => mb.publishing_date.as_ref().map(|v| v.timestamp).cmp(&ma.publishing_date.as_ref().map(|v| v.timestamp)),
-            _ => Ordering::Equal,
-        });
         result
     }
 }
@@ -180,7 +173,14 @@ pub struct AuthorQuery(pub String);
 pub struct AndQuery(pub Vec<Box<dyn BundleQuery>>);
 pub struct OrQuery(pub Vec<Box<dyn BundleQuery>>);
 pub struct NotQuery(pub Box<dyn BundleQuery>);
+pub struct PathQuery(pub Vec<String>);
 pub struct AlwaysQuery;
+
+impl BundleQuery for PathQuery {
+    fn do_match(&self, page: &PageIndex) -> bool {
+        PathSelector::select_page(&page.page_ref.path, &self.0)
+    }
+}
 
 impl BundleQuery for TagQuery {
     fn do_match(&self, page: &PageIndex) -> bool {
@@ -246,7 +246,7 @@ impl BundleIndex {
     pub fn query(&self, q: &dyn BundleQuery, p: &BundlePagination) -> Vec<&PageIndex> {
         let mut result = vec![];
         let mut matched_counter = 0;
-        for page in &self.pages_with_metadata {
+        for page in &self.all_pages {
             if q.do_match(page) {
                 matched_counter += 1;
                 match p.skip {

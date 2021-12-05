@@ -25,7 +25,6 @@ impl From<&Arc<dyn Page>> for TestPage {
                 all_authors: Default::default(),
                 all_tags: Default::default(),
                 all_pages: vec![],
-                pages_with_metadata: vec![],
                 pages_by_author: Default::default(),
                 pages_by_tag: Default::default(),
             },

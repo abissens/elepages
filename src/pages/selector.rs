@@ -16,7 +16,7 @@ pub struct PathSelector {
 }
 
 impl PathSelector {
-    fn select_page(&self, path: &[String], query: &[String]) -> bool {
+    pub fn select_page(path: &[String], query: &[String]) -> bool {
         if query.is_empty() {
             return path.is_empty();
         }
@@ -32,8 +32,8 @@ impl PathSelector {
                     continue;
                 }
                 for (pos, v) in path.iter().enumerate() {
-                    if self.entry_match(next_item_query, v) {
-                        return self.select_page(&path[pos + 1..], &query[i + 1..]);
+                    if PathSelector::entry_match(next_item_query, v) {
+                        return PathSelector::select_page(&path[pos + 1..], &query[i + 1..]);
                     }
                 }
                 return false;
@@ -41,14 +41,14 @@ impl PathSelector {
             return true;
         }
 
-        if self.entry_match(item_query, &path[0]) {
-            return self.select_page(&path[1..], &query[1..]);
+        if PathSelector::entry_match(item_query, &path[0]) {
+            return PathSelector::select_page(&path[1..], &query[1..]);
         }
 
         false
     }
 
-    fn entry_match_chars(&self, ic: &[char], qc: &[char]) -> bool {
+    fn entry_match_chars(ic: &[char], qc: &[char]) -> bool {
         if qc.is_empty() {
             return ic.is_empty();
         }
@@ -65,7 +65,7 @@ impl PathSelector {
                 }
                 for (pos, v) in ic.iter().enumerate() {
                     if next_q == v {
-                        return self.entry_match_chars(&ic[pos + 1..], &qc[i + 1..]);
+                        return PathSelector::entry_match_chars(&ic[pos + 1..], &qc[i + 1..]);
                     }
                 }
                 return false;
@@ -74,20 +74,20 @@ impl PathSelector {
         }
 
         if ic[0] == qc[0] {
-            return self.entry_match_chars(&ic[1..], &qc[1..]);
+            return PathSelector::entry_match_chars(&ic[1..], &qc[1..]);
         }
 
         false
     }
 
-    fn entry_match(&self, query: &str, path_item: &str) -> bool {
+    fn entry_match(query: &str, path_item: &str) -> bool {
         if query == "*" || query == path_item {
             return true;
         }
         if query.contains('*') {
             let pic = path_item.chars().collect::<Vec<char>>();
             let qc = query.chars().collect::<Vec<char>>();
-            return self.entry_match_chars(&pic, &qc);
+            return PathSelector::entry_match_chars(&pic, &qc);
         }
 
         false
@@ -96,7 +96,7 @@ impl PathSelector {
 
 impl Selector for PathSelector {
     fn select(&self, page: &Arc<dyn Page>) -> bool {
-        self.select_page(page.path(), &self.query)
+        PathSelector::select_page(page.path(), &self.query)
     }
 
     fn as_any(&self) -> Option<&dyn Any> {

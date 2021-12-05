@@ -1145,6 +1145,19 @@ mod tests {
                     }),
                     content: "".to_string(),
                 }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
             ],
         });
         let test_folder = TmpTestFolder::new().unwrap();
@@ -1168,6 +1181,9 @@ mod tests {
                             {{/each}}
                             {{#each (bundle_query \"and: [{author: a1}, {tag: t4}]\") }}
                             <h4>{{this.metadata.title}}</h4>
+                            {{/each}}
+                            {{#each (bundle_query \"{path: dir1/**}\") }}
+                            <h5>{{this.metadata.title}}</h5>
                             {{/each}}"}
                     .as_bytes()
                     .to_vec(),
@@ -1213,6 +1229,7 @@ mod tests {
                 <h3>f4 title</h3>
                 <h3>f3 title</h3>
                 <h4>f3 title</h4>
+                <h5>f6 title</h5>
                 "
             }
         );
@@ -1355,7 +1372,9 @@ mod tests {
                 <h2>f4 title</h2>
                 <h2>f3 title</h2>
                 <h3>f3 title</h3>
-                <h4>f1 title</h4>
+                <h4>f4 title</h4>
+                <h4>f3 title</h4>
+                <h4></h4>
                 "
             }
         );
