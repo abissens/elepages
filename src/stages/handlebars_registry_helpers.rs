@@ -88,7 +88,7 @@ pub struct DateFormatHelper;
 impl HelperDef for DateFormatHelper {
     fn call<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>, out: &mut dyn Output) -> HelperResult {
         let timestamp_param = h.param(0).and_then(|v| v.value().as_i64());
-        let format_param = h.param(1).and_then(|v| v.value().as_str()).unwrap_or_else(|| "%Y-%m-%d");
+        let format_param = h.param(1).and_then(|v| v.value().as_str()).unwrap_or("%Y-%m-%d");
         if timestamp_param.is_none() {
             return Ok(())
         }

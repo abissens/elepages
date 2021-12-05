@@ -166,7 +166,7 @@ mod tests {
         let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
             p: vec![
                 Arc::new(TestPage {
-                    path: vec!["dir".to_string(), "f1".to_string()],
+                    path: vec!["dir".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: Some(Arc::new("f1 title".to_string())),
                         summary: Some(Arc::new("f1 summary".to_string())),
@@ -242,9 +242,9 @@ mod tests {
                 all_pages: vec![
                     PageIndex {
                         page_ref: PageRef {
-                            path: vec!["dir".to_string(), "f1".to_string()]
+                            path: vec!["dir".to_string(), "index.html".to_string()]
                         },
-                        page_uri: "/dir/f1".to_string(),
+                        page_uri: "/dir/".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f1 title".to_string()),
                             url_title: Some("f1_title".to_string()),
@@ -300,9 +300,9 @@ mod tests {
                 pages_with_metadata: vec![
                     PageIndex {
                         page_ref: PageRef {
-                            path: vec!["dir".to_string(), "f1".to_string()]
+                            path: vec!["dir".to_string(), "index.html".to_string()]
                         },
-                        page_uri: "/dir/f1".to_string(),
+                        page_uri: "/dir/".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f1 title".to_string()),
                             url_title: Some("f1_title".to_string()),
@@ -355,20 +355,20 @@ mod tests {
                     (
                         "t1".to_string(),
                         vec![PageRef {
-                            path: vec!["dir".to_string(), "f1".to_string()]
+                            path: vec!["dir".to_string(), "index.html".to_string()]
                         }]
                     ),
                     (
                         "t2".to_string(),
                         vec![PageRef {
-                            path: vec!["dir".to_string(), "f1".to_string()]
+                            path: vec!["dir".to_string(), "index.html".to_string()]
                         }]
                     ),
                     (
                         "t3".to_string(),
                         vec![
                             PageRef {
-                                path: vec!["dir".to_string(), "f1".to_string()]
+                                path: vec!["dir".to_string(), "index.html".to_string()]
                             },
                             PageRef { path: vec!["f3".to_string()] }
                         ]
@@ -379,7 +379,7 @@ mod tests {
                     (
                         "f1 author".to_string(),
                         vec![PageRef {
-                            path: vec!["dir".to_string(), "f1".to_string()]
+                            path: vec!["dir".to_string(), "index.html".to_string()]
                         }]
                     ),
                     ("f3 author 1".to_string(), vec![PageRef { path: vec!["f3".to_string()] }, PageRef { path: vec!["f4".to_string()] }]),
