@@ -9,3 +9,9 @@ simple_md_2:
 
 simple_md_3:
 	elepages --source ./pages/3_mds_folders --git-path ../ -vvv
+
+single_tpl:
+	elepages --source ./pages/3_mds_folders --git-path ../ --handlebars-path ./templates/single -vvv
+
+full_tpl:
+	elepages --source ./pages/3_mds_folders --git-path ../ --handlebars-path ./templates/full -vvv

@@ -1,0 +1,47 @@
+{{#> page_layout}}
+{{#*inline "title"}}
+    {{page.metadata.title}}
+{{/inline}}
+
+{{#*inline "content"}}
+    <div class="header">
+        <h2 class="title">{{page.metadata.title}}</h2>
+        <h3 class="publishing_date">{{ date_format page.metadata.publishing_date.timestamp }}</h3>
+        <div class="authors">
+            {{#each page.metadata.authors}}
+                <h3>{{this}}</h3>
+            {{/each}}
+        </div>
+        <div class="tags">
+            {{#each page.metadata.tags}}
+                <h3>{{this}}</h3>
+            {{/each}}
+        </div>
+    </div>
+
+    <div class="payload">
+        <div class="content">
+            {{page_content}}
+        </div>
+        <div class="sidebar">
+             <h3>Last posts</h3>
+            {{#each (bundle_query "" "{limit: 5}")}}
+              <a class="post_entry" href="{{this.page_uri}}">
+                <h4>{{this.metadata.title}}</h4>
+                <h3 class="publishing_date">{{ date_format this.metadata.publishing_date.timestamp }}</h3>
+                <div class="authors">
+                    {{#each this.metadata.authors}}
+                        <h3>{{this}}</h3>
+                    {{/each}}
+                </div>
+                <div class="tags">
+                    {{#each this.metadata.tags}}
+                        <h3>{{this}}</h3>
+                    {{/each}}
+                </div>
+              </a>
+            {{/each}}
+        </div>
+    </div>
+{{/inline}}
+{{/page_layout}}

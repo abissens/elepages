@@ -2,6 +2,7 @@ use crate::pages::{AlwaysQuery, AndQuery, AuthorQuery, BundleIndex, BundlePagina
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use chrono::{DateTime, NaiveDateTime, Utc};
 
 pub struct PageContentHelper<'a> {
     pub source: &'a Arc<dyn Page>,
@@ -79,5 +80,22 @@ impl HelperDef for BundleQueryHelper<'_> {
 
         let pages = self.output_index.query(bundle_query.as_ref(), &pagination);
         Ok(ScopedJson::Derived(serde_json::to_value(pages)?))
+    }
+}
+
+pub struct DateFormatHelper;
+
+impl HelperDef for DateFormatHelper {
+    fn call<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>, out: &mut dyn Output) -> HelperResult {
+        let timestamp_param = h.param(0).and_then(|v| v.value().as_i64());
+        let format_param = h.param(1).and_then(|v| v.value().as_str()).unwrap_or_else(|| "%Y-%m-%d");
+        if timestamp_param.is_none() {
+            return Ok(())
+        }
+        let naive_dt = NaiveDateTime::from_timestamp(timestamp_param.unwrap(), 0);
+        let datetime: DateTime<Utc> = DateTime::from_utc(naive_dt, Utc);
+
+        out.write(&datetime.format(format_param).to_string())?;
+        Ok(())
     }
 }

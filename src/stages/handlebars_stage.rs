@@ -1,5 +1,5 @@
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
-use crate::stages::{BundleQueryHelper, PageContentHelper, ProcessingResult, Stage};
+use crate::stages::{BundleQueryHelper, PageContentHelper, ProcessingResult, Stage, DateFormatHelper};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
@@ -125,6 +125,7 @@ impl Page for HandlebarsTemplatePage {
     fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
         let mut local_registry = self.registry.clone();
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
+        local_registry.register_helper("date_format", Box::new(DateFormatHelper));
         let result = local_registry.render(
             &self.template_asset.template_name,
             &TemplateData {
@@ -171,6 +172,7 @@ impl Page for HandlebarsPage {
             }),
         );
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
+        local_registry.register_helper("date_format", Box::new(DateFormatHelper));
         let result = (&local_registry).render(
             &self.template_name,
             &PageData {

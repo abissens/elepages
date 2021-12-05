@@ -1,5 +1,3 @@
-## Lorem ipsum dolor sit amet
-### consectetur adipiscing elit
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. **Maecenas** tempor nulla a nunc semper, ac mollis lacus egestas. Vivamus porttitor quam nec tellus volutpat, eu facilisis nisl tempus. Nulla aliquam blandit lorem sit amet venenatis. Nullam eu purus nec nisl fermentum sagittis ac a augue. Proin vestibulum sem eget mattis hendrerit. Etiam euismod lectus sit amet dolor fringilla interdum. Nunc convallis ultricies ex in faucibus.
 

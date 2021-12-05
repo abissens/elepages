@@ -38,6 +38,7 @@ mod tests {
                     page_ref: PageRef {
                         path: vec!["dir".to_string(), "f1".to_string()]
                     },
+                    page_uri: "/dir/f1".to_string(),
                     metadata: Some(MetadataIndex {
                         title: Some("f1 & xyz title".to_string()),
                         url_title: Some("f1_%26_xyz_title".to_string()),
@@ -83,6 +84,7 @@ mod tests {
                     page_ref: PageRef {
                         path: vec!["dir".to_string(), "f1".to_string()]
                     },
+                    page_uri: "/dir/f1".to_string(),
                     metadata: Some(MetadataIndex {
                         title: Some("f1 & xyz title".to_string()),
                         url_title: Some("f1_%26_xyz_title".to_string()),
@@ -242,6 +244,7 @@ mod tests {
                         page_ref: PageRef {
                             path: vec!["dir".to_string(), "f1".to_string()]
                         },
+                        page_uri: "/dir/f1".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f1 title".to_string()),
                             url_title: Some("f1_title".to_string()),
@@ -262,10 +265,12 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f2".to_string()] },
+                        page_uri: "/f2".to_string(),
                         metadata: None
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f3".to_string()] },
+                        page_uri: "/f3".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f3 title".to_string()),
                             url_title: Some("f3_title".to_string()),
@@ -279,6 +284,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f4".to_string()] },
+                        page_uri: "/f4".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f4 title".to_string()),
                             url_title: Some("f4_title".to_string()),
@@ -296,6 +302,7 @@ mod tests {
                         page_ref: PageRef {
                             path: vec!["dir".to_string(), "f1".to_string()]
                         },
+                        page_uri: "/dir/f1".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f1 title".to_string()),
                             url_title: Some("f1_title".to_string()),
@@ -316,6 +323,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f3".to_string()] },
+                        page_uri: "/f3".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f3 title".to_string()),
                             url_title: Some("f3_title".to_string()),
@@ -329,6 +337,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f4".to_string()] },
+                        page_uri: "/f4".to_string(),
                         metadata: Some(MetadataIndex {
                             title: Some("f4 title".to_string()),
                             url_title: Some("f4_title".to_string()),
@@ -450,6 +459,7 @@ mod tests {
                 all_pages: vec![
                     PageIndex {
                         page_ref: PageRef { path: vec!["f3".to_string()] },
+                        page_uri: "/f3".to_string(),
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -478,6 +488,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f1".to_string()] },
+                        page_uri: "/f1".to_string(),
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -506,6 +517,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f2".to_string()] },
+                        page_uri: "/f2".to_string(),
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -536,6 +548,7 @@ mod tests {
                 pages_with_metadata: vec![
                     PageIndex {
                         page_ref: PageRef { path: vec!["f3".to_string()] },
+                        page_uri: "/f3".to_string(),
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -564,6 +577,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f1".to_string()] },
+                        page_uri: "/f1".to_string(),
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,
@@ -592,6 +606,7 @@ mod tests {
                     },
                     PageIndex {
                         page_ref: PageRef { path: vec!["f2".to_string()] },
+                        page_uri: "/f2".to_string(),
                         metadata: Some(MetadataIndex {
                             title: None,
                             url_title: None,

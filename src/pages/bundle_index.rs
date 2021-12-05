@@ -25,6 +25,7 @@ pub struct PageRef {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct PageIndex {
     pub page_ref: PageRef,
+    pub page_uri: String,
     pub metadata: Option<MetadataIndex>,
 }
 
@@ -105,8 +106,10 @@ impl From<&Metadata> for MetadataIndex {
 
 impl From<&Arc<dyn Page>> for PageIndex {
     fn from(page: &Arc<dyn Page>) -> Self {
+        let page_path = page.path();
         PageIndex {
-            page_ref: PageRef { path: page.path().to_vec() },
+            page_ref: PageRef { path: page_path.to_vec() },
+            page_uri: "/".to_string() + &page_path.join("/"),
             metadata: page.metadata().map(MetadataIndex::from),
         }
     }

@@ -1,0 +1,161 @@
+body {
+    font-family: arial, sans-serif;
+    padding-top: 50px;
+}
+h1,h2,h3,h4,h5 {
+    padding: 0;
+    margin: 0;
+    font-weight: normal;
+}
+.page{
+    width: 1000px;
+    margin: auto;
+}
+
+.payload {
+    display: flex;
+    flex-direction: row;
+}
+
+.payload .content {
+    flex: 0 1 100%;
+    padding: 0 50px 0 0;
+}
+
+.payload .sidebar {
+    flex: 0 0 200px
+}
+.header {
+    border-bottom: 1px solid gray;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+.header .publishing_date {
+    color: gray;
+    font-size: 12px;
+    font-weight: normal;
+    margin-top: 2px;
+}
+.header .authors {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.header .tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.header .authors h3 {
+    padding: 2px 5px;
+    background-color: darkslategray;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: white;
+    border-radius: 8px;
+}
+
+.header .tags h3 {
+    padding: 2px 5px;
+    background-color: cornflowerblue;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: white;
+    border-radius: 8px;
+}
+
+.post_entry {
+    text-decoration: none;
+}
+
+.post_entry .publishing_date {
+    color: gray;
+    font-size: 12px;
+    font-weight: normal;
+    margin-top: 2px;
+}
+.post_entry .authors {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.post_entry .tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.post_entry .authors h3 {
+    padding: 2px 5px;
+    background-color: darkslategray;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: white;
+    border-radius: 8px;
+}
+
+.post_entry .tags h3 {
+    padding: 2px 5px;
+    background-color: cornflowerblue;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: white;
+    border-radius: 8px;
+}
+
+
+.index_entry {
+    padding: 20px;
+    margin-bottom: 10px;
+}
+.index_entry > a {
+    text-decoration: none;
+}
+.index_entry > a > h4 {
+    font-size: 20px;
+}
+
+.index_entry .publishing_date {
+    color: gray;
+    font-size: 12px;
+    font-weight: normal;
+    margin-top: 2px;
+}
+.index_entry .authors {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.index_entry .tags {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+.index_entry .authors h3 {
+    padding: 2px 5px;
+    background-color: darkslategray;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: white;
+    border-radius: 8px;
+}
+
+.index_entry .tags h3 {
+    padding: 2px 5px;
+    background-color: cornflowerblue;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    color: white;
+    border-radius: 8px;
+}

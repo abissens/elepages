@@ -22,6 +22,9 @@
             {{page_content}}
         </div>
         <div class="sidebar">
+            {{#each (bundle_query "" "{limit: 5}")}}
+              <a href="{{this.page_uri}}">{{this.metadata.title}}</a>
+            {{/each}}
         </div>
     </div>
 </div>
