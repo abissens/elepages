@@ -7,3 +7,5 @@ publishingDate: 2021-12-05T20:00:00-08:00
 tags: [elit]
 authors:
   - name: Lorem
+data:
+  isRaw: true

@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
@@ -87,6 +88,103 @@ mod tests {
                     path: vec!["f2.htm".to_string()],
                     metadata: None,
                     content: "TPL 1 :  \n content 2".to_string(),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn ignore_raw_content() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                    }),
+                    content: "content 1".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.htm".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f2 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(false))])),
+                    }),
+                    content: "content 2".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir".to_string(), "f3.html".to_string()],
+                    metadata: None,
+                    content: "content 3".to_string(),
+                }),
+            ],
+        });
+        let mut registry = handlebars::Handlebars::new();
+        registry.register_template_string("tpl_1", "TPL 1 : {{page.metadata.title}} \n {{page_content}}").unwrap();
+        let hb_stage = HandlebarsStage {
+            name: "hb stage".to_string(),
+            lookup: Arc::new(NewHandlebarsLookupTest {
+                registry,
+                fetch: Some("tpl_1".to_string()),
+                assets: vec![],
+                template_assets: vec![],
+            }),
+        };
+
+        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+        let mut actual = result_bundle.0.pages().iter().map(|p| TestPage::from(p)).collect::<Vec<_>>();
+        actual.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["dir".to_string(), "f3.html".to_string()],
+                    metadata: None,
+                    content: "TPL 1 :  \n content 3".to_string(),
+                },
+                TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))]))
+                    }),
+                    content: "content 1".to_string(),
+                },
+                TestPage {
+                    path: vec!["f2.htm".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f2 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(false))]))
+                    }),
+                    content: "TPL 1 : f2 title \n content 2".to_string(),
                 },
             ]
         );

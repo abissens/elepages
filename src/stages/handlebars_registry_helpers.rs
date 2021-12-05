@@ -1,8 +1,8 @@
 use crate::pages::{AlwaysQuery, AndQuery, AuthorQuery, BundleIndex, BundlePagination, BundleQuery, Env, NotQuery, OrQuery, Page, PageIndex, TagQuery};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use chrono::{DateTime, NaiveDateTime, Utc};
 
 pub struct PageContentHelper<'a> {
     pub source: &'a Arc<dyn Page>,
@@ -90,7 +90,7 @@ impl HelperDef for DateFormatHelper {
         let timestamp_param = h.param(0).and_then(|v| v.value().as_i64());
         let format_param = h.param(1).and_then(|v| v.value().as_str()).unwrap_or("%Y-%m-%d");
         if timestamp_param.is_none() {
-            return Ok(())
+            return Ok(());
         }
         let naive_dt = NaiveDateTime::from_timestamp(timestamp_param.unwrap(), 0);
         let datetime: DateTime<Utc> = DateTime::from_utc(naive_dt, Utc);

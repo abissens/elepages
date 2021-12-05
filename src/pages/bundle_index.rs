@@ -109,7 +109,7 @@ impl From<&Arc<dyn Page>> for PageIndex {
         let page_path = page.path();
         let page_uri: String = if let Some(last) = page_path.last() {
             if last == "index.html" || last == "index.htm" {
-                "/".to_string() + &(page_path[0..page_path.len()-1].join("/")) + "/"
+                "/".to_string() + &(page_path[0..page_path.len() - 1].join("/")) + "/"
             } else {
                 "/".to_string() + &page_path.join("/")
             }

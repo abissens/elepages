@@ -1,9 +1,9 @@
+use crate::config::Value;
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
-use crate::stages::{BundleQueryHelper, PageContentHelper, ProcessingResult, Stage, DateFormatHelper};
+use crate::stages::{BundleQueryHelper, DateFormatHelper, PageContentHelper, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
-use rayon::prelude::*;
 use serde::Serialize;
 use std::any::Any;
 use std::collections::HashSet;
@@ -53,8 +53,15 @@ impl Stage for HandlebarsStage {
         // Fetch pages
         let result: Vec<Arc<dyn Page>> = bundle
             .pages()
-            .par_iter()
+            .iter()
             .filter_map(|p| {
+                if let Some(metadata) = p.metadata() {
+                    if let Some(Value::Bool(is_row)) = metadata.data.get("isRaw") {
+                        if *is_row {
+                            return Some(Arc::clone(p));
+                        }
+                    }
+                }
                 lookup_result.fetch(p).map(|template_name| {
                     Arc::new(HandlebarsPage {
                         registry: root_repository.clone(),
