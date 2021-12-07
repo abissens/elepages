@@ -23,7 +23,7 @@ pub struct ExecutorParams {
     pub output_dir: Option<PathBuf>,
     pub config_path: Option<PathBuf>,
     pub git_repo_path_config: Option<String>,
-    pub handlebars_path_config: Option<String>,
+    pub handlebars_config: Option<Value>,
     pub print_level: Option<PrintLevel>,
 }
 
@@ -131,11 +131,11 @@ impl Executor {
                 },
             },
         ];
-        if let Some(handlebars_config) = &params.handlebars_path_config {
+        if let Some(handlebars_config) = &params.handlebars_config {
             stages.push(StageValue::Replace {
                 by: Box::new(StageValue::ProcessorStage {
                     processor_type: "handlebars".to_string(),
-                    config: Value::String(handlebars_config.to_string()),
+                    config: handlebars_config.clone(),
                 }),
                 replace: SelectorConfig::Base {
                     path: None,
