@@ -3,10 +3,12 @@ use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
 use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
+use crate::remote::{GitReference, GitRemote};
 use crate::stages::{
     AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
 };
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
+use dirs;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -71,9 +73,67 @@ impl StageMaker for ShadowStageMaker {
     }
 }
 
+struct HandlebarsStageMakerConfig {
+    path: Option<String>,
+    remote: Option<String>,
+    git_reference: Option<GitReference>,
+}
+
+impl FromValue for HandlebarsStageMakerConfig {
+    fn from_value(value: Value) -> anyhow::Result<Self> {
+        if let Ok(s) = String::from_value(value.clone()) {
+            if s.starts_with("http://") || s.starts_with("https://") {
+                return Ok(HandlebarsStageMakerConfig {
+                    path: None,
+                    remote: Some(s),
+                    git_reference: Some(GitReference::Branch("main".to_string())),
+                });
+            }
+            return Ok(HandlebarsStageMakerConfig {
+                path: Some(s),
+                remote: None,
+                git_reference: None,
+            });
+        }
+        if let Ok(m) = <HashMap<String, String>>::from_value(value) {
+            #[allow(clippy::manual_map)]
+            let git_reference = if let Some(r) = m.get("commit").map(|v| GitReference::Commit(v.to_string())) {
+                Some(r)
+            } else if let Some(r) = m.get("branch").map(|v| GitReference::Branch(v.to_string())) {
+                Some(r)
+            } else if let Some(r) = m.get("tag").map(|v| GitReference::Tag(v.to_string())) {
+                Some(r)
+            } else {
+                None
+            };
+            return Ok(HandlebarsStageMakerConfig {
+                path: m.get("path").cloned(),
+                remote: m.get("remote").cloned(),
+                git_reference,
+            });
+        }
+        Err(PagesError::ValueParsing("expecting Value::String or Value::Map".to_string()).into())
+    }
+}
+
 impl StageMaker for HandlebarsStageMaker {
-    fn make(&self, name: Option<&str>, config: &Value, _: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        let template_path = PathBuf::from_str(&String::from_value(config.clone())?)?;
+    fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
+        let template_path: PathBuf;
+        let hbs_config = HandlebarsStageMakerConfig::from_value(config.clone())?;
+        if let Some(remote) = hbs_config.remote {
+            let home_dir = dirs::home_dir().ok_or_else(|| PagesError::ElementNotFound("cannot locate home directory".to_string()))?;
+            let git_remote = GitRemote::new(&home_dir, &remote, &hbs_config.git_reference.unwrap_or_else(|| GitReference::Branch("main".to_string())), env)?;
+            template_path = if let Some(sub_dir) = hbs_config.path {
+                let sub_path = PathBuf::from_str(&sub_dir)?;
+                git_remote.local_dir.join(&sub_path)
+            } else {
+                git_remote.local_dir
+            };
+        } else if let Some(local_dir) = hbs_config.path {
+            template_path = PathBuf::from_str(&local_dir)?;
+        } else {
+            return Err(PagesError::ElementNotFound("cannot find configuration".to_string()).into());
+        }
         Ok(Arc::new(HandlebarsStage {
             name: name.unwrap_or("handlebars stage").to_string(),
             lookup: Arc::new(HandlebarsDir { base_path: template_path }),

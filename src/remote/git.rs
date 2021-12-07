@@ -1,6 +1,8 @@
+use crate::pages::Env;
 use crate::pages_error::PagesError;
 use git2::build::{CheckoutBuilder, RepoBuilder};
 use git2::{Direction, Oid, Remote, RemoteHead, Repository};
+use std::fmt::{Display, Formatter};
 use std::fs::create_dir;
 use std::path::{Path, PathBuf};
 use url::Url;
@@ -16,6 +18,16 @@ pub enum GitReference {
     Commit(String),
     Branch(String),
     Tag(String),
+}
+
+impl Display for GitReference {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GitReference::Commit(v) => v.fmt(f),
+            GitReference::Branch(v) => v.fmt(f),
+            GitReference::Tag(v) => v.fmt(f),
+        }
+    }
 }
 
 impl GitRemote {
@@ -81,13 +93,14 @@ impl GitRemote {
         }
     }
 
-    pub fn new(home_dir: &Path, remote: &str, reference: &GitReference) -> anyhow::Result<Self> {
+    pub fn new(home_dir: &Path, remote: &str, reference: &GitReference, env: &Env) -> anyhow::Result<Self> {
+        env.print_v("GitRemote", &format!("loading {} {}", remote, reference));
         if !home_dir.exists() {
             return Err(PagesError::ElementNotFound(format!("home dir {} not found", home_dir.to_string_lossy())).into());
         }
 
         let (local_dir, local_dir_created) = GitRemote::find_or_make_local_dir(home_dir, remote)?;
-
+        env.print_vv("GitRemote", &format!("local dir : {}", local_dir.to_string_lossy()));
         if local_dir_created {
             let repo = RepoBuilder::new().clone(remote, &local_dir)?;
             let oid = GitRemote::fetch_local_ref_oid(&repo, reference)?;
@@ -101,20 +114,22 @@ impl GitRemote {
         }
 
         let oid = GitRemote::fetch_remote_ref_oid(remote, reference)?;
-
+        env.print_vv("GitRemote", &format!("fetched oid : {}", &oid));
         let repo = Repository::open(&local_dir)?;
         let obj = match repo.revparse_single(&oid.to_string()) {
             Ok(v) => v,
             Err(_) => {
+                env.print_vv("GitRemote", "oid not found locally");
                 repo.remote_set_url("origin", remote)?;
                 let mut origin = repo.find_remote("origin")?;
                 origin.connect(Direction::Fetch)?;
-                origin.fetch(&[&oid.to_string()], None, None)?;
+                origin.fetch(&[] as &[&str], None, None)?;
                 repo.revparse_single(&oid.to_string())?
             }
         };
         repo.set_head_detached(obj.id())?;
         repo.checkout_head(Some(CheckoutBuilder::default().force()))?;
+        env.print_vv("GitRemote", "template fetched");
         Ok(Self {
             remote: remote.to_string(),
             oid,

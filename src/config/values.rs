@@ -41,3 +41,16 @@ impl FromValue for Vec<String> {
         Err(PagesError::ValueParsing("expecting Value::Vec".to_string()).into())
     }
 }
+
+impl FromValue for HashMap<String, String> {
+    fn from_value(value: Value) -> anyhow::Result<Self> {
+        if let Value::Map(m) = value {
+            let mut result = HashMap::new();
+            for (k, v) in m {
+                result.insert(k, String::from_value(v)?);
+            }
+            return Ok(result);
+        }
+        Err(PagesError::ValueParsing("expecting Value::Map".to_string()).into())
+    }
+}
