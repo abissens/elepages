@@ -140,6 +140,13 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
         for page in bundle.pages() {
             let page_index = PageIndex::from(page);
             let page_ref = page_index.page_ref.clone();
+            if let Some(metadata) = page.metadata() {
+                if let Some(Value::Bool(is_hidden)) = metadata.data.get("isHidden") {
+                    if *is_hidden {
+                        continue;
+                    }
+                }
+            }
             result.all_pages.push(page_index.clone());
             if let Some(metadata) = page.metadata() {
                 for tag in &metadata.tags {

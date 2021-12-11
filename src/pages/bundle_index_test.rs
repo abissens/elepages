@@ -454,6 +454,57 @@ mod tests {
     }
 
     #[test]
+    fn hidden_pages_are_not_indexed() {
+        let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: None,
+                    content: String::new(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f2 title".to_string())),
+                        summary: Some(Arc::new("f2 summary".to_string())),
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "f2 author 1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "f2 author 2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t3".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: String::new(),
+                }),
+            ],
+        });
+
+        let bundle_index = BundleIndex::from(&vec_bundle);
+        assert_eq!(
+            bundle_index,
+            BundleIndex {
+                all_pages: vec![PageIndex {
+                    page_ref: PageRef { path: vec!["f1".to_string()] },
+                    page_uri: "/f1".to_string(),
+                    metadata: None,
+                }],
+                all_authors: HashSet::default(),
+                all_tags: HashSet::default(),
+                pages_by_author: HashMap::default(),
+                pages_by_tag: HashMap::default(),
+            }
+        );
+    }
+
+    #[test]
     fn query_bundle_index() {
         let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
             p: vec![

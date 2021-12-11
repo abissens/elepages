@@ -288,7 +288,7 @@ impl HandlebarsLookup for HandlebarsDir {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true))]).collect(),
+                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))]).collect(),
                     }),
                 });
             } else if ext == "hbs" {
@@ -306,7 +306,7 @@ impl HandlebarsLookup for HandlebarsDir {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true))]).collect(),
+                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))]).collect(),
                     },
                 )?));
             }

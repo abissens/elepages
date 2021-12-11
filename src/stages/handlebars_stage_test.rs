@@ -1021,7 +1021,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: "test JS".to_string(),
                 },
@@ -1057,7 +1057,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: "test css".to_string(),
                 },
@@ -1088,7 +1088,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: "test index".to_string(),
                 },
@@ -1244,7 +1244,7 @@ mod tests {
                         tags: Default::default(),
                         publishing_date: None,
                         last_edit_date: None,
-                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     })
                     .as_ref()
                 );
@@ -1412,7 +1412,6 @@ mod tests {
                 <h3>f3 title</h3>
                 <h4>f4 title</h4>
                 <h4>f3 title</h4>
-                <h4></h4>
                 "
             }
         );
