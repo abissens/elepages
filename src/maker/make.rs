@@ -134,7 +134,7 @@ impl StageMaker for HandlebarsStageMaker {
         }
         Ok(Arc::new(HandlebarsStage {
             name: name.unwrap_or("handlebars stage").to_string(),
-            lookup: Arc::new(HandlebarsDir { base_path: template_path }),
+            lookup: Arc::new(HandlebarsDir::new(template_path)?),
         }))
     }
 }

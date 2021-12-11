@@ -8,6 +8,7 @@ pub enum PagesError {
     ElementNotFound(String),
     ValueParsing(String),
     Conflict(String),
+    Exec(String),
 }
 
 impl Display for PagesError {
@@ -18,6 +19,7 @@ impl Display for PagesError {
             PagesError::ElementNotFound(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::ValueParsing(s) => f.write_fmt(format_args!("{}", s)),
             PagesError::Conflict(s) => f.write_fmt(format_args!("{}", s)),
+            PagesError::Exec(s) => f.write_fmt(format_args!("{}", s)),
         }
     }
 }

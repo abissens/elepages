@@ -1,14 +1,17 @@
+use crate::commands::{DefaultNpmRunner, NpmRunner};
 use crate::config::Value;
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
+use crate::pages_error::PagesError;
 use crate::stages::{BundleQueryHelper, DateFormatHelper, PageContentHelper, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::array::IntoIter;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
+use std::fs;
 use std::io::{Cursor, Read};
 use std::path::{PathBuf, MAIN_SEPARATOR};
 use std::sync::Arc;
@@ -196,6 +199,7 @@ impl Page for HandlebarsPage {
 #[derive(Debug)]
 pub struct HandlebarsDir {
     pub base_path: PathBuf,
+    npm_runner: Box<dyn NpmRunner>,
 }
 
 pub(crate) struct HandlebarsDirResult {
@@ -248,9 +252,87 @@ impl HandlebarsLookupResult for HandlebarsDirResult {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+struct NodePackageJson {
+    scripts: HashMap<String, String>,
+    #[serde(alias = "buildOutputDir")]
+    build_output_dir: Option<String>,
+}
+
+impl HandlebarsDir {
+    pub fn new(base_path: PathBuf) -> anyhow::Result<HandlebarsDir> {
+        return Ok(HandlebarsDir {
+            base_path,
+            npm_runner: DefaultNpmRunner::new_npm_runner()?,
+        });
+    }
+
+    pub fn new_with_npm_runner(base_path: PathBuf, npm_runner: Box<dyn NpmRunner>) -> HandlebarsDir {
+        HandlebarsDir { base_path, npm_runner }
+    }
+
+    fn get_base_path_dirs(&self) -> anyhow::Result<HashSet<String>> {
+        let entries = fs::read_dir(&self.base_path)?;
+        let mut result = HashSet::new();
+        for entry in entries {
+            let path = entry?.path();
+            if path.is_dir() {
+                if let Some(file_name) = path.file_name() {
+                    result.insert(file_name.to_string_lossy().to_string());
+                }
+            }
+        }
+        Ok(result)
+    }
+
+    fn exec_node_js(&self, env: &Env) -> anyhow::Result<Option<PathBuf>> {
+        let node_js_path = &self.base_path.join("package.json");
+        if !node_js_path.exists() {
+            return Ok(None);
+        }
+        let package_json: NodePackageJson = serde_json::from_reader(fs::File::open(node_js_path)?)?;
+        if !package_json.scripts.contains_key("build") {
+            return Ok(None);
+        }
+
+        let pre_build_dirs: HashSet<String>;
+        let mut build_output_dir = package_json.build_output_dir;
+        if build_output_dir.is_none() {
+            pre_build_dirs = self.get_base_path_dirs()?;
+        } else {
+            pre_build_dirs = HashSet::default();
+        }
+
+        self.npm_runner.install(&self.base_path, env)?;
+        self.npm_runner.run(&self.base_path, "build", env)?;
+
+        if build_output_dir.is_none() {
+            let post_build_dirs = self.get_base_path_dirs()?;
+            let diff: HashSet<String> = &post_build_dirs - &pre_build_dirs;
+            if diff.is_empty() {
+                return Err(PagesError::Exec("no new folder created".to_string()).into());
+            }
+            if diff.len() > 1 {
+                let mut diff = diff.iter().cloned().collect::<Vec<String>>();
+                diff.sort();
+                return Err(PagesError::Exec(format!("multiple new folders created after build : {}", diff.join(", "))).into());
+            }
+            build_output_dir = Some(diff.iter().next().unwrap().to_string())
+        }
+        let result = &self.base_path.join(build_output_dir.unwrap());
+        if !result.exists() {
+            return Err(PagesError::Exec(format!("build folder {} not found", result.to_string_lossy())).into());
+        }
+        if !result.is_dir() {
+            return Err(PagesError::Exec(format!("build result {} is not a dir", result.to_string_lossy())).into());
+        }
+
+        Ok(Some(result.to_path_buf()))
+    }
+}
+
 impl HandlebarsLookup for HandlebarsDir {
     fn lookup(&self, env: &Env) -> anyhow::Result<Arc<dyn HandlebarsLookupResult>> {
-        env.print_vv("HandlebarsDir", &format!("handlebars lookup from dir {}", &self.base_path.to_string_lossy()));
         let mut result = HandlebarsDirResult {
             registry: Handlebars::new(),
             pages: Default::default(),
@@ -258,9 +340,13 @@ impl HandlebarsLookup for HandlebarsDir {
             static_assets: Default::default(),
         };
 
-        visit_dirs(&self.base_path, &mut |entry| {
+        let nj_build = self.exec_node_js(env)?;
+        let base_path = if let Some(build_folder) = nj_build { build_folder } else { self.base_path.clone() };
+
+        env.print_vv("HandlebarsDir", &format!("handlebars lookup from dir {}", &base_path.to_string_lossy()));
+        visit_dirs(&base_path, &mut |entry| {
             let entry_path = entry.path();
-            let rel_path = entry_path.strip_prefix(&self.base_path)?;
+            let rel_path = entry_path.strip_prefix(&base_path)?;
             let name = entry_path.file_name().map(|e| e.to_string_lossy()).unwrap_or_else(|| "".into());
             let ext = entry_path.extension().map(|e| e.to_string_lossy()).unwrap_or_else(|| "".into());
 
@@ -297,7 +383,7 @@ impl HandlebarsLookup for HandlebarsDir {
                 result.registry.register_template_file(template_name, entry_path)?;
             } else {
                 result.static_assets.push(Arc::new(FsPage::new_with_metadata(
-                    &self.base_path,
+                    &base_path,
                     entry_path,
                     Metadata {
                         title: None,

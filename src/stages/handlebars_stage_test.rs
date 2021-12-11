@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::commands::NpmRunner;
     use crate::config::Value;
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
@@ -10,6 +11,7 @@ mod tests {
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
+    use std::path::Path;
     use std::sync::Arc;
 
     #[test]
@@ -472,9 +474,7 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir {
-                base_path: test_folder.get_path().join("templates"),
-            }),
+            lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
         let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
@@ -569,9 +569,7 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir {
-                base_path: test_folder.get_path().join("templates"),
-            }),
+            lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
         let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
@@ -679,9 +677,7 @@ mod tests {
 
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir {
-                base_path: test_folder.get_path().join("templates"),
-            }),
+            lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
         let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
@@ -821,9 +817,7 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir {
-                base_path: test_folder.get_path().join("templates"),
-            }),
+            lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
         let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
@@ -994,9 +988,7 @@ mod tests {
             .unwrap();
         let hb_stage = HandlebarsStage {
             name: "hb stage".to_string(),
-            lookup: Arc::new(HandlebarsDir {
-                base_path: test_folder.get_path().join("templates"),
-            }),
+            lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
         let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
@@ -1220,9 +1212,7 @@ mod tests {
             name: "append".to_string(),
             inner: Arc::new(HandlebarsStage {
                 name: "hb stage".to_string(),
-                lookup: Arc::new(HandlebarsDir {
-                    base_path: test_folder.get_path().join("templates"),
-                }),
+                lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
             }),
         };
 
@@ -1379,9 +1369,7 @@ mod tests {
             name: "append".to_string(),
             inner: Arc::new(HandlebarsStage {
                 name: "hb stage".to_string(),
-                lookup: Arc::new(HandlebarsDir {
-                    base_path: test_folder.get_path().join("templates"),
-                }),
+                lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
             }),
         };
 
@@ -1459,6 +1447,18 @@ mod tests {
                 assets: self.assets.clone(),
                 template_assets: self.template_assets.clone(),
             }))
+        }
+    }
+
+    #[derive(Debug)]
+    struct NoopNpmRunner;
+    impl NpmRunner for NoopNpmRunner {
+        fn install(&self, _: &Path, _: &Env) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        fn run(&self, _: &Path, _: &str, _: &Env) -> anyhow::Result<()> {
+            Ok(())
         }
     }
 }

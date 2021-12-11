@@ -8,6 +8,7 @@ mod git_metadata;
 mod git_metadata_test;
 mod handlebars_registry_helpers;
 mod handlebars_stage;
+mod handlebars_stage_npm_test;
 mod handlebars_stage_test;
 mod indexes_stage;
 mod indexes_stage_test;
