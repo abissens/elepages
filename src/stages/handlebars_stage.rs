@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
 use serde::Serialize;
 use std::any::Any;
+use std::array::IntoIter;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::{Cursor, Read};
@@ -280,14 +281,34 @@ impl HandlebarsLookup for HandlebarsDir {
                 result.template_assets.push(TemplateAsset {
                     path: asset_path,
                     template_name,
-                    metadata: None,
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true))]).collect(),
+                    }),
                 });
             } else if ext == "hbs" {
                 let template_name = rel_path.to_string_lossy().replace(MAIN_SEPARATOR, "/");
                 let template_name = template_name.strip_suffix(".hbs").unwrap();
                 result.registry.register_template_file(template_name, entry_path)?;
             } else {
-                result.static_assets.push(Arc::new(FsPage::new(&self.base_path, entry_path)?));
+                result.static_assets.push(Arc::new(FsPage::new_with_metadata(
+                    &self.base_path,
+                    entry_path,
+                    Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true))]).collect(),
+                    },
+                )?));
             }
             Ok(())
         })?;

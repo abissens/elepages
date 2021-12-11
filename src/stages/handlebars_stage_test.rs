@@ -1014,7 +1014,15 @@ mod tests {
             &[
                 TestPage {
                     path: vec!["dir".to_string(), "dir2".to_string(), "main.js".to_string()],
-                    metadata: None,
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                    }),
                     content: "test JS".to_string(),
                 },
                 TestPage {
@@ -1042,7 +1050,15 @@ mod tests {
                 },
                 TestPage {
                     path: vec!["dir".to_string(), "style.css".to_string()],
-                    metadata: None,
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                    }),
                     content: "test css".to_string(),
                 },
                 TestPage {
@@ -1065,7 +1081,15 @@ mod tests {
                 },
                 TestPage {
                     path: vec!["index.html".to_string()],
-                    metadata: None,
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                    }),
                     content: "test index".to_string(),
                 },
             ]
@@ -1211,6 +1235,20 @@ mod tests {
             .find(|p| p.path() == vec!["index.html"].as_slice())
             .map(|p| {
                 let mut content: String = "".to_string();
+                assert_eq!(
+                    p.metadata(),
+                    Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true))])),
+                    })
+                    .as_ref()
+                );
+
                 p.open(&PageIndex::from(p), &BundleIndex::from(&result_bundle.0), &Env::test())
                     .unwrap()
                     .read_to_string(&mut content)

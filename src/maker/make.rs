@@ -8,7 +8,6 @@ use crate::stages::{
     AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
 };
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
-use dirs;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -96,7 +95,6 @@ impl FromValue for HandlebarsStageMakerConfig {
             });
         }
         if let Ok(m) = <HashMap<String, String>>::from_value(value) {
-            #[allow(clippy::manual_map)]
             let git_reference = if let Some(r) = m.get("commit").map(|v| GitReference::Commit(v.to_string())) {
                 Some(r)
             } else if let Some(r) = m.get("branch").map(|v| GitReference::Branch(v.to_string())) {
