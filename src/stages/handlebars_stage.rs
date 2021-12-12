@@ -295,6 +295,8 @@ impl HandlebarsDir {
             return Ok(None);
         }
 
+        self.npm_runner.install(&self.base_path, env)?;
+
         let pre_build_dirs: HashSet<String>;
         let mut build_output_dir = package_json.build_output_dir;
         if build_output_dir.is_none() {
@@ -303,7 +305,6 @@ impl HandlebarsDir {
             pre_build_dirs = HashSet::default();
         }
 
-        self.npm_runner.install(&self.base_path, env)?;
         self.npm_runner.run(&self.base_path, "build", env)?;
 
         if build_output_dir.is_none() {
