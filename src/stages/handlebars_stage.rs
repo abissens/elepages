@@ -89,7 +89,9 @@ impl Stage for HandlebarsStage {
                 .map(|t| {
                     Arc::new(HandlebarsTemplatePage {
                         registry: root_repository.clone(),
-                        template_asset: t.clone(),
+                        metadata: t.metadata.clone(),
+                        path: t.path.clone(),
+                        template_name: t.template_name.clone(),
                     }) as Arc<dyn Page>
                 })
                 .collect(),
@@ -115,7 +117,9 @@ impl Stage for HandlebarsStage {
 #[derive(Debug)]
 struct HandlebarsTemplatePage {
     registry: handlebars::Handlebars<'static>,
-    template_asset: TemplateAsset,
+    path: Vec<String>,
+    template_name: String,
+    metadata: Option<Metadata>,
 }
 
 #[derive(Serialize)]
@@ -126,11 +130,11 @@ pub struct TemplateData<'a> {
 
 impl Page for HandlebarsTemplatePage {
     fn path(&self) -> &[String] {
-        &self.template_asset.path
+        &self.path
     }
 
     fn metadata(&self) -> Option<&Metadata> {
-        self.template_asset.metadata.as_ref()
+        self.metadata.as_ref()
     }
 
     fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
@@ -138,7 +142,7 @@ impl Page for HandlebarsTemplatePage {
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
         local_registry.register_helper("date_format", Box::new(DateFormatHelper));
         let result = local_registry.render(
-            &self.template_asset.template_name,
+            &self.template_name,
             &TemplateData {
                 page: output_page,
                 index: output_index,
