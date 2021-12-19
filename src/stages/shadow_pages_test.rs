@@ -6,6 +6,7 @@ mod tests {
     use crate::stages::shadow_pages::ShadowPages;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
+    use crate::stages::PageGeneratorBagImpl;
     use indoc::indoc;
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
@@ -30,7 +31,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -118,7 +119,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -225,7 +226,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -314,7 +315,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -440,7 +441,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -579,7 +580,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

@@ -4,7 +4,7 @@ use crate::config::Value;
 use crate::maker::{Maker, SelectorConfig, StageValue};
 use crate::pages::{Env, FsLoader, Loader, PrintLevel};
 use crate::pages_error::PagesError;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBagImpl, ProcessingResult};
 use std::env::current_dir;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -37,7 +37,7 @@ impl Executor {
         let stage = self.maker.make(None, &self.stage_config, &self.env)?;
         let stage_making_elapsed = start.elapsed();
 
-        let (result_bundle, processing_result) = stage.process(&input_bundle, &self.env)?;
+        let (result_bundle, processing_result) = stage.process(&input_bundle, &self.env, &PageGeneratorBagImpl::new())?;
         let processing_elapsed = start.elapsed();
 
         self.writer.write(&result_bundle, &self.env)?;

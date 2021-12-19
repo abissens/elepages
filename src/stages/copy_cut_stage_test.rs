@@ -4,7 +4,7 @@ mod tests {
     use crate::pages::{Env, PageBundle, PathSelector, VecBundle};
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::CopyCut;
+    use crate::stages::{CopyCut, PageGeneratorBagImpl};
     use std::sync::Arc;
 
     #[test]
@@ -42,7 +42,7 @@ mod tests {
             dest: vec!["copied".to_string()],
         };
 
-        let result_bundle = stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -129,7 +129,7 @@ mod tests {
             dest: vec!["moved".to_string()],
         };
 
-        let result_bundle = stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -200,7 +200,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

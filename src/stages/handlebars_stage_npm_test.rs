@@ -6,7 +6,7 @@ mod tests {
     use crate::pages::{Env, Metadata, PageBundle, VecBundle};
     use crate::pages_error::PagesError;
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::{HandlebarsDir, HandlebarsStage, Stage};
+    use crate::stages::{HandlebarsDir, HandlebarsStage, PageGeneratorBagImpl, Stage};
     use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
     use std::array::IntoIter;
@@ -60,7 +60,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), FakeNpmRunner::noop())),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -151,7 +151,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), fake_runner)),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -224,7 +224,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), fake_runner)),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -283,7 +283,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), FakeNpmRunner::noop())),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test());
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new());
         if let Err(err) = result_bundle {
             if let PagesError::Exec(page_error) = err.downcast_ref::<PagesError>().unwrap() {
                 assert_eq!(page_error, "no new folder created")
@@ -339,7 +339,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), fake_runner)),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test());
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new());
         if let Err(err) = result_bundle {
             if let PagesError::Exec(page_error) = err.downcast_ref::<PagesError>().unwrap() {
                 assert_eq!(page_error, "multiple new folders created after build : output_1, output_2")
@@ -389,7 +389,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), FakeNpmRunner::noop())),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test());
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new());
         if let Err(err) = result_bundle {
             if let PagesError::Exec(page_error) = err.downcast_ref::<PagesError>().unwrap() {
                 assert_eq!(
@@ -448,7 +448,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), fake_runner)),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test());
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new());
         if let Err(err) = result_bundle {
             if let PagesError::Exec(page_error) = err.downcast_ref::<PagesError>().unwrap() {
                 assert_eq!(

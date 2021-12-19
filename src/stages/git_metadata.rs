@@ -1,7 +1,7 @@
 use crate::pages::{ArcPage, Author, Env, Metadata, Page, PageBundle, VecBundle};
 use crate::pages_error::PagesError;
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use git2::{ErrorCode, Repository};
 use std::any::Any;
@@ -106,7 +106,7 @@ impl Stage for GitMetadata {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "git metadata extraction started");
         if let Some(page_rel_path) = self.pages_rel_path.as_ref() {

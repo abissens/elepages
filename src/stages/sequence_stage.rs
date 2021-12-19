@@ -1,6 +1,6 @@
 use crate::pages::{Env, PageBundle};
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::sync::Arc;
@@ -12,13 +12,19 @@ pub struct SequenceStage {
 }
 
 impl SequenceStage {
-    fn sequence_process(bundle: Arc<dyn PageBundle>, stages: &[Arc<dyn Stage>], sub_results: &mut Vec<ProcessingResult>, env: &Env) -> anyhow::Result<Arc<dyn PageBundle>> {
+    fn sequence_process(
+        bundle: Arc<dyn PageBundle>,
+        stages: &[Arc<dyn Stage>],
+        sub_results: &mut Vec<ProcessingResult>,
+        env: &Env,
+        gen_bag: &Arc<dyn PageGeneratorBag>,
+    ) -> anyhow::Result<Arc<dyn PageBundle>> {
         if stages.is_empty() {
             return Ok(bundle);
         }
-        let (result_bundle, p_result) = stages[0].process(&bundle, env)?;
+        let (result_bundle, p_result) = stages[0].process(&bundle, env, gen_bag)?;
         sub_results.push(p_result);
-        SequenceStage::sequence_process(result_bundle, &stages[1..], sub_results, env)
+        SequenceStage::sequence_process(result_bundle, &stages[1..], sub_results, env, gen_bag)
     }
 }
 
@@ -27,11 +33,11 @@ impl Stage for SequenceStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         let mut sub_results = vec![];
         env.print_vv(&format!("stage {}", self.name()), "sequence processing started");
-        let result_bundle = SequenceStage::sequence_process(Arc::clone(bundle), &self.stages, &mut sub_results, env)?;
+        let result_bundle = SequenceStage::sequence_process(Arc::clone(bundle), &self.stages, &mut sub_results, env, gen_bag)?;
         let end = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "sequence processing ended");
         Ok((

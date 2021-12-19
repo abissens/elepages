@@ -1,5 +1,5 @@
 use crate::pages::{Env, PageBundle, VecBundle};
-use crate::stages::{ProcessingResult, Stage};
+use crate::stages::{PageGeneratorBag, ProcessingResult, Stage};
 use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::sync::Arc;
@@ -15,12 +15,12 @@ impl Stage for AppendStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name), "start appending");
         let mut vec_bundle = VecBundle { p: bundle.pages().to_vec() };
 
-        let (inner_bundle, inner_result) = self.inner.process(bundle, env)?;
+        let (inner_bundle, inner_result) = self.inner.process(bundle, env, gen_bag)?;
         vec_bundle.p.append(&mut inner_bundle.pages().to_vec());
 
         env.print_vv(&format!("stage {}", self.name), "append ended");

@@ -1,6 +1,6 @@
 use crate::pages::{Env, Page, PageBundle, VecBundle};
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use rayon::prelude::*;
 use std::any::Any;
@@ -14,7 +14,7 @@ pub struct UnionStage {
 }
 
 impl UnionStage {
-    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "union stage processing started");
         let mut vec_bundle = VecBundle { p: vec![] };
@@ -22,7 +22,7 @@ impl UnionStage {
         let stage_pages_result: Vec<(Arc<dyn PageBundle>, ProcessingResult)> = self
             .stages
             .par_iter()
-            .map(|stage: &Arc<dyn Stage>| stage.process(bundle, env))
+            .map(|stage: &Arc<dyn Stage>| stage.process(bundle, env, gen_bag))
             .collect::<anyhow::Result<Vec<(Arc<dyn PageBundle>, ProcessingResult)>>>()?;
 
         for (bundle, p_result) in stage_pages_result {
@@ -44,14 +44,14 @@ impl UnionStage {
         ))
     }
 
-    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "union stage processing started");
         let mut vec_bundle = VecBundle { p: vec![] };
         let mut sub_results = vec![];
 
         for stage in &self.stages {
-            let (bundle, p_result) = stage.process(bundle, env)?;
+            let (bundle, p_result) = stage.process(bundle, env, gen_bag)?;
             sub_results.push(p_result);
 
             let mut stage_pages = bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
@@ -77,10 +77,10 @@ impl Stage for UnionStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         Ok(match self.parallel {
-            true => self.parallel_process(bundle, env)?,
-            false => self.sequential_process(bundle, env)?,
+            true => self.parallel_process(bundle, env, gen_bag)?,
+            false => self.sequential_process(bundle, env, gen_bag)?,
         })
     }
 

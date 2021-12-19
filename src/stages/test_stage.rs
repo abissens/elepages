@@ -1,6 +1,6 @@
 use crate::pages::{Env, PageBundle};
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use std::any::Any;
@@ -38,7 +38,7 @@ impl Stage for TestStage {
         "test stage".to_string()
     }
 
-    fn process(&self, _: &Arc<dyn PageBundle>, _: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, _: &Arc<dyn PageBundle>, _: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         let result_bundle = match &self.bundle {
             Some(b) => {

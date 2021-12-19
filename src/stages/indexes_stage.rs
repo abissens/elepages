@@ -1,6 +1,6 @@
 use crate::pages::{BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::io::{Cursor, Read};
@@ -16,7 +16,7 @@ impl Stage for IndexStage {
         self.name.clone()
     }
 
-    fn process(&self, _: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, _: &Arc<dyn PageBundle>, env: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "generate index pages");
         let result_bundle = VecBundle {

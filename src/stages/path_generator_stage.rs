@@ -1,6 +1,6 @@
 use crate::config::{FromValue, Value};
 use crate::pages::{ArcPage, DateIndex, Env, MetadataIndex, PageBundle, VecBundle};
-use crate::stages::{ProcessingResult, Stage};
+use crate::stages::{PageGeneratorBag, ProcessingResult, Stage};
 use chrono::{DateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, Output, RenderContext, RenderError};
 use regex::Regex;
@@ -62,7 +62,7 @@ impl Stage for PathGenerator {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         let mut result = VecBundle { p: vec![] };
         env.print_vv(&format!("stage {}", self.name()), "path generation");

@@ -4,7 +4,7 @@ mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Env, Metadata, PageBundle, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::{PathGenerator, Stage};
+    use crate::stages::{PageGeneratorBagImpl, PathGenerator, Stage};
     use std::array::IntoIter;
     use std::collections::HashMap;
     use std::iter::FromIterator;
@@ -71,7 +71,7 @@ mod tests {
 
         let path_generator = PathGenerator::new("path generator".to_string());
 
-        let result_bundle = path_generator.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = path_generator.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -175,7 +175,7 @@ mod tests {
 
         let path_generator = PathGenerator::new("path generator".to_string());
 
-        let result_bundle = path_generator.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = path_generator.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -266,7 +266,7 @@ mod tests {
 
         let path_generator = PathGenerator::new("path generator".to_string());
 
-        let result_bundle = path_generator.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = path_generator.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -383,7 +383,7 @@ mod tests {
 
         let path_generator = PathGenerator::new("path generator".to_string());
 
-        let result_bundle = path_generator.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = path_generator.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -475,7 +475,7 @@ mod tests {
 
         let path_generator = PathGenerator::new("path generator".to_string());
 
-        let result_bundle = path_generator.process(&bundle, &Env::test());
+        let result_bundle = path_generator.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new());
         if let Err(err) = result_bundle {
             if let Some(regex::Error::Syntax(s)) = err.downcast_ref::<regex::Error>() {
                 assert_eq!(s, "regex parse error:\n    ^[a\n     ^\nerror: unclosed character class");

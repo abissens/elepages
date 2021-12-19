@@ -5,7 +5,7 @@ mod tests {
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::{TestProcessingResult, TestStage};
     use crate::stages::union_stage::UnionStage;
-    use crate::stages::CopyCut;
+    use crate::stages::{CopyCut, PageGeneratorBagImpl};
     use std::borrow::Borrow;
     use std::sync::Arc;
 
@@ -44,7 +44,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = union_stage.process(bundle.borrow(), &Env::test()).unwrap();
+        let result_bundle = union_stage.process(bundle.borrow(), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -125,7 +125,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = union_stage.process(bundle.borrow(), &Env::test()).unwrap();
+        let result_bundle = union_stage.process(bundle.borrow(), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -213,7 +213,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = union_stage.process(bundle.borrow(), &Env::test());
+        let result_bundle = union_stage.process(bundle.borrow(), &Env::test(), &PageGeneratorBagImpl::new());
         assert!(matches!(result_bundle, Err(e) if e.to_string() == "some error"));
         if let Some(r) = ok_stage.as_any().unwrap().downcast_ref::<TestStage>() {
             println!("{}", *r.launched.lock().unwrap());

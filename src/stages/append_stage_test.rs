@@ -3,7 +3,7 @@ mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Env, PageBundle, PathSelector, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::{AppendStage, CopyCut, Stage};
+    use crate::stages::{AppendStage, CopyCut, PageGeneratorBagImpl, Stage};
     use std::sync::Arc;
 
     #[test]
@@ -32,7 +32,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = append_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = append_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),

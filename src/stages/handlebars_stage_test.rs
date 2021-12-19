@@ -5,7 +5,7 @@ mod tests {
     use crate::pages::test_page::TestPage;
     use crate::pages::{Author, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::{AppendStage, HandlebarsDir, HandlebarsLookup, HandlebarsLookupResult, HandlebarsStage, Stage, TemplateAsset};
+    use crate::stages::{AppendStage, HandlebarsDir, HandlebarsLookup, HandlebarsLookupResult, HandlebarsStage, PageGeneratorBagImpl, Stage, TemplateAsset};
     use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
     use std::array::IntoIter;
@@ -55,7 +55,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -144,7 +144,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -253,7 +253,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -374,7 +374,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -477,7 +477,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -572,7 +572,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -680,7 +680,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -820,7 +820,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -991,7 +991,7 @@ mod tests {
             lookup: Arc::new(HandlebarsDir::new_with_npm_runner(test_folder.get_path().join("templates"), Box::new(NoopNpmRunner))),
         };
 
-        let result_bundle = hb_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -1216,7 +1216,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = stages.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = stages.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         let index_page = result_bundle
             .0
@@ -1373,7 +1373,7 @@ mod tests {
             }),
         };
 
-        let result_bundle = stages.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = stages.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         let index_page = result_bundle
             .0

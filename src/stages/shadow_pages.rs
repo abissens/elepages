@@ -1,7 +1,7 @@
 use crate::pages::{ArcPage, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use rayon::prelude::*;
 use std::any::Any;
@@ -25,7 +25,7 @@ impl Stage for ShadowPages {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "shadow metadata page processing started");
         let shadow_output_index = BundleIndex::from(bundle);

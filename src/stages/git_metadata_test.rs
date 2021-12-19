@@ -8,6 +8,7 @@ mod tests {
     use crate::stages::shadow_pages::ShadowPages;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
+    use crate::stages::PageGeneratorBagImpl;
     use git2::{IndexAddOption, Repository};
     use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
@@ -38,7 +39,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -86,7 +87,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -199,7 +200,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -383,7 +384,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().join(PathBuf::from_str("d1").unwrap()).to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -550,7 +551,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = git_metadata_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -727,7 +728,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
@@ -873,7 +874,7 @@ mod tests {
         let loader = FsLoader::new(test_folder.get_path().to_path_buf());
         let bundle = loader.load(&Env::test()).unwrap();
 
-        let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::test()).unwrap();
+        let result_bundle = sequence_stage.process(&Arc::new(bundle), &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

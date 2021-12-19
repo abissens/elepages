@@ -1,5 +1,5 @@
 use crate::pages::{ArcPage, Env, PageBundle, Selector, VecBundle};
-use crate::stages::{ProcessingResult, Stage};
+use crate::stages::{PageGeneratorBag, ProcessingResult, Stage};
 use chrono::{DateTime, Utc};
 use std::any::Any;
 use std::collections::HashSet;
@@ -35,7 +35,7 @@ impl Stage for CopyCut {
         }
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), &format!("{:?}", self));
         let p = match self {

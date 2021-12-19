@@ -6,7 +6,7 @@ mod tests {
     use crate::stages::indexes_stage::IndexStage;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
-    use crate::stages::{ComposeStage, ComposeUnit};
+    use crate::stages::{ComposeStage, ComposeUnit, PageGeneratorBagImpl};
     use serde::{Deserialize, Serialize};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
@@ -48,7 +48,7 @@ mod tests {
             units: vec![Arc::new(ComposeUnit::CreateNewSet(Arc::new(IndexStage { name: "index stage".to_string() })))],
         };
 
-        let result_bundle = index_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = index_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -221,7 +221,7 @@ mod tests {
             parallel: true,
             units: vec![Arc::new(ComposeUnit::CreateNewSet(Arc::new(IndexStage { name: "index stage".to_string() })))],
         };
-        let result_bundle = index_stage.process(&vec_bundle, &Env::test()).unwrap();
+        let result_bundle = index_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

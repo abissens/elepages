@@ -1,6 +1,6 @@
 use crate::pages::{Env, Page, PageBundle, Selector, VecBundle};
 use crate::stages::stage::Stage;
-use crate::stages::ProcessingResult;
+use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use rayon::prelude::*;
 use std::any::Any;
@@ -32,7 +32,7 @@ impl ComposeStage {
         })
     }
 
-    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn parallel_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "start composing");
         let mut vec_bundle = VecBundle { p: vec![] };
@@ -45,13 +45,13 @@ impl ComposeStage {
             .map(|unit: &Arc<ComposeUnit>| {
                 let result = match unit.borrow() {
                     ComposeUnit::CreateNewSet(stage) => CompositionResult {
-                        result: stage.process(bundle, env)?,
+                        result: stage.process(bundle, env, gen_bag)?,
                         selected_set: None,
                     },
                     ComposeUnit::ReplaceSubSet(selector, stage) => {
                         let sub_set_bundle = self.select(selector.as_ref(), bundle);
                         CompositionResult {
-                            result: stage.process(&sub_set_bundle, env)?,
+                            result: stage.process(&sub_set_bundle, env, gen_bag)?,
                             selected_set: Some(sub_set_bundle),
                         }
                     }
@@ -91,7 +91,7 @@ impl ComposeStage {
         ))
     }
 
-    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn sequential_process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name), "start composing");
         let mut vec_bundle = VecBundle { p: vec![] };
@@ -101,7 +101,7 @@ impl ComposeStage {
         for unit in &self.units {
             match unit.borrow() {
                 ComposeUnit::CreateNewSet(stage) => {
-                    let (bundle, p_result) = stage.process(bundle, env)?;
+                    let (bundle, p_result) = stage.process(bundle, env, gen_bag)?;
                     sub_results.push(p_result);
                     let mut stage_pages = bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
                     vec_bundle.p.append(&mut stage_pages);
@@ -111,7 +111,7 @@ impl ComposeStage {
                     for p in sub_set_bundle.pages() {
                         replaced_set.insert(p.path().to_vec());
                     }
-                    let (bundle, p_result) = stage.process(&sub_set_bundle, env)?;
+                    let (bundle, p_result) = stage.process(&sub_set_bundle, env, gen_bag)?;
                     sub_results.push(p_result);
                     let mut stage_pages = bundle.pages().iter().map(|p| Arc::clone(p)).collect::<Vec<Arc<dyn Page>>>();
                     vec_bundle.p.append(&mut stage_pages);
@@ -143,10 +143,10 @@ impl Stage for ComposeStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         Ok(match self.parallel {
-            true => self.parallel_process(bundle, env)?,
-            false => self.sequential_process(bundle, env)?,
+            true => self.parallel_process(bundle, env, &gen_bag)?,
+            false => self.sequential_process(bundle, env, &gen_bag)?,
         })
     }
 

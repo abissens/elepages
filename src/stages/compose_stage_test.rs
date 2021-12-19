@@ -7,6 +7,7 @@ mod tests {
     use crate::stages::copy_cut_stage::CopyCut;
     use crate::stages::stage::Stage;
     use crate::stages::test_stage::TestProcessingResult;
+    use crate::stages::PageGeneratorBagImpl;
     use std::sync::Arc;
 
     #[test]
@@ -36,7 +37,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
@@ -120,7 +121,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -209,7 +210,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -337,7 +338,7 @@ mod tests {
             parallel: false,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -444,7 +445,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -526,7 +527,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -615,7 +616,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -743,7 +744,7 @@ mod tests {
             parallel: true,
         };
 
-        let result_bundle = compose_stage.process(&bundle, &Env::test()).unwrap();
+        let result_bundle = compose_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {

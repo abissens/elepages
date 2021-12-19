@@ -2,7 +2,7 @@ use crate::commands::{DefaultNpmRunner, NpmRunner};
 use crate::config::Value;
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
 use crate::pages_error::PagesError;
-use crate::stages::{BundleQueryHelper, DateFormatHelper, PageContentHelper, ProcessingResult, Stage};
+use crate::stages::{BundleQueryHelper, DateFormatHelper, PageContentHelper, PageGeneratorBag, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
@@ -48,7 +48,7 @@ impl Stage for HandlebarsStage {
         self.name.clone()
     }
 
-    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
+    fn process(&self, bundle: &Arc<dyn PageBundle>, env: &Env, _: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<(Arc<dyn PageBundle>, ProcessingResult)> {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "handlebars processing started");
         let lookup_result = self.lookup.lookup(env)?;
