@@ -175,86 +175,76 @@ pub struct BundlePagination {
     pub limit: Option<usize>,
 }
 
-pub trait BundleQuery {
-    fn do_match(&self, page: &PageIndex) -> bool;
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[serde(untagged)]
+pub enum BundleQuery {
+    Path { path: String },
+    Tag { tag: String },
+    Tags { tags: Vec<String> },
+    Author { author: String },
+    Authors { authors: Vec<String> },
+    And { and: Vec<BundleQuery> },
+    Or { or: Vec<BundleQuery> },
+    Not { not: Box<BundleQuery> },
+    Always,
 }
 
-pub struct TagQuery(pub String);
-pub struct AuthorQuery(pub String);
-pub struct AndQuery(pub Vec<Box<dyn BundleQuery>>);
-pub struct OrQuery(pub Vec<Box<dyn BundleQuery>>);
-pub struct NotQuery(pub Box<dyn BundleQuery>);
-pub struct PathQuery(pub Vec<String>);
-pub struct AlwaysQuery;
-
-impl BundleQuery for PathQuery {
-    fn do_match(&self, page: &PageIndex) -> bool {
-        PathSelector::select_page(&page.page_ref.path, &self.0)
-    }
-}
-
-impl BundleQuery for TagQuery {
-    fn do_match(&self, page: &PageIndex) -> bool {
-        if let Some(m) = &page.metadata {
-            for tag in &m.tags {
-                if tag == &self.0 {
-                    return true;
+impl BundleQuery {
+    pub fn do_match(&self, page: &PageIndex) -> bool {
+        match self {
+            BundleQuery::Path { path } => PathSelector::select_page(&page.page_ref.path, &path.split('/').map(|s| s.to_string()).collect::<Vec<String>>()),
+            BundleQuery::Tag { tag } => {
+                if let Some(m) = &page.metadata {
+                    for t in &m.tags {
+                        if t == tag {
+                            return true;
+                        }
+                    }
                 }
+                false
             }
-        }
-        false
-    }
-}
-
-impl BundleQuery for AuthorQuery {
-    fn do_match(&self, page: &PageIndex) -> bool {
-        if let Some(m) = &page.metadata {
-            for author in &m.authors {
-                if author == &self.0 {
-                    return true;
+            BundleQuery::Tags { tags } => BundleQuery::And {
+                and: tags.iter().map(|tag| BundleQuery::Tag { tag: tag.clone() }).collect(),
+            }
+            .do_match(page),
+            BundleQuery::Author { author } => {
+                if let Some(m) = &page.metadata {
+                    for a in &m.authors {
+                        if a == author {
+                            return true;
+                        }
+                    }
                 }
+                false
             }
-        }
-        false
-    }
-}
-
-impl BundleQuery for AndQuery {
-    fn do_match(&self, page: &PageIndex) -> bool {
-        for q in &self.0 {
-            if !q.do_match(page) {
-                return false;
+            BundleQuery::Authors { authors } => BundleQuery::And {
+                and: authors.iter().map(|author| BundleQuery::Author { author: author.clone() }).collect(),
             }
-        }
-        true
-    }
-}
-
-impl BundleQuery for OrQuery {
-    fn do_match(&self, page: &PageIndex) -> bool {
-        for q in &self.0 {
-            if q.do_match(page) {
-                return true;
+            .do_match(page),
+            BundleQuery::And { and } => {
+                for q in and {
+                    if !q.do_match(page) {
+                        return false;
+                    }
+                }
+                true
             }
+            BundleQuery::Or { or } => {
+                for q in or {
+                    if q.do_match(page) {
+                        return true;
+                    }
+                }
+                false
+            }
+            BundleQuery::Not { not } => !not.do_match(page),
+            BundleQuery::Always => true,
         }
-        false
-    }
-}
-
-impl BundleQuery for NotQuery {
-    fn do_match(&self, page: &PageIndex) -> bool {
-        !self.0.do_match(page)
-    }
-}
-
-impl BundleQuery for AlwaysQuery {
-    fn do_match(&self, _: &PageIndex) -> bool {
-        true
     }
 }
 
 impl BundleIndex {
-    pub fn query(&self, q: &dyn BundleQuery, p: &BundlePagination) -> Vec<&PageIndex> {
+    pub fn query(&self, q: &BundleQuery, p: &BundlePagination) -> Vec<&PageIndex> {
         let mut result = vec![];
         let mut matched_counter = 0;
         for page in &self.all_pages {

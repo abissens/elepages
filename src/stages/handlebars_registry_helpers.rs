@@ -1,7 +1,6 @@
-use crate::pages::{AlwaysQuery, AndQuery, AuthorQuery, BundleIndex, BundlePagination, BundleQuery, Env, NotQuery, OrQuery, Page, PageIndex, PathQuery, TagQuery};
+use crate::pages::{BundleIndex, BundlePagination, BundleQuery, Env, Page, PageIndex};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 pub struct PageContentHelper<'a> {
@@ -23,34 +22,6 @@ impl HelperDef for PageContentHelper<'_> {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-#[serde(untagged)]
-pub enum BundleQueryValue {
-    Path { path: String },
-    Tag { tag: String },
-    Tags { tags: Vec<String> },
-    Author { author: String },
-    Authors { authors: Vec<String> },
-    And { and: Vec<BundleQueryValue> },
-    Or { or: Vec<BundleQueryValue> },
-    Not { not: Box<BundleQueryValue> },
-}
-
-impl From<&BundleQueryValue> for Box<dyn BundleQuery> {
-    fn from(value: &BundleQueryValue) -> Self {
-        match value {
-            BundleQueryValue::Tag { tag } => Box::new(TagQuery(tag.to_string())),
-            BundleQueryValue::Tags { tags } => Box::new(AndQuery(tags.iter().map(|t| Box::new(TagQuery(t.to_string())) as Box<dyn BundleQuery>).collect())),
-            BundleQueryValue::Author { author } => Box::new(AuthorQuery(author.to_string())),
-            BundleQueryValue::Authors { authors } => Box::new(AndQuery(authors.iter().map(|a| Box::new(AuthorQuery(a.to_string())) as Box<dyn BundleQuery>).collect())),
-            BundleQueryValue::And { and } => Box::new(AndQuery(and.iter().map(<Box<dyn BundleQuery>>::from).collect())),
-            BundleQueryValue::Or { or } => Box::new(OrQuery(or.iter().map(<Box<dyn BundleQuery>>::from).collect())),
-            BundleQueryValue::Not { not } => Box::new(NotQuery(<Box<dyn BundleQuery>>::from(not.as_ref()))),
-            BundleQueryValue::Path { path } => Box::new(PathQuery(path.split('/').map(|s| s.to_string()).collect())),
-        }
-    }
-}
-
 pub struct BundleQueryHelper<'a> {
     pub output_index: &'a BundleIndex,
 }
@@ -60,7 +31,7 @@ impl HelperDef for BundleQueryHelper<'_> {
         let param1 = h.param(0).and_then(|v| v.value().as_str());
         let param2 = h.param(1).and_then(|v| v.value().as_str());
 
-        let value: Option<BundleQueryValue> = match param1 {
+        let value: Option<BundleQuery> = match param1 {
             None => None,
             Some(param) => {
                 if param.is_empty() {
@@ -75,12 +46,12 @@ impl HelperDef for BundleQueryHelper<'_> {
             Some(param) => serde_yaml::from_str(param).map_err(|err| RenderError::new(err.to_string()))?,
         };
 
-        let bundle_query: Box<dyn BundleQuery> = match value {
-            None => Box::new(AlwaysQuery),
-            Some(value) => <Box<dyn BundleQuery>>::from(&value),
+        let bundle_query: BundleQuery = match value {
+            None => BundleQuery::Always,
+            Some(value) => value,
         };
 
-        let pages = self.output_index.query(bundle_query.as_ref(), &pagination);
+        let pages = self.output_index.query(&bundle_query, &pagination);
         Ok(ScopedJson::Derived(serde_json::to_value(pages)?))
     }
 }

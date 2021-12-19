@@ -2,7 +2,7 @@
 mod tests {
     use crate::config::Value;
     use crate::pages::test_page::TestPage;
-    use crate::pages::{AlwaysQuery, AndQuery, Author, AuthorQuery, BundleIndex, BundlePagination, DateIndex, Metadata, MetadataIndex, OrQuery, PageBundle, PageIndex, PageRef, TagQuery, VecBundle};
+    use crate::pages::{Author, BundleIndex, BundlePagination, BundleQuery, DateIndex, Metadata, MetadataIndex, PageBundle, PageIndex, PageRef, VecBundle};
     use std::array::IntoIter;
     use std::collections::{HashMap, HashSet};
     use std::iter::FromIterator;
@@ -572,20 +572,24 @@ mod tests {
 
         let bundle_index = BundleIndex::from(&vec_bundle);
 
-        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: None, limit: None });
+        let result = bundle_index.query(&BundleQuery::Always, &BundlePagination { skip: None, limit: None });
         assert_eq!(result, bundle_index.all_pages.iter().collect::<Vec<&PageIndex>>());
 
         let result = bundle_index.query(
-            &OrQuery(vec![Box::new(AuthorQuery("f3 author".to_string())), Box::new(AuthorQuery("f1 author".to_string()))]),
+            &BundleQuery::Or {
+                or: vec![BundleQuery::Author { author: "f3 author".to_string() }, BundleQuery::Author { author: "f1 author".to_string() }],
+            },
             &BundlePagination { skip: None, limit: None },
         );
         assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap(), bundle_index.all_pages.get(3).unwrap()]);
 
-        let result = bundle_index.query(&TagQuery("t1".to_string()), &BundlePagination { skip: None, limit: None });
+        let result = bundle_index.query(&BundleQuery::Tag { tag: "t1".to_string() }, &BundlePagination { skip: None, limit: None });
         assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap()]);
 
         let result = bundle_index.query(
-            &AndQuery(vec![Box::new(TagQuery("t3".to_string())), Box::new(TagQuery("t2".to_string()))]),
+            &BundleQuery::And {
+                and: vec![BundleQuery::Tag { tag: "t3".to_string() }, BundleQuery::Tag { tag: "t2".to_string() }],
+            },
             &BundlePagination { skip: None, limit: None },
         );
         assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap()]);
@@ -659,16 +663,16 @@ mod tests {
 
         let bundle_index = BundleIndex::from(&vec_bundle);
 
-        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: None, limit: None });
+        let result = bundle_index.query(&BundleQuery::Always, &BundlePagination { skip: None, limit: None });
         assert_eq!(result, bundle_index.all_pages.iter().collect::<Vec<&PageIndex>>());
 
-        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: None, limit: Some(2) });
+        let result = bundle_index.query(&BundleQuery::Always, &BundlePagination { skip: None, limit: Some(2) });
         assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap(), bundle_index.all_pages.get(1).unwrap()]);
 
-        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: Some(1), limit: Some(1) });
+        let result = bundle_index.query(&BundleQuery::Always, &BundlePagination { skip: Some(1), limit: Some(1) });
         assert_eq!(result, vec![bundle_index.all_pages.get(1).unwrap()]);
 
-        let result = bundle_index.query(&AlwaysQuery, &BundlePagination { skip: Some(2), limit: None });
+        let result = bundle_index.query(&BundleQuery::Always, &BundlePagination { skip: Some(2), limit: None });
         assert_eq!(result, vec![bundle_index.all_pages.get(2).unwrap(), bundle_index.all_pages.get(3).unwrap()]);
     }
 }
