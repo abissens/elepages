@@ -3,9 +3,7 @@ mod tests {
     use crate::maker::{Maker, StageValue};
     use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
-    use crate::stages::{
-        AppendStage, ComposeStage, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
-    };
+    use crate::stages::{AppendStage, ComposeStage, CopyCut, GitMetadata, HbsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
     use chrono::{DateTime, Utc};
     use indoc::indoc;
     use std::path::PathBuf;
@@ -51,11 +49,10 @@ mod tests {
         let hb_stage_config: StageValue = serde_yaml::from_str("{type: 'handlebars', config: 'd/e' }").unwrap();
         let hb_stage = Maker::default().make(None, &hb_stage_config, &env).unwrap();
         assert_eq!(hb_stage.name(), "handlebars stage");
-        if let Some(hb) = hb_stage.as_any().unwrap().downcast_ref::<HandlebarsStage>() {
-            let hbl: &HandlebarsDir = hb.lookup.as_any().unwrap().downcast_ref().unwrap();
-            assert_eq!(&hbl.base_path, &PathBuf::from_str("d/e").unwrap());
+        if let Some(hb) = hb_stage.as_any().unwrap().downcast_ref::<HbsStage>() {
+            assert_eq!(&hb.tpl_path, &PathBuf::from_str("d/e").unwrap());
         } else {
-            panic!("should downcast to HandlebarsStage");
+            panic!("should downcast to HbsStage");
         }
 
         let path_generator_stage_config: StageValue = serde_yaml::from_str("path_generator").unwrap();
@@ -126,11 +123,10 @@ mod tests {
         .unwrap();
         let hb_stage = Maker::default().make(None, &hb_stage_config, &env).unwrap();
         assert_eq!(hb_stage.name(), "handlebars stage renamed");
-        if let Some(hb) = hb_stage.as_any().unwrap().downcast_ref::<HandlebarsStage>() {
-            let hbl: &HandlebarsDir = hb.lookup.as_any().unwrap().downcast_ref().unwrap();
-            assert_eq!(&hbl.base_path, &PathBuf::from_str("a/b/c").unwrap());
+        if let Some(hb) = hb_stage.as_any().unwrap().downcast_ref::<HbsStage>() {
+            assert_eq!(&hb.tpl_path, &PathBuf::from_str("a/b/c").unwrap());
         } else {
-            panic!("should downcast to HandlebarsStage");
+            panic!("should downcast to HbsStage");
         }
     }
 
@@ -163,7 +159,7 @@ mod tests {
         let seq = stage.as_any().unwrap().downcast_ref::<SequenceStage>().expect("SequenceStage");
         seq.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
         seq.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
-        seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+        seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HbsStage>().expect("HbsStage");
     }
 
     #[test]
@@ -353,7 +349,7 @@ mod tests {
         let seq = stage.as_any().unwrap().downcast_ref::<SequenceStage>().expect("SequenceStage");
         seq.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
         seq.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
-        let hb_stage = seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+        let hb_stage = seq.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HbsStage>().expect("HbsStage");
         assert_eq!(hb_stage.name(), "my handlebars");
     }
 
@@ -379,7 +375,7 @@ mod tests {
         let union = stage.as_any().unwrap().downcast_ref::<UnionStage>().expect("UnionStage");
         union.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
         union.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
-        union.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+        union.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HbsStage>().expect("HbsStage");
     }
 
     #[test]
@@ -401,7 +397,7 @@ mod tests {
         let union = stage.as_any().unwrap().downcast_ref::<UnionStage>().expect("UnionStage");
         union.stages.get(0).unwrap().as_any().unwrap().downcast_ref::<GitMetadata>().expect("GitMetadata");
         union.stages.get(1).unwrap().as_any().unwrap().downcast_ref::<MdStage>().expect("MdStage");
-        union.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+        union.stages.get(2).unwrap().as_any().unwrap().downcast_ref::<HbsStage>().expect("HbsStage");
     }
 
     #[test]
@@ -446,7 +442,7 @@ mod tests {
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(3).unwrap().as_ref() {
-            stage.as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+            stage.as_any().unwrap().downcast_ref::<HbsStage>().expect("HbsStage");
             let ext_selector = selector.as_any().unwrap().downcast_ref::<ExtSelector>().expect("ExtSelector");
             assert_eq!(ext_selector.ext, ".hbs");
         } else {
@@ -499,7 +495,7 @@ mod tests {
         }
 
         if let ReplaceSubSet(selector, stage) = compose.units.get(3).unwrap().as_ref() {
-            stage.as_any().unwrap().downcast_ref::<HandlebarsStage>().expect("HandlebarsStage");
+            stage.as_any().unwrap().downcast_ref::<HbsStage>().expect("HbsStage");
             let ext_selector = selector.as_any().unwrap().downcast_ref::<ExtSelector>().expect("ExtSelector");
             assert_eq!(ext_selector.ext, ".hbs");
         } else {

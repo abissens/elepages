@@ -4,9 +4,7 @@ use crate::maker::{DateQueryConfig, SelectorConfig};
 use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
 use crate::pages_error::PagesError;
 use crate::remote::{GitReference, GitRemote};
-use crate::stages::{
-    AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HandlebarsDir, HandlebarsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage,
-};
+use crate::stages::{AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HbsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
 use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -26,7 +24,7 @@ pub struct GitMetadataStageMaker;
 pub struct IndexesStageMaker;
 pub struct MdStageMaker;
 pub struct ShadowStageMaker;
-pub struct HandlebarsStageMaker;
+pub struct HbsStageMaker;
 pub struct PathGeneratorStageMaker;
 
 impl StageMaker for GitMetadataStageMaker {
@@ -114,7 +112,7 @@ impl FromValue for HandlebarsStageMakerConfig {
     }
 }
 
-impl StageMaker for HandlebarsStageMaker {
+impl StageMaker for HbsStageMaker {
     fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
         let template_path: PathBuf;
         let hbs_config = HandlebarsStageMakerConfig::from_value(config.clone())?;
@@ -132,10 +130,7 @@ impl StageMaker for HandlebarsStageMaker {
         } else {
             return Err(PagesError::ElementNotFound("cannot find configuration".to_string()).into());
         }
-        Ok(Arc::new(HandlebarsStage {
-            name: name.unwrap_or("handlebars stage").to_string(),
-            lookup: Arc::new(HandlebarsDir::new(template_path)?),
-        }))
+        Ok(Arc::new(HbsStage::new(name.unwrap_or("handlebars stage").to_string(), template_path)?))
     }
 }
 
@@ -153,7 +148,7 @@ impl Maker {
         processor_stage_makers.insert("indexes".into(), Box::new(IndexesStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("md".into(), Box::new(MdStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("shadow".into(), Box::new(ShadowStageMaker) as Box<dyn StageMaker>);
-        processor_stage_makers.insert("handlebars".into(), Box::new(HandlebarsStageMaker) as Box<dyn StageMaker>);
+        processor_stage_makers.insert("handlebars".into(), Box::new(HbsStageMaker) as Box<dyn StageMaker>);
         processor_stage_makers.insert("path_generator".into(), Box::new(PathGeneratorStageMaker) as Box<dyn StageMaker>);
 
         Maker { processor_stage_makers }
