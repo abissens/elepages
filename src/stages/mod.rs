@@ -14,6 +14,7 @@ mod handlebars_stage_test;
 mod hbs_asset;
 mod hbs_page;
 mod hbs_stage;
+mod hbs_stage_npm_test;
 mod hbs_stage_test;
 mod indexes_stage;
 mod indexes_stage_test;

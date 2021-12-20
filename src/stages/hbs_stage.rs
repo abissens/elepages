@@ -1,19 +1,24 @@
+use crate::commands::{DefaultNpmRunner, NpmRunner};
 use crate::config::Value;
 use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, VecBundle};
+use crate::pages_error::PagesError;
 use crate::stages::{HbsAsset, HbsPage, PageGenerator, PageGeneratorBag, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
+use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::array::IntoIter;
-use std::collections::HashSet;
-use std::path::{Path, PathBuf, MAIN_SEPARATOR};
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::path::{PathBuf, MAIN_SEPARATOR};
 use std::sync::Arc;
 use std::time::SystemTime;
 
 pub struct HbsStage {
     pub name: String,
     pub tpl_path: PathBuf,
+    npm_runner: Box<dyn NpmRunner>,
 }
 
 impl Stage for HbsStage {
@@ -25,7 +30,7 @@ impl Stage for HbsStage {
         let start = DateTime::<Utc>::from(SystemTime::now());
         env.print_vv(&format!("stage {}", self.name()), "handlebars processing started");
 
-        let tpl_model = self.make_tpl_model(&self.tpl_path)?;
+        let tpl_model = self.make_tpl_model(env)?;
 
         // register generator
         gen_bag.push(Arc::new(tpl_model.clone()))?;
@@ -65,16 +70,61 @@ impl Stage for HbsStage {
 }
 
 impl HbsStage {
-    fn make_tpl_model(&self, tpl_path: &Path) -> anyhow::Result<TplModel> {
+    pub fn new(name: String, tpl_path: PathBuf) -> anyhow::Result<HbsStage> {
+        Ok(HbsStage::new_with_npm_runner(name, tpl_path, DefaultNpmRunner::new_npm_runner()?))
+    }
+
+    pub fn new_with_npm_runner(name: String, tpl_path: PathBuf, npm_runner: Box<dyn NpmRunner>) -> HbsStage {
+        Self { name, tpl_path, npm_runner }
+    }
+
+    fn try_npm_build(&self, env: &Env) -> anyhow::Result<Option<PathBuf>> {
+        let node_js_path = &self.tpl_path.join("package.json");
+        if !node_js_path.exists() {
+            return Ok(None);
+        }
+        let package_json: NodePackageJson = serde_json::from_reader(fs::File::open(node_js_path)?)?;
+        if !package_json.scripts.contains_key("build") {
+            env.print_vv(&format!("stage {}", self.name()), "build script not found in package.json");
+            return Ok(None);
+        }
+
+        if package_json.build_output_dir.is_none() {
+            env.print_vv(&format!("stage {}", self.name()), "buildOutputDir not found in package.json");
+            return Ok(None);
+        }
+
+        self.npm_runner.install(&self.tpl_path, env)?;
+        self.npm_runner.run(&self.tpl_path, "build", env)?;
+
+        let output_dir = &self.tpl_path.join(package_json.build_output_dir.unwrap());
+        if !output_dir.exists() {
+            return Err(PagesError::Exec(format!("build folder {} not found", output_dir.to_string_lossy())).into());
+        }
+        if !output_dir.is_dir() {
+            return Err(PagesError::Exec(format!("build result {} is not a dir", output_dir.to_string_lossy())).into());
+        }
+
+        Ok(Some(output_dir.to_path_buf()))
+    }
+
+    fn make_tpl_model(&self, env: &Env) -> anyhow::Result<TplModel> {
         let mut result = TplModel {
             registry: Handlebars::new(),
             pages_tpl_names: Default::default(),
             assets: Default::default(),
         };
 
-        visit_dirs(tpl_path, &mut |entry| {
+        let base_path = if let Some(npm_build_output) = self.try_npm_build(env)? {
+            npm_build_output
+        } else {
+            self.tpl_path.clone()
+        };
+
+        env.print_vv(&format!("stage {}", self.name()), &format!("handlebars lookup from dir {}", base_path.to_string_lossy()));
+        visit_dirs(&base_path, &mut |entry| {
             let entry_path = entry.path();
-            let rel_path = entry_path.strip_prefix(&tpl_path)?;
+            let rel_path = entry_path.strip_prefix(&base_path)?;
             let name = entry_path.file_name().map(|e| e.to_string_lossy()).unwrap_or_else(|| "".into());
             let ext = entry_path.extension().map(|e| e.to_string_lossy()).unwrap_or_else(|| "".into());
 
@@ -99,13 +149,13 @@ impl HbsStage {
                 result.registry.register_template_file(template_name, entry_path)?;
             } else {
                 result.assets.insert(TplAsset::Static {
-                    base_path: tpl_path.to_path_buf(),
+                    base_path: base_path.to_path_buf(),
                     file_path: entry_path,
                 });
             }
             Ok(())
         })?;
-
+        env.print_vv(&format!("stage {}", self.name()), &format!("handlebars lookup from dir {} ended", &self.tpl_path.to_string_lossy()));
         Ok(result)
     }
 }
@@ -204,6 +254,13 @@ impl TplModel {
 
         None
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct NodePackageJson {
+    scripts: HashMap<String, String>,
+    #[serde(alias = "buildOutputDir")]
+    build_output_dir: Option<String>,
 }
 
 fn path_join(v: &[String], i: usize) -> String {

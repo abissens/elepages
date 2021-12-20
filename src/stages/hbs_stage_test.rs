@@ -53,10 +53,7 @@ mod tests {
             })
             .unwrap();
 
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         assert_eq!(
@@ -147,10 +144,7 @@ mod tests {
             })
             .unwrap();
 
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         assert_eq!(
@@ -254,10 +248,7 @@ mod tests {
             })
             .unwrap();
 
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let page_generator_bag = PageGeneratorBagImpl::new();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
 
@@ -392,10 +383,7 @@ mod tests {
             })
             .unwrap();
 
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let page_generator_bag = PageGeneratorBagImpl::new();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
 
@@ -518,10 +506,7 @@ mod tests {
                 ],
             })
             .unwrap();
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
 
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
@@ -626,10 +611,7 @@ mod tests {
             })
             .unwrap();
 
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
 
         assert_eq!(
@@ -766,10 +748,7 @@ mod tests {
                 ],
             })
             .unwrap();
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
 
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
@@ -937,10 +916,7 @@ mod tests {
                 ],
             })
             .unwrap();
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let page_generator_bag = PageGeneratorBagImpl::new();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
         assert_eq!(
@@ -1176,10 +1152,7 @@ mod tests {
                 ],
             })
             .unwrap();
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let page_generator_bag = PageGeneratorBagImpl::new();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
         assert_eq!(
@@ -1345,10 +1318,7 @@ mod tests {
             })
             .unwrap();
 
-        let hb_stage = HbsStage {
-            name: "hb stage".to_string(),
-            tpl_path: test_folder.get_path().join("templates"),
-        };
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
         let page_generator_bag = PageGeneratorBagImpl::new();
         let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
         assert_eq!(
