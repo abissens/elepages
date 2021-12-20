@@ -21,7 +21,7 @@ pub struct ProcessingResult {
 }
 
 pub trait PageGenerator: Send + Sync {
-    fn yield_pages(&self, output_bundle: &BundleIndex, env: &Env) -> &[Arc<dyn Page>];
+    fn yield_pages(&self, output_bundle: &BundleIndex, env: &Env) -> anyhow::Result<Vec<Arc<dyn Page>>>;
 }
 
 pub trait PageGeneratorBag: Send + Sync {
