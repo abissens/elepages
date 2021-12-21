@@ -1,6 +1,7 @@
 use crate::cli::writer::Writer;
-use crate::pages::{BundleIndex, Env, PageBundle, PageIndex};
+use crate::pages::{BundleIndex, Env, Page, PageBundle, PageIndex};
 use crate::pages_error::PagesError;
+use crate::stages::PageGeneratorBag;
 use rayon::prelude::*;
 use std::collections::HashSet;
 use std::fs::{create_dir_all, remove_dir_all, remove_file, File};
@@ -22,11 +23,8 @@ impl FsWriter {
 }
 
 impl Writer for FsWriter {
-    fn write(&self, bundle: &Arc<dyn PageBundle>, env: &Env) -> anyhow::Result<()> {
+    fn write(&self, bundle: &Arc<dyn PageBundle>, env: &Env, gen_bag: &Arc<dyn PageGeneratorBag>) -> anyhow::Result<()> {
         env.print_v("FS Writer", "start writing pages");
-        let pages = bundle.pages();
-        let mut all_paths = HashSet::new();
-
         // Clean output directory
         if self.path.exists() {
             let existing_paths = fs::read_dir(&self.path)?;
@@ -41,8 +39,18 @@ impl Writer for FsWriter {
                 }
             }
         }
+        // Make output index
+        let output_index = BundleIndex::from(bundle);
+
+        // Get pages and generator pages
+        let mut pages: Vec<Arc<dyn Page>> = bundle.pages().to_vec();
+        for generator in gen_bag.all()? {
+            pages.append(&mut generator.yield_pages(&output_index, env)?.to_vec());
+        }
+
         // Create directories
-        for page in pages {
+        let mut all_paths = HashSet::new();
+        for page in &pages {
             let path = page.path();
             if all_paths.contains(path) {
                 return Err(PagesError::Conflict(format!("conflicting path {}", path.join("/"))).into());
@@ -58,8 +66,7 @@ impl Writer for FsWriter {
             env.print_vvv("FS Writer", &format!("creating directories {}", &file_path.to_string_lossy()));
             create_dir_all(&file_path)?;
         }
-        // Make output index
-        let output_index = BundleIndex::from(bundle);
+
         // Write pages
         pages
             .par_iter()

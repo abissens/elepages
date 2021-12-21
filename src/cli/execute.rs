@@ -4,10 +4,11 @@ use crate::config::Value;
 use crate::maker::{Maker, SelectorConfig, StageValue};
 use crate::pages::{Env, FsLoader, Loader, PrintLevel};
 use crate::pages_error::PagesError;
-use crate::stages::{PageGeneratorBagImpl, ProcessingResult};
+use crate::stages::{PageGeneratorBag, PageGeneratorBagImpl, ProcessingResult};
 use std::env::current_dir;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 pub struct Executor {
@@ -37,10 +38,11 @@ impl Executor {
         let stage = self.maker.make(None, &self.stage_config, &self.env)?;
         let stage_making_elapsed = start.elapsed();
 
-        let (result_bundle, processing_result) = stage.process(&input_bundle, &self.env, &PageGeneratorBagImpl::new())?;
+        let gen_bag: Arc<dyn PageGeneratorBag> = PageGeneratorBagImpl::new();
+        let (result_bundle, processing_result) = stage.process(&input_bundle, &self.env, &gen_bag)?;
         let processing_elapsed = start.elapsed();
 
-        self.writer.write(&result_bundle, &self.env)?;
+        self.writer.write(&result_bundle, &self.env, &gen_bag)?;
         let writing_elapsed = start.elapsed();
 
         Ok(Execution {
