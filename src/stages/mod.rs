@@ -12,6 +12,8 @@ mod hbs_registry_helpers;
 mod hbs_stage;
 mod hbs_stage_npm_test;
 mod hbs_stage_test;
+mod hbs_tpl_asset;
+mod hbs_tpl_model;
 mod indexes_stage;
 mod indexes_stage_test;
 mod md_stage;
