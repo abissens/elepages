@@ -1,8 +1,9 @@
 use crate::commands::{DefaultNpmRunner, NpmRunner};
 use crate::config::Value;
-use crate::pages::{BundleIndex, Env, FsPage, Metadata, Page, PageBundle, VecBundle};
+use crate::pages::{BundleIndex, BundlePagination, BundleQuery, Env, FsPage, Metadata, Page, PageBundle, PageIndex, VecBundle};
 use crate::pages_error::PagesError;
-use crate::stages::{HbsAsset, HbsPage, PageGenerator, PageGeneratorBag, ProcessingResult, Stage};
+use crate::stages::hbs_asset::{HbsAsset, HbsAssetSelection};
+use crate::stages::{HbsPage, PageGenerator, PageGeneratorBag, ProcessingResult, Stage};
 use crate::utilities::visit_dirs;
 use chrono::{DateTime, Utc};
 use handlebars::Handlebars;
@@ -114,7 +115,7 @@ impl HbsStage {
             pages_tpl_names: Default::default(),
             assets: Default::default(),
         };
-
+        let mut assets_map: HashMap<String, TplAssetMetadata> = HashMap::new();
         let base_path = if let Some(npm_build_output) = self.try_npm_build(env)? {
             npm_build_output
         } else {
@@ -142,19 +143,44 @@ impl HbsStage {
                 let tpl_name: String = asset_path.join("/");
 
                 result.registry.register_template_file(&tpl_name, entry_path)?;
-                result.assets.insert(TplAsset::Tpl { asset_path, tpl_name });
+                result.assets.push(TplAsset::Tpl { asset_path, tpl_name, metadata: None });
+            } else if name.starts_with("asset.") && name.ends_with(".hbs.json") {
+                // asset.<asset name>.hbs.json format
+                let mut asset_path = rel_path.components().map(|c| c.as_os_str().to_str().unwrap_or_default().to_string()).collect::<Vec<_>>();
+                asset_path.pop();
+                asset_path.push(name[6..name.len() - 9].to_string()); // asset.<name>.hbs.json -> <name>
+                let tpl_name: String = asset_path.join("/");
+                let result = serde_json::from_reader(fs::File::open(entry_path)?)?;
+                assets_map.insert(tpl_name, result);
+            } else if name.starts_with("asset.") && name.ends_with(".hbs.yaml") {
+                // asset.<asset name>.hbs.yaml format
+                let mut asset_path = rel_path.components().map(|c| c.as_os_str().to_str().unwrap_or_default().to_string()).collect::<Vec<_>>();
+                asset_path.pop();
+                asset_path.push(name[6..name.len() - 9].to_string()); // asset.<name>.hbs.yaml -> <name>
+                let tpl_name: String = asset_path.join("/");
+                let result = serde_yaml::from_reader(fs::File::open(entry_path)?)?;
+                assets_map.insert(tpl_name, result);
             } else if ext == "hbs" {
                 let template_name = rel_path.to_string_lossy().replace(MAIN_SEPARATOR, "/");
                 let template_name = template_name.strip_suffix(".hbs").unwrap();
                 result.registry.register_template_file(template_name, entry_path)?;
             } else {
-                result.assets.insert(TplAsset::Static {
+                result.assets.push(TplAsset::Static {
                     base_path: base_path.to_path_buf(),
                     file_path: entry_path,
                 });
             }
             Ok(())
         })?;
+
+        for asset in &mut result.assets {
+            if let TplAsset::Tpl { tpl_name, metadata, .. } = asset {
+                if let Some(m) = assets_map.remove(tpl_name) {
+                    *metadata = Some(m);
+                }
+            }
+        }
+
         env.print_vv(&format!("stage {}", self.name()), &format!("handlebars lookup from dir {} ended", &self.tpl_path.to_string_lossy()));
         Ok(result)
     }
@@ -164,25 +190,122 @@ impl HbsStage {
 struct TplModel {
     registry: handlebars::Handlebars<'static>,
     pages_tpl_names: HashSet<String>,
-    assets: HashSet<TplAsset>,
+    assets: Vec<TplAsset>,
 }
 
-#[derive(Eq, PartialEq, Hash, Clone)]
-enum TplAsset {
-    Tpl { asset_path: Vec<String>, tpl_name: String },
-    Static { base_path: PathBuf, file_path: PathBuf },
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+enum TplAssetGroupBy {
+    #[serde(alias = "tag")]
+    Tag,
+    #[serde(alias = "author")]
+    Author,
 }
 
-impl PageGenerator for TplModel {
-    fn yield_pages(&self, _: &BundleIndex, _: &Env) -> anyhow::Result<Vec<Arc<dyn Page>>> {
-        let mut result = vec![];
-        for asset in &self.assets {
-            match asset {
-                TplAsset::Tpl { tpl_name, asset_path } => {
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+struct TplAssetMetadata {
+    #[serde(alias = "query")]
+    base_query: Option<BundleQuery>,
+    #[serde(alias = "groupBy")]
+    group_by: Option<TplAssetGroupBy>,
+    #[serde(alias = "limit")]
+    limit: Option<usize>,
+    #[serde(alias = "path")]
+    path_pattern: Option<String>,
+    #[serde(alias = "firstPagePath")]
+    first_page_path_pattern: Option<String>,
+}
+
+impl TplAssetMetadata {
+    fn make_path(&self, asset_path: &[String], selection: &HbsAssetSelection) -> anyhow::Result<Vec<String>> {
+        if selection.index == 0 {
+            if let Some(pattern) = &self.first_page_path_pattern {
+                return Ok(Handlebars::new().render_template(pattern, selection)?.split('/').map(|s| s.to_string()).collect());
+            }
+        }
+        if let Some(pattern) = &self.path_pattern {
+            return Ok(Handlebars::new().render_template(pattern, selection)?.split('/').map(|s| s.to_string()).collect());
+        }
+
+        Ok(asset_path.to_vec())
+    }
+
+    fn yield_pages(&self, registry: &handlebars::Handlebars<'static>, asset_path: &[String], tpl_name: &str, output_bundle: &BundleIndex) -> anyhow::Result<Vec<Arc<dyn Page>>> {
+        let base_query = self.base_query.clone().unwrap_or(BundleQuery::Always);
+        let mut queries = vec![];
+
+        if let Some(group_by) = &self.group_by {
+            match group_by {
+                TplAssetGroupBy::Tag => queries.append(
+                    &mut output_bundle
+                        .all_tags
+                        .iter()
+                        .map(|t| {
+                            (
+                                BundleQuery::And {
+                                    and: vec![base_query.clone(), BundleQuery::Tag { tag: t.to_string() }],
+                                },
+                                Some(t.to_string()),
+                                None,
+                            )
+                        })
+                        .collect(),
+                ),
+                TplAssetGroupBy::Author => queries.append(
+                    &mut output_bundle
+                        .all_authors
+                        .iter()
+                        .map(|a| {
+                            (
+                                BundleQuery::And {
+                                    and: vec![base_query.clone(), BundleQuery::Author { author: a.name.to_string() }],
+                                },
+                                None,
+                                Some(a.name.to_string()),
+                            )
+                        })
+                        .collect(),
+                ),
+            }
+        }
+
+        if queries.is_empty() {
+            queries.push((base_query, None, None));
+        }
+        let no_paginate = BundlePagination { skip: None, limit: None };
+        if let Some(limit) = self.limit {
+            let mut result = vec![];
+            for (q, selection_tag, selection_author) in &queries {
+                let pages_size = output_bundle.count(q, &no_paginate);
+                let nb_pages: usize = (pages_size as f32 / limit as f32).ceil() as usize;
+                for p in 0..nb_pages {
+                    let pages = output_bundle.query(
+                        q,
+                        &BundlePagination {
+                            skip: Some(p * limit),
+                            limit: Some(limit),
+                        },
+                    );
+                    let selection = HbsAssetSelection {
+                        pages: pages
+                            .iter()
+                            .map(|e| PageIndex {
+                                page_ref: e.page_ref.clone(),
+                                page_uri: e.page_uri.clone(),
+                                metadata: e.metadata.clone(),
+                            })
+                            .collect::<Vec<PageIndex>>(),
+                        index: p,
+                        limit,
+                        last: nb_pages - 1,
+                        size: Some(pages_size),
+                        tag: selection_tag.clone(),
+                        author: selection_author.clone(),
+                    };
+
                     result.push(Arc::new(HbsAsset {
-                        registry: self.registry.clone(),
-                        tpl_name: tpl_name.clone(),
-                        path: asset_path.clone(),
+                        registry: registry.clone(),
+                        tpl_name: tpl_name.to_string(),
+                        path: self.make_path(asset_path, &selection)?,
                         metadata: Some(Metadata {
                             title: None,
                             summary: None,
@@ -192,7 +315,97 @@ impl PageGenerator for TplModel {
                             last_edit_date: None,
                             data: IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))]).collect(),
                         }),
+                        selection: Some(selection),
                     }) as Arc<dyn Page>);
+                }
+            }
+
+            return Ok(result);
+        }
+
+        let result = queries
+            .iter()
+            .map(|(q, selection_tag, selection_author)| {
+                let pages: Vec<PageIndex> = output_bundle
+                    .query(q, &no_paginate)
+                    .iter()
+                    .map(|e| PageIndex {
+                        page_ref: e.page_ref.clone(),
+                        page_uri: e.page_uri.clone(),
+                        metadata: e.metadata.clone(),
+                    })
+                    .collect();
+                let limit = pages.len();
+                let selection = HbsAssetSelection {
+                    pages,
+                    index: 0,
+                    limit,
+                    last: 0,
+                    size: None,
+                    tag: selection_tag.clone(),
+                    author: selection_author.clone(),
+                };
+
+                Ok(Arc::new(HbsAsset {
+                    registry: registry.clone(),
+                    tpl_name: tpl_name.to_string(),
+                    path: self.make_path(asset_path, &selection)?,
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))]).collect(),
+                    }),
+                    selection: Some(selection),
+                }) as Arc<dyn Page>)
+            })
+            .collect::<anyhow::Result<Vec<Arc<dyn Page>>>>()?;
+
+        Ok(result)
+    }
+}
+#[derive(Debug, Clone, PartialEq)]
+enum TplAsset {
+    Tpl {
+        asset_path: Vec<String>,
+        tpl_name: String,
+        metadata: Option<TplAssetMetadata>,
+    },
+    Static {
+        base_path: PathBuf,
+        file_path: PathBuf,
+    },
+}
+
+impl PageGenerator for TplModel {
+    fn yield_pages(&self, output_bundle: &BundleIndex, _: &Env) -> anyhow::Result<Vec<Arc<dyn Page>>> {
+        let mut result = vec![];
+        for asset in &self.assets {
+            match asset {
+                TplAsset::Tpl { tpl_name, asset_path, metadata } => {
+                    if let Some(tpl_meta) = metadata {
+                        let mut pages = tpl_meta.yield_pages(&self.registry, asset_path, tpl_name, output_bundle)?;
+                        result.append(&mut pages);
+                    } else {
+                        result.push(Arc::new(HbsAsset {
+                            registry: self.registry.clone(),
+                            tpl_name: tpl_name.clone(),
+                            path: asset_path.clone(),
+                            metadata: Some(Metadata {
+                                title: None,
+                                summary: None,
+                                authors: Default::default(),
+                                tags: Default::default(),
+                                publishing_date: None,
+                                last_edit_date: None,
+                                data: IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))]).collect(),
+                            }),
+                            selection: None,
+                        }) as Arc<dyn Page>);
+                    }
                 }
                 TplAsset::Static { base_path, file_path } => {
                     result.push(Arc::new(FsPage::new_with_metadata(

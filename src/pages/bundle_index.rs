@@ -162,9 +162,10 @@ impl From<&Arc<dyn PageBundle>> for BundleIndex {
         }
         result.all_pages.sort_by(|a, b| match (&a.metadata, &b.metadata) {
             (Some(ma), Some(mb)) => mb.publishing_date.as_ref().map(|v| v.timestamp).cmp(&ma.publishing_date.as_ref().map(|v| v.timestamp)),
+            (None, Some(_)) => Ordering::Greater,
+            (Some(_), None) => Ordering::Less,
             _ => Ordering::Equal,
         });
-
         result
     }
 }
@@ -266,5 +267,29 @@ impl BundleIndex {
             }
         }
         result
+    }
+
+    pub fn count(&self, q: &BundleQuery, p: &BundlePagination) -> usize {
+        let mut matched_counter = 0;
+        let mut selection_counter = 0;
+        for page in &self.all_pages {
+            if q.do_match(page) {
+                matched_counter += 1;
+                match p.skip {
+                    None => selection_counter += 1,
+                    Some(skip) => {
+                        if skip < matched_counter {
+                            selection_counter += 1
+                        }
+                    }
+                }
+                if let Some(limit) = p.limit {
+                    if selection_counter == limit {
+                        return selection_counter;
+                    }
+                }
+            }
+        }
+        selection_counter
     }
 }

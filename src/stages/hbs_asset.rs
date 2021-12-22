@@ -3,12 +3,24 @@ use crate::stages::{BundleQueryHelper, DateFormatHelper};
 use serde::Serialize;
 use std::io::{Cursor, Read};
 
+#[derive(Debug, Serialize)]
+pub(crate) struct HbsAssetSelection {
+    pub(crate) pages: Vec<PageIndex>,
+    pub(crate) index: usize,
+    pub(crate) last: usize,
+    pub(crate) limit: usize,
+    pub(crate) size: Option<usize>,
+    pub(crate) tag: Option<String>,
+    pub(crate) author: Option<String>,
+}
+
 #[derive(Debug)]
 pub(crate) struct HbsAsset {
     pub(crate) registry: handlebars::Handlebars<'static>,
     pub(crate) tpl_name: String,
     pub(crate) path: Vec<String>,
     pub(crate) metadata: Option<Metadata>,
+    pub(crate) selection: Option<HbsAssetSelection>,
 }
 
 impl Page for HbsAsset {
@@ -29,6 +41,7 @@ impl Page for HbsAsset {
             &AssetData {
                 page: output_page,
                 index: output_index,
+                selection: if let Some(s) = &self.selection { Some(s) } else { None },
             },
         )?;
         Ok(Box::new(Cursor::new(result)))
@@ -36,7 +49,8 @@ impl Page for HbsAsset {
 }
 
 #[derive(Serialize)]
-pub struct AssetData<'a> {
-    pub page: &'a PageIndex,
-    pub index: &'a BundleIndex,
+pub(crate) struct AssetData<'a> {
+    pub(crate) page: &'a PageIndex,
+    pub(crate) index: &'a BundleIndex,
+    pub(crate) selection: Option<&'a HbsAssetSelection>,
 }

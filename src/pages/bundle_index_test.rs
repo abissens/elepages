@@ -218,11 +218,6 @@ mod tests {
                         })
                     },
                     PageIndex {
-                        page_ref: PageRef { path: vec!["f2".to_string()] },
-                        page_uri: "/f2".to_string(),
-                        metadata: None
-                    },
-                    PageIndex {
                         page_ref: PageRef { path: vec!["f3".to_string()] },
                         page_uri: "/f3".to_string(),
                         metadata: Some(MetadataIndex {
@@ -249,7 +244,12 @@ mod tests {
                             last_edit_date: None,
                             data: HashMap::default(),
                         })
-                    }
+                    },
+                    PageIndex {
+                        page_ref: PageRef { path: vec!["f2".to_string()] },
+                        page_uri: "/f2".to_string(),
+                        metadata: None
+                    },
                 ],
                 pages_by_tag: HashMap::from_iter(IntoIter::new([
                     (
@@ -525,11 +525,6 @@ mod tests {
                     content: String::new(),
                 }),
                 Arc::new(TestPage {
-                    path: vec!["f2".to_string()],
-                    metadata: None,
-                    content: String::new(),
-                }),
-                Arc::new(TestPage {
                     path: vec!["f3".to_string()],
                     metadata: Some(Metadata {
                         title: Some(Arc::new("f3 title".to_string())),
@@ -567,6 +562,11 @@ mod tests {
                     }),
                     content: String::new(),
                 }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: None,
+                    content: String::new(),
+                }),
             ],
         });
 
@@ -581,7 +581,7 @@ mod tests {
             },
             &BundlePagination { skip: None, limit: None },
         );
-        assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap(), bundle_index.all_pages.get(3).unwrap()]);
+        assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap(), bundle_index.all_pages.get(2).unwrap()]);
 
         let result = bundle_index.query(&BundleQuery::Tag { tag: "t1".to_string() }, &BundlePagination { skip: None, limit: None });
         assert_eq!(result, vec![bundle_index.all_pages.get(0).unwrap()]);

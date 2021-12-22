@@ -35,7 +35,6 @@ pub use self::append_stage::*;
 pub use self::compose_stage::*;
 pub use self::copy_cut_stage::*;
 pub use self::git_metadata::*;
-pub use self::hbs_asset::*;
 pub use self::hbs_page::*;
 pub use self::hbs_registry_helpers::*;
 pub use self::hbs_stage::*;

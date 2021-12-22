@@ -1365,12 +1365,1494 @@ mod tests {
                             <h2>f4 title</h2>
                             <h2>f3 title</h2>
                             <h3>f3 title</h3>
-                            <h4>f4 title</h4>
-                            <h4>f3 title</h4>
+                            <h4>f1 title</h4>
+                            <h4></h4>
                         "
                 }
                 .to_string()
             },]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[TestPage {
+                path: vec!["index.html".to_string()],
+                metadata: Some(Metadata {
+                    title: None,
+                    summary: None,
+                    authors: Default::default(),
+                    tags: Default::default(),
+                    publishing_date: None,
+                    last_edit_date: None,
+                    data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                }),
+                content: indoc! {"
+                        <h1>f5 title</h1>
+                        <h1>f4 title</h1>
+                        <h1>f3 title</h1>
+                        <h1>f1 title</h1>
+                        <h1></h1>
+                        "
+                }
+                .to_string()
+            },]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection_with_tag_grouping() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                            groupBy: tag
+                            path: '{{tag}}/index.html'
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                <h4>{{selection.tag}}</h4>
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[
+                TestPage {
+                    path: vec!["t1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t1</h4>
+                            <h1>f5 title</h1>
+                            <h1>f4 title</h1>
+                            <h1>f3 title</h1>
+                            "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t2".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t2</h4>
+                            <h1>f4 title</h1>
+                            <h1>f3 title</h1>
+                    " }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t3".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t3</h4>
+                            <h1>f3 title</h1>
+                    " }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t4".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t4</h4>
+                            <h1>f5 title</h1>
+                    " }
+                    .to_string()
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection_with_author_grouping() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                            groupBy: author
+                            path: '{{author}}/index.html'
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                <h4>{{selection.author}}</h4>
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[
+                TestPage {
+                    path: vec!["a1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                                <h4>a1</h4>
+                                <h1>f4 title</h1>
+                                <h1>f3 title</h1>
+                                "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["a2".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>a2</h4>
+                            <h1>f4 title</h1>
+                    " }
+                    .to_string()
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection_with_pagination() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                            limit: 2
+                            path: '{{index}}/index.html'
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                <h4>{{selection.index}} / {{selection.last}}</h4>
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[
+                TestPage {
+                    path: vec!["0".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>0 / 2</h4>
+                            <h1>f5 title</h1>
+                            <h1>f4 title</h1>
+                            "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>1 / 2</h4>
+                            <h1>f3 title</h1>
+                            <h1>f1 title</h1>
+                            "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["2".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>2 / 2</h4>
+                            <h1></h1>
+                            "
+                    }
+                    .to_string()
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection_with_first_page_path_pattern() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                            limit: 2
+                            path: '{{index}}/index.html'
+                            firstPagePath: index.html
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                <h4>{{selection.index}} / {{selection.last}}</h4>
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[
+                TestPage {
+                    path: vec!["1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>1 / 2</h4>
+                            <h1>f3 title</h1>
+                            <h1>f1 title</h1>
+                            "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["2".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>2 / 2</h4>
+                            <h1></h1>
+                            "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>0 / 2</h4>
+                            <h1>f5 title</h1>
+                            <h1>f4 title</h1>
+                            "
+                    }
+                    .to_string()
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection_with_tag_grouping_and_pagination() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                            groupBy: tag
+                            limit: 2
+                            path: '{{tag}}/{{index}}/index.html'
+                            firstPagePath: '{{tag}}/index.html'
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                <h4>{{selection.tag}}</h4>
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[
+                TestPage {
+                    path: vec!["t1".to_string(), "1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                                <h4>t1</h4>
+                                <h1>f3 title</h1>
+                                "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                                <h4>t1</h4>
+                                <h1>f5 title</h1>
+                                <h1>f4 title</h1>
+                                "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t2".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t2</h4>
+                            <h1>f4 title</h1>
+                            <h1>f3 title</h1>
+                    " }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t3".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t3</h4>
+                            <h1>f3 title</h1>
+                    " }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["t4".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>t4</h4>
+                            <h1>f5 title</h1>
+                    " }
+                    .to_string()
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn apply_template_asset_metadata_query_selection_with_author_grouping_and_pagination() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2.html".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(200),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(300),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(400),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs.yaml".to_string(),
+                        content: indoc! {"
+                            query: {path: '**/*.html'}
+                            groupBy: author
+                            limit: 1
+                            path: '{{author}}/{{index}}/index.html'
+                            firstPagePath: '{{author}}/index.html'
+                        "}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                <h4>{{selection.author}}</h4>
+                                {{#each selection.pages }}
+                                <h1>{{this.metadata.title}}</h1>
+                                {{/each}}"}
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[
+                TestPage {
+                    path: vec!["a1".to_string(), "1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                                <h4>a1</h4>
+                                <h1>f3 title</h1>
+                                "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["a1".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                                <h4>a1</h4>
+                                <h1>f4 title</h1>
+                                "
+                    }
+                    .to_string()
+                },
+                TestPage {
+                    path: vec!["a2".to_string(), "index.html".to_string()],
+                    metadata: Some(Metadata {
+                        title: None,
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: None,
+                        last_edit_date: None,
+                        data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                    }),
+                    content: indoc! {"
+                            <h4>a2</h4>
+                            <h1>f4 title</h1>
+                    " }
+                    .to_string()
+                },
+            ]
         );
     }
 }
