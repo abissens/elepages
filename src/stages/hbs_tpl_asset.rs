@@ -1,6 +1,7 @@
 use crate::config::Value;
 use crate::pages::{BundleIndex, BundlePagination, BundleQuery, Metadata, Page, PageIndex};
 use crate::stages::hbs_asset::{HbsAsset, HbsAssetSelection};
+use crate::utilities::uri_friendly_string;
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 use std::array::IntoIter;
@@ -126,8 +127,10 @@ impl TplAssetMetadata {
                         last: nb_pages - 1,
                         indexes: (0..nb_pages).map(|i| (i, i == p)).collect(),
                         size: Some(pages_size),
-                        tag: selection_tag.clone(),
-                        author: selection_author.clone(),
+                        tag: selection_tag.as_ref().map(|s| uri_friendly_string(s)),
+                        author: selection_author.as_ref().map(|s| uri_friendly_string(s)),
+                        original_tag: selection_tag.clone(),
+                        original_author: selection_author.clone(),
                     };
 
                     result.push(Arc::new(HbsAsset {
@@ -171,8 +174,10 @@ impl TplAssetMetadata {
                     last: 0,
                     size: None,
                     indexes: vec![],
-                    tag: selection_tag.clone(),
-                    author: selection_author.clone(),
+                    tag: selection_tag.as_ref().map(|s| uri_friendly_string(s)),
+                    author: selection_author.as_ref().map(|s| uri_friendly_string(s)),
+                    original_tag: selection_tag.clone(),
+                    original_author: selection_author.clone(),
                 };
 
                 Ok(Arc::new(HbsAsset {

@@ -13,6 +13,10 @@ pub(crate) struct HbsAssetSelection {
     pub(crate) size: Option<usize>,
     pub(crate) tag: Option<String>,
     pub(crate) author: Option<String>,
+    #[serde(rename = "originalTag")]
+    pub(crate) original_tag: Option<String>,
+    #[serde(rename = "originalAuthor")]
+    pub(crate) original_author: Option<String>,
 }
 
 #[derive(Debug)]

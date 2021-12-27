@@ -1578,7 +1578,7 @@ mod tests {
                             name: "a1".to_string(),
                             contacts: Default::default(),
                         })])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("T 1".to_string()), Arc::new("t 2".to_string()), Arc::new("t 3".to_string())])),
                         publishing_date: Some(200),
                         last_edit_date: None,
                         data: HashMap::default(),
@@ -1600,7 +1600,7 @@ mod tests {
                                 contacts: Default::default(),
                             }),
                         ])),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("T 1".to_string()), Arc::new("t 2".to_string())])),
                         publishing_date: Some(300),
                         last_edit_date: None,
                         data: HashMap::default(),
@@ -1613,7 +1613,7 @@ mod tests {
                         title: Some(Arc::new("f5 title".to_string())),
                         summary: None,
                         authors: Default::default(),
-                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("T 1".to_string()), Arc::new("t 4".to_string())])),
                         publishing_date: Some(400),
                         last_edit_date: None,
                         data: HashMap::default(),
@@ -1659,7 +1659,7 @@ mod tests {
                     FileNode::File {
                         name: "asset.index.html.hbs".to_string(),
                         content: indoc! {"
-                                <h4>{{selection.tag}}</h4>
+                                <h4>{{selection.originalTag}}</h4>
                                 {{#each selection.pages }}
                                 <h1>{{this.metadata.title}}</h1>
                                 {{/each}}"}
@@ -1701,7 +1701,7 @@ mod tests {
             actual_generated,
             &[
                 TestPage {
-                    path: vec!["t1".to_string(), "index.html".to_string()],
+                    path: vec!["t_1".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
@@ -1712,7 +1712,7 @@ mod tests {
                         data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: indoc! {"
-                            <h4>t1</h4>
+                            <h4>T 1</h4>
                             <h1>f5 title</h1>
                             <h1>f4 title</h1>
                             <h1>f3 title</h1>
@@ -1721,7 +1721,7 @@ mod tests {
                     .to_string()
                 },
                 TestPage {
-                    path: vec!["t2".to_string(), "index.html".to_string()],
+                    path: vec!["t_2".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
@@ -1732,14 +1732,14 @@ mod tests {
                         data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: indoc! {"
-                            <h4>t2</h4>
+                            <h4>t 2</h4>
                             <h1>f4 title</h1>
                             <h1>f3 title</h1>
                     " }
                     .to_string()
                 },
                 TestPage {
-                    path: vec!["t3".to_string(), "index.html".to_string()],
+                    path: vec!["t_3".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
@@ -1750,13 +1750,13 @@ mod tests {
                         data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: indoc! {"
-                            <h4>t3</h4>
+                            <h4>t 3</h4>
                             <h1>f3 title</h1>
                     " }
                     .to_string()
                 },
                 TestPage {
-                    path: vec!["t4".to_string(), "index.html".to_string()],
+                    path: vec!["t_4".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
@@ -1767,7 +1767,7 @@ mod tests {
                         data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: indoc! {"
-                            <h4>t4</h4>
+                            <h4>t 4</h4>
                             <h1>f5 title</h1>
                     " }
                     .to_string()
@@ -1804,7 +1804,7 @@ mod tests {
                         title: Some(Arc::new("f3 title".to_string())),
                         summary: None,
                         authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
-                            name: "a1".to_string(),
+                            name: "A 1".to_string(),
                             contacts: Default::default(),
                         })])),
                         tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
@@ -1821,11 +1821,11 @@ mod tests {
                         summary: None,
                         authors: HashSet::from_iter(IntoIter::new([
                             Arc::new(Author {
-                                name: "a1".to_string(),
+                                name: "A 1".to_string(),
                                 contacts: Default::default(),
                             }),
                             Arc::new(Author {
-                                name: "a2".to_string(),
+                                name: "a 2".to_string(),
                                 contacts: Default::default(),
                             }),
                         ])),
@@ -1888,7 +1888,7 @@ mod tests {
                     FileNode::File {
                         name: "asset.index.html.hbs".to_string(),
                         content: indoc! {"
-                                <h4>{{selection.author}}</h4>
+                                <h4>{{selection.originalAuthor}}</h4>
                                 {{#each selection.pages }}
                                 <h1>{{this.metadata.title}}</h1>
                                 {{/each}}"}
@@ -1930,7 +1930,7 @@ mod tests {
             actual_generated,
             &[
                 TestPage {
-                    path: vec!["a1".to_string(), "index.html".to_string()],
+                    path: vec!["a_1".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
@@ -1941,7 +1941,7 @@ mod tests {
                         data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: indoc! {"
-                                <h4>a1</h4>
+                                <h4>A 1</h4>
                                 <h1>f4 title</h1>
                                 <h1>f3 title</h1>
                                 "
@@ -1949,7 +1949,7 @@ mod tests {
                     .to_string()
                 },
                 TestPage {
-                    path: vec!["a2".to_string(), "index.html".to_string()],
+                    path: vec!["a_2".to_string(), "index.html".to_string()],
                     metadata: Some(Metadata {
                         title: None,
                         summary: None,
@@ -1960,7 +1960,7 @@ mod tests {
                         data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                     }),
                     content: indoc! {"
-                            <h4>a2</h4>
+                            <h4>a 2</h4>
                             <h1>f4 title</h1>
                     " }
                     .to_string()

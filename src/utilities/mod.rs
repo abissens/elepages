@@ -23,3 +23,21 @@ where
     }
     Ok(())
 }
+
+pub(crate) fn uri_friendly_string(original: &str) -> String {
+    return original
+        .chars()
+        .filter_map(|c| {
+            if c.is_whitespace() {
+                return Some('_');
+            }
+
+            if !(c.is_ascii() && c.is_alphanumeric()) {
+                return None;
+            }
+
+            Some(c)
+        })
+        .collect::<String>()
+        .to_lowercase();
+}
