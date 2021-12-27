@@ -2,6 +2,7 @@ use crate::pages::{BundleIndex, BundlePagination, BundleQuery, Env, Page, PageIn
 use chrono::{DateTime, NaiveDateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
 use std::sync::Arc;
+use crate::utilities::uri_friendly_string;
 
 pub struct PageContentHelper<'a> {
     pub source: &'a Arc<dyn Page>,
@@ -69,6 +70,18 @@ impl HelperDef for DateFormatHelper {
         let datetime: DateTime<Utc> = DateTime::from_utc(naive_dt, Utc);
 
         out.write(&datetime.format(format_param).to_string())?;
+        Ok(())
+    }
+}
+
+
+pub struct ForURIHelper;
+
+impl HelperDef for ForURIHelper {
+    fn call<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>, out: &mut dyn Output) -> HelperResult {
+        let param = h.param(0).and_then(|v| v.value().as_str()).unwrap_or("");
+        let converted = uri_friendly_string(param);
+        out.write(&converted)?;
         Ok(())
     }
 }

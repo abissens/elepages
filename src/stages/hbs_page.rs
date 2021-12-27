@@ -1,5 +1,5 @@
 use crate::pages::{BundleIndex, Env, Metadata, Page, PageIndex};
-use crate::stages::{BundleQueryHelper, DateFormatHelper, PageContentHelper};
+use crate::stages::{BundleQueryHelper, DateFormatHelper, ForURIHelper, PageContentHelper};
 use serde::Serialize;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -33,6 +33,7 @@ impl Page for HbsPage {
         );
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
         local_registry.register_helper("date_format", Box::new(DateFormatHelper));
+        local_registry.register_helper("uri_string", Box::new(ForURIHelper));
         let result = (&local_registry).render(
             &self.tpl_name,
             &PageData {

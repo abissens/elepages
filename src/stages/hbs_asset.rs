@@ -1,5 +1,5 @@
 use crate::pages::{BundleIndex, Env, Metadata, Page, PageIndex};
-use crate::stages::{BundleQueryHelper, DateFormatHelper};
+use crate::stages::{BundleQueryHelper, DateFormatHelper, ForURIHelper};
 use serde::Serialize;
 use std::io::{Cursor, Read};
 
@@ -41,6 +41,8 @@ impl Page for HbsAsset {
         let mut local_registry = self.registry.clone();
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
         local_registry.register_helper("date_format", Box::new(DateFormatHelper));
+        local_registry.register_helper("uri_string", Box::new(ForURIHelper));
+
         let result = local_registry.render(
             &self.tpl_name,
             &AssetData {
