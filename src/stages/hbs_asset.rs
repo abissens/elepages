@@ -9,6 +9,7 @@ pub(crate) struct HbsAssetSelection {
     pub(crate) index: usize,
     pub(crate) last: usize,
     pub(crate) limit: usize,
+    pub(crate) indexes: Vec<(usize, bool)>,
     pub(crate) size: Option<usize>,
     pub(crate) tag: Option<String>,
     pub(crate) author: Option<String>,

@@ -124,6 +124,7 @@ impl TplAssetMetadata {
                         index: p,
                         limit,
                         last: nb_pages - 1,
+                        indexes: (0..nb_pages).map(|i| (i, i == p)).collect(),
                         size: Some(pages_size),
                         tag: selection_tag.clone(),
                         author: selection_author.clone(),
@@ -169,6 +170,7 @@ impl TplAssetMetadata {
                     limit,
                     last: 0,
                     size: None,
+                    indexes: vec![],
                     tag: selection_tag.clone(),
                     author: selection_author.clone(),
                 };
