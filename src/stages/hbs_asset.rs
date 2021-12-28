@@ -11,6 +11,8 @@ pub(crate) struct HbsAssetSelection {
     pub(crate) limit: usize,
     pub(crate) indexes: Vec<(usize, bool)>,
     pub(crate) size: Option<usize>,
+    #[serde(rename = "multiPages")]
+    pub(crate) multi_pages: bool,
     pub(crate) tag: Option<String>,
     pub(crate) author: Option<String>,
     #[serde(rename = "originalTag")]
