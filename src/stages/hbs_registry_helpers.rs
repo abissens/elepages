@@ -3,6 +3,7 @@ use crate::utilities::uri_friendly_string;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
 use serde::Serialize;
+use std::cmp::Reverse;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -135,10 +136,10 @@ impl HelperDef for BundleArchiveHelper<'_> {
                     pages: pages.to_vec(),
                 })
             }
-            current.months.sort_by_key(|k| k.month.clone());
+            current.months.sort_by_key(|k| Reverse(k.month.clone()));
             archive_pages.push(current);
         }
-        archive_pages.sort_by_key(|k| k.year.clone());
+        archive_pages.sort_by_key(|k| Reverse(k.year.clone()));
 
         Ok(ScopedJson::Derived(serde_json::to_value(archive_pages)?))
     }

@@ -3015,18 +3015,18 @@ mod tests {
                     data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                 }),
                 content: indoc! {"
-                    <h5>1970</h5>
-                        <h4>01</h4>
-                            <span>f1 title</span>
-                        <h4>02</h4>
-                            <span>f3 title</span>
                     <h5>1971</h5>
-                        <h4>06</h4>
-                            <span>f4 title</span>
-                        <h4>08</h4>
-                            <span>f5 title</span>
                         <h4>11</h4>
                             <span>f6 title</span>
+                        <h4>08</h4>
+                            <span>f5 title</span>
+                        <h4>06</h4>
+                            <span>f4 title</span>
+                    <h5>1970</h5>
+                        <h4>02</h4>
+                            <span>f3 title</span>
+                        <h4>01</h4>
+                            <span>f1 title</span>
                 "}
                 .to_string()
             },]
