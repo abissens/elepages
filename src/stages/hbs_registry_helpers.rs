@@ -1,8 +1,10 @@
 use crate::pages::{BundleIndex, BundlePagination, BundleQuery, Env, Page, PageIndex};
+use crate::utilities::uri_friendly_string;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext, RenderError, ScopedJson};
+use serde::Serialize;
+use std::collections::HashMap;
 use std::sync::Arc;
-use crate::utilities::uri_friendly_string;
 
 pub struct PageContentHelper<'a> {
     pub source: &'a Arc<dyn Page>,
@@ -74,14 +76,82 @@ impl HelperDef for DateFormatHelper {
     }
 }
 
+pub struct ForUriHelper;
 
-pub struct ForURIHelper;
-
-impl HelperDef for ForURIHelper {
+impl HelperDef for ForUriHelper {
     fn call<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>, out: &mut dyn Output) -> HelperResult {
         let param = h.param(0).and_then(|v| v.value().as_str()).unwrap_or("");
         let converted = uri_friendly_string(param);
         out.write(&converted)?;
         Ok(())
     }
+}
+
+pub struct BundleArchiveHelper<'a> {
+    pub output_index: &'a BundleIndex,
+}
+
+impl HelperDef for BundleArchiveHelper<'_> {
+    fn call_inner<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
+        let param1 = h.param(0).and_then(|v| v.value().as_str());
+
+        let value: Option<BundleQuery> = match param1 {
+            None => None,
+            Some(param) => {
+                if param.is_empty() {
+                    None
+                } else {
+                    Some(serde_yaml::from_str(param).map_err(|err| RenderError::new(err.to_string()))?)
+                }
+            }
+        };
+
+        let bundle_query: BundleQuery = match value {
+            None => BundleQuery::Always,
+            Some(value) => value,
+        };
+
+        let pages = self.output_index.query(&bundle_query, &BundlePagination { skip: None, limit: None });
+
+        let mut archive_map: HashMap<String, HashMap<String, Vec<&PageIndex>>> = HashMap::default();
+
+        for page in pages {
+            if let Some(Some(publish_date)) = page.metadata.as_ref().map(|m| m.publishing_date.as_ref()) {
+                let current = archive_map.entry(format!("{}", publish_date.i_year)).or_insert_with(HashMap::default);
+                let monthly = current.entry(publish_date.month.clone()).or_insert_with(Vec::default);
+                monthly.push(page);
+            }
+        }
+
+        let mut archive_pages = vec![];
+        for (year, monthly) in &archive_map {
+            let mut current = ArchivePages {
+                year: year.to_string(),
+                months: vec![],
+            };
+            for (month, pages) in monthly {
+                current.months.push(MonthlyArchivePages {
+                    month: month.to_string(),
+                    pages: pages.to_vec(),
+                })
+            }
+            current.months.sort_by_key(|k| k.month.clone());
+            archive_pages.push(current);
+        }
+        archive_pages.sort_by_key(|k| k.year.clone());
+
+        Ok(ScopedJson::Derived(serde_json::to_value(archive_pages)?))
+    }
+}
+
+#[derive(Serialize)]
+struct ArchivePages<'a> {
+    year: String,
+    months: Vec<MonthlyArchivePages<'a>>,
+}
+
+#[derive(Serialize)]
+struct MonthlyArchivePages<'a> {
+    month: String,
+    pages: Vec<&'a PageIndex>,
 }

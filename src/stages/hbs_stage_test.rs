@@ -2855,4 +2855,181 @@ mod tests {
             ]
         );
     }
+
+    #[test]
+    fn apply_bundle_archive_query_helper() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f1 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(100),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f2".to_string()],
+                    metadata: None,
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f3".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f3 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([Arc::new(Author {
+                            name: "a1".to_string(),
+                            contacts: Default::default(),
+                        })])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string()), Arc::new("t3".to_string())])),
+                        publishing_date: Some(3888000),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f4".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f4 title".to_string())),
+                        summary: None,
+                        authors: HashSet::from_iter(IntoIter::new([
+                            Arc::new(Author {
+                                name: "a1".to_string(),
+                                contacts: Default::default(),
+                            }),
+                            Arc::new(Author {
+                                name: "a2".to_string(),
+                                contacts: Default::default(),
+                            }),
+                        ])),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t2".to_string())])),
+                        publishing_date: Some(46656000),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["f5".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f5 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: HashSet::from_iter(IntoIter::new([Arc::new("t1".to_string()), Arc::new("t4".to_string())])),
+                        publishing_date: Some(50544000),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+                Arc::new(TestPage {
+                    path: vec!["dir1".to_string(), "dir2".to_string(), "f6".to_string()],
+                    metadata: Some(Metadata {
+                        title: Some(Arc::new("f6 title".to_string())),
+                        summary: None,
+                        authors: Default::default(),
+                        tags: Default::default(),
+                        publishing_date: Some(58320000),
+                        last_edit_date: None,
+                        data: HashMap::default(),
+                    }),
+                    content: "".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "TPL root : {{page.metadata.title}} \n {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"
+                                {{#each (bundle_archive_query \"\") }}
+                                <h5>{{this.year}}</h5>
+                                    {{#each this.months }}
+                                    <h4>{{this.month}}</h4>
+                                        {{#each this.pages }}
+                                        <span>{{this.metadata.title}}</span>
+                                        {{/each}}
+                                    {{/each}}
+                                {{/each}}"
+                        }
+                        .as_bytes()
+                        .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let result_bundle = hb_stage.process(&bundle, &Env::test(), &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &Env::test()).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[TestPage {
+                path: vec!["index.html".to_string()],
+                metadata: Some(Metadata {
+                    title: None,
+                    summary: None,
+                    authors: Default::default(),
+                    tags: Default::default(),
+                    publishing_date: None,
+                    last_edit_date: None,
+                    data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                }),
+                content: indoc! {"
+                    <h5>1970</h5>
+                        <h4>01</h4>
+                            <span>f1 title</span>
+                        <h4>02</h4>
+                            <span>f3 title</span>
+                    <h5>1971</h5>
+                        <h4>06</h4>
+                            <span>f4 title</span>
+                        <h4>08</h4>
+                            <span>f5 title</span>
+                        <h4>11</h4>
+                            <span>f6 title</span>
+                "}
+                .to_string()
+            },]
+        );
+    }
 }
