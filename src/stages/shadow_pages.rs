@@ -36,12 +36,23 @@ impl Stage for ShadowPages {
         let mut all_paths = HashSet::new();
 
         // select metadata candidates
+        let mut root_metadata = None;
+        let mut root_path = None;
         for page in bundle.pages() {
             let path = page.path();
             if path.is_empty() {
                 continue;
             }
             for (ext, loader) in &self.loaders {
+                let ext_root_path = vec![format!("pages{}", ext)];
+                if path == ext_root_path.as_slice() && root_metadata.is_none() {
+                    // root metadata
+                    let page_index = PageIndex::from(page);
+                    let rm = loader.load(Arc::clone(page), &page_index, &shadow_output_index, env)?;
+                    root_metadata = Some(rm);
+                    root_path = Some(ext_root_path);
+                    continue;
+                }
                 if path[path.len() - 1].ends_with(ext) {
                     metadata_candidates.push(MetadataCandidate {
                         path: page
@@ -66,8 +77,7 @@ impl Stage for ShadowPages {
         }
 
         // retain only shadow pages
-        let root_metadata_path = vec!["pages".to_string()];
-        metadata_candidates.retain(|c| c.path == root_metadata_path || all_paths.contains(c.path.as_slice()));
+        metadata_candidates.retain(|c| all_paths.contains(c.path.as_slice()));
 
         let loaded_metadata_vec: Vec<LoadedMetadata> = metadata_candidates
             .par_iter()
@@ -89,14 +99,15 @@ impl Stage for ShadowPages {
             metadata_tree.push(&loaded_metadata.path, loaded_metadata.metadata)?
         }
 
-        let mut root_metadata_vec = vec![];
-        metadata_tree.get_metadata_from_path(&root_metadata_path, &mut root_metadata_vec);
-        let root_metadata = if root_metadata_vec.len() == 1 { root_metadata_vec[0].metadata.cloned() } else { None };
-
         let metadata_pages_set = metadata_candidates.iter().map(|c| c.page.path().to_vec()).collect::<HashSet<Vec<String>>>();
 
         // push non metadata pages to result bundle
         for page in bundle.pages() {
+            if let Some(rp) = &root_path {
+                if page.path() == rp.as_slice() {
+                    continue;
+                }
+            }
             if !metadata_pages_set.contains(page.path()) {
                 // get path metadata
                 let mut metadata_vec = vec![];
