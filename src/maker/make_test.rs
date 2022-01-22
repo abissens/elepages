@@ -14,7 +14,7 @@ mod tests {
     fn build_default_processor_stages_based_on_config() {
         let git_metadata_stage_config: StageValue = serde_yaml::from_str("git_metadata").unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
@@ -72,7 +72,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
@@ -152,7 +152,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -172,7 +172,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -198,7 +198,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -342,7 +342,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -367,7 +367,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -390,7 +390,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -415,7 +415,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
@@ -467,7 +467,7 @@ mod tests {
         "})
         .unwrap();
 
-        let mut env = Env::test();
+        let env = Env::test();
         env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();

@@ -87,7 +87,7 @@ impl Executor {
         let maker = Maker::default();
         let writer = Box::new(FsWriter::new(output_dir)?);
 
-        let mut env = Env::default_for_level(params.print_level);
+        let env = Env::default_for_level(params.print_level);
         env.insert("root_path".to_string(), Value::String(input_dir.to_string_lossy().to_string()));
 
         Ok(Self {

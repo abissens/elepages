@@ -1,6 +1,7 @@
 use crate::config::Value;
 use chrono::Utc;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub trait Printer {
     fn print(&self, caller: &str, message: &str);
@@ -35,7 +36,7 @@ impl PrintLevel {
     }
 }
 pub struct Env {
-    values: HashMap<String, Value>,
+    values: Arc<Mutex<HashMap<String, Value>>>,
     printer: Box<dyn Printer + Send + Sync>,
     print_level: Option<PrintLevel>,
 }
@@ -75,11 +76,11 @@ impl Env {
     }
 
     pub fn get(&self, key: &str) -> Option<Value> {
-        self.values.get(key).cloned()
+        self.values.lock().unwrap().get(key).cloned()
     }
 
-    pub fn insert(&mut self, key: String, value: Value) {
-        self.values.insert(key, value);
+    pub fn insert(&self, key: String, value: Value) {
+        self.values.lock().unwrap().insert(key, value);
     }
 }
 

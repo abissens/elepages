@@ -87,6 +87,10 @@ impl Stage for ShadowPages {
             }
         }
 
+        for (key, value) in root_env {
+            env.insert(key, value);
+        }
+
         // retain only shadow pages
         metadata_candidates.retain(|c| all_paths.contains(c.path.as_slice()));
 

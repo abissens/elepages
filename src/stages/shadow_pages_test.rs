@@ -670,4 +670,37 @@ mod tests {
             ]
         );
     }
+
+    #[test]
+    fn shadow_pages_stage_should_load_root_envs() {
+        let vec_bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![Arc::new(TestPage {
+                path: vec!["pages.yaml".to_string()],
+                metadata: None,
+                content: indoc! {"
+                        env:
+                          A: 10
+                          B: 'B value'
+                          C:
+                            C1: key 1
+                            C2: [1,2, '3']
+                    "}
+                .to_string(),
+            })],
+        });
+        let shadow_stage = ShadowPages::default("shadow stage".to_string());
+        let test_env = Env::test();
+
+        let result_bundle = shadow_stage.process(&vec_bundle, &test_env, &PageGeneratorBagImpl::new()).unwrap();
+        assert!(result_bundle.0.pages().is_empty());
+        assert_eq!(test_env.get("A").unwrap(), Value::I32(10));
+        assert_eq!(test_env.get("B").unwrap(), Value::String("B value".to_string()));
+        assert_eq!(
+            test_env.get("C").unwrap(),
+            Value::Map(HashMap::from_iter(IntoIter::new([
+                ("C1".to_string(), Value::String("key 1".to_string())),
+                ("C2".to_string(), Value::Vec(vec![Value::I32(1), Value::I32(2), Value::String("3".to_string())])),
+            ])))
+        );
+    }
 }

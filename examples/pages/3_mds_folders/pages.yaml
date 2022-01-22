@@ -1,8 +1,9 @@
-authors:
-  - name: Lorem
-    contacts: [lorem@mail.io, http://spaces/lorem]
-  - name: Ipsum
-    contacts: [ ipsum@mail.io ]
-data:
-  path:
-    - ['\.html$', '{{path_join path 0 -2}}/index.html']
+page:
+  authors:
+    - name: Lorem
+      contacts: [lorem@mail.io, http://spaces/lorem]
+    - name: Ipsum
+      contacts: [ ipsum@mail.io ]
+  data:
+    path:
+      - ['\.html$', '{{path_join path 0 -2}}/index.html']
