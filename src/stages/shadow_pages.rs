@@ -1,18 +1,27 @@
+use crate::config::Value;
 use crate::pages::{ArcPage, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
 use crate::stages::metadata_tree::MetadataTree;
 use crate::stages::stage::Stage;
 use crate::stages::{PageGeneratorBag, ProcessingResult};
 use chrono::{DateTime, Utc};
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::array::IntoIter;
 use std::collections::{HashMap, HashSet};
-use std::option::Option::Some;
 use std::sync::Arc;
 use std::time::SystemTime;
 
+#[derive(Clone, PartialEq, Deserialize, Serialize, Debug)]
+pub struct RootPageMetadata {
+    page: Option<Metadata>,
+    #[serde(default = "HashMap::default")]
+    env: HashMap<String, Value>,
+}
+
 pub trait ShadowLoader: Send + Sync {
     fn load(&self, page: Arc<dyn Page>, shadow_page_index: &PageIndex, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata>;
+    fn load_root(&self, page: Arc<dyn Page>, shadow_page_index: &PageIndex, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<RootPageMetadata>;
 }
 
 pub struct ShadowPages {
@@ -37,6 +46,7 @@ impl Stage for ShadowPages {
 
         // select metadata candidates
         let mut root_metadata = None;
+        let mut root_env = HashMap::default();
         let mut root_path = None;
         for page in bundle.pages() {
             let path = page.path();
@@ -48,8 +58,9 @@ impl Stage for ShadowPages {
                 if path == ext_root_path.as_slice() && root_metadata.is_none() {
                     // root metadata
                     let page_index = PageIndex::from(page);
-                    let rm = loader.load(Arc::clone(page), &page_index, &shadow_output_index, env)?;
-                    root_metadata = Some(rm);
+                    let rm = loader.load_root(Arc::clone(page), &page_index, &shadow_output_index, env)?;
+                    root_metadata = rm.page;
+                    root_env = rm.env;
                     root_path = Some(ext_root_path);
                     continue;
                 }
@@ -126,10 +137,10 @@ impl Stage for ShadowPages {
                         last_edit_date: None,
                         data: HashMap::default(),
                     };
-                    vec_bundle.p.push(page.change_meta(current_metadata.merge(root_metadata.as_ref().unwrap())?));
+                    vec_bundle.p.push(page.change_meta(current_metadata.merge(&root_metadata.as_ref().unwrap())?));
                     continue;
                 } else if metadata_vec.is_empty() {
-                    vec_bundle.p.push(page.change_meta(page.metadata().unwrap().merge(root_metadata.as_ref().unwrap())?));
+                    vec_bundle.p.push(page.change_meta(page.metadata().unwrap().merge(&root_metadata.as_ref().unwrap())?));
                     continue;
                 }
                 let mut current_metadata: Metadata;
@@ -171,7 +182,7 @@ impl Stage for ShadowPages {
                     }
                 }
                 if let Some(rm) = &root_metadata {
-                    current_metadata = current_metadata.merge(rm)?;
+                    current_metadata = current_metadata.merge(&rm)?;
                 }
                 vec_bundle.p.push(page.change_meta(current_metadata));
             }
@@ -219,11 +230,21 @@ impl ShadowLoader for JsonShadowLoader {
         env.print_vvv("json shadow loader", &format!("loading from page {}", page.path().join("/")));
         Ok(serde_json::from_reader(page.open(shadow_page_index, shadow_output_index, env)?)?)
     }
+
+    fn load_root(&self, page: Arc<dyn Page>, shadow_page_index: &PageIndex, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<RootPageMetadata> {
+        env.print_vvv("json shadow root loader", &format!("loading from page {}", page.path().join("/")));
+        Ok(serde_json::from_reader(page.open(shadow_page_index, shadow_output_index, env)?)?)
+    }
 }
 
 impl ShadowLoader for YamlShadowLoader {
     fn load(&self, page: Arc<dyn Page>, shadow_page_index: &PageIndex, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<Metadata> {
         env.print_vvv("yaml shadow loader", &format!("loading from page {}", page.path().join("/")));
+        Ok(serde_yaml::from_reader(page.open(shadow_page_index, shadow_output_index, env)?)?)
+    }
+
+    fn load_root(&self, page: Arc<dyn Page>, shadow_page_index: &PageIndex, shadow_output_index: &BundleIndex, env: &Env) -> anyhow::Result<RootPageMetadata> {
+        env.print_vvv("yaml shadow root loader", &format!("loading from page {}", page.path().join("/")));
         Ok(serde_yaml::from_reader(page.open(shadow_page_index, shadow_output_index, env)?)?)
     }
 }

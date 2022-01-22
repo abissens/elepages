@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use crate::config::Value;
     use crate::maker::{Maker, StageValue};
     use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
@@ -14,7 +15,7 @@ mod tests {
         let git_metadata_stage_config: StageValue = serde_yaml::from_str("git_metadata").unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
         assert_eq!(git_metadata_stage.name(), "git metadata stage");
@@ -72,7 +73,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
         assert_eq!(git_metadata_stage.name(), "git metadata renamed");
@@ -152,7 +153,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -172,7 +173,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -198,7 +199,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -342,7 +343,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
         assert_eq!(stage.name(), "my sequence");
@@ -367,7 +368,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
         assert_eq!(stage.name(), "my union");
@@ -390,7 +391,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -415,7 +416,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -467,7 +468,7 @@ mod tests {
         .unwrap();
 
         let mut env = Env::test();
-        env.insert("root_path".to_string(), Box::new(PathBuf::from_str("a/b/c").unwrap()));
+        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
         assert_eq!(stage.name(), "my compose");

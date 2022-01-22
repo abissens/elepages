@@ -1,6 +1,7 @@
 use crate::pages_error::PagesError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[serde(untagged)]
@@ -27,6 +28,15 @@ impl FromValue for String {
     fn from_value(value: Value) -> anyhow::Result<Self> {
         if let Value::String(s) = value {
             return Ok(s);
+        }
+        Err(PagesError::ValueParsing("expecting Value::String".to_string()).into())
+    }
+}
+
+impl FromValue for PathBuf {
+    fn from_value(value: Value) -> anyhow::Result<Self> {
+        if let Value::String(s) = value {
+            return Ok(PathBuf::from(&s));
         }
         Err(PagesError::ValueParsing("expecting Value::String".to_string()).into())
     }

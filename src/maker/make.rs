@@ -29,16 +29,15 @@ pub struct PathGeneratorStageMaker;
 
 impl StageMaker for GitMetadataStageMaker {
     fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        let root_path: &PathBuf = env
-            .get_downcast::<PathBuf>("root_path")?
-            .ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
+        let root_path_value: Value = env.get("root_path").ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
+        let root_path: PathBuf = FromValue::from_value(root_path_value)?;
         let (repo_path, pages_rel_path) = match config {
             Value::String(config_repo_path) => {
                 let p = PathBuf::from_str(config_repo_path)?;
-                let r = root_path.canonicalize()?.strip_prefix(&p.canonicalize()?)?.to_path_buf();
+                let r = root_path.as_path().canonicalize()?.strip_prefix(&p.canonicalize()?)?.to_path_buf();
                 (p, Some(r))
             }
-            _ => (root_path.to_path_buf(), None),
+            _ => (root_path, None),
         };
         Ok(Arc::new(GitMetadata {
             name: name.unwrap_or("git metadata stage").to_string(),

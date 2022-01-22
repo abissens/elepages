@@ -31,7 +31,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &mut Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -119,7 +119,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &mut Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -226,7 +226,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &mut Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -315,7 +315,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &mut Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -441,7 +441,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &mut Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
@@ -518,9 +518,10 @@ mod tests {
                     path: vec!["pages.yaml".to_string()],
                     metadata: None,
                     content: indoc! {"
-                        tags: [root_tag]
-                        data:
-                          some_root_key: some_value
+                        page:
+                          tags: [root_tag]
+                          data:
+                            some_root_key: some_value
                     "}
                     .to_string(),
                 }),
@@ -580,7 +581,7 @@ mod tests {
         });
         let shadow_stage = ShadowPages::default("shadow stage".to_string());
 
-        let result_bundle = shadow_stage.process(&vec_bundle, &Env::test(), &PageGeneratorBagImpl::new()).unwrap();
+        let result_bundle = shadow_stage.process(&vec_bundle, &mut Env::test(), &PageGeneratorBagImpl::new()).unwrap();
         assert_eq!(
             TestProcessingResult::from(&result_bundle.1),
             TestProcessingResult {
