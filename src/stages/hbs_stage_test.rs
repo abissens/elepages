@@ -1028,6 +1028,37 @@ mod tests {
     }
 
     #[test]
+    fn fails_when_env_value_is_private() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle { p: vec![] });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![FileNode::File {
+                    name: "asset.index.html.hbs".to_string(),
+                    content: indoc! {"{{env \"_var_1\"}}"}.as_bytes().to_vec(),
+                    open_options: None,
+                }],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let env = Env::test();
+        let result_bundle = hb_stage.process(&bundle, &env, &page_generator_bag).unwrap();
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let first_page = generated.get(0).unwrap();
+        let result_open = first_page.open(&PageIndex::from(first_page), &bundle_index, &env);
+
+        if let Err(err) = result_open {
+            let render_err = err.downcast_ref::<RenderError>().unwrap();
+            assert_eq!(render_err.desc, "_var_1 value cannot be parsed from templates");
+            return;
+        }
+        panic!("should raise an error");
+    }
+
+    #[test]
     fn fails_when_env_not_found() {
         let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle { p: vec![] });
         let test_folder = TmpTestFolder::new().unwrap();

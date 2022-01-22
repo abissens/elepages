@@ -1,7 +1,7 @@
 use crate::config::{FromValue, Value};
 use crate::maker::config::{ComposeUnitConfig, StageValue};
 use crate::maker::{DateQueryConfig, SelectorConfig};
-use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector};
+use crate::pages::{AuthorSelector, DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, Selector, TagSelector, ROOT_PATH_KEY};
 use crate::pages_error::PagesError;
 use crate::remote::{GitReference, GitRemote};
 use crate::stages::{AppendStage, ComposeStage, ComposeUnit, CopyCut, GitMetadata, HbsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
@@ -29,7 +29,7 @@ pub struct PathGeneratorStageMaker;
 
 impl StageMaker for GitMetadataStageMaker {
     fn make(&self, name: Option<&str>, config: &Value, env: &Env) -> anyhow::Result<Arc<dyn Stage>> {
-        let root_path_value: Value = env.get("root_path").ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
+        let root_path_value: Value = env.get(ROOT_PATH_KEY).ok_or_else(|| PagesError::ElementNotFound("root_path not found in env".to_string()))?;
         let root_path: PathBuf = FromValue::from_value(root_path_value)?;
         let (repo_path, pages_rel_path) = match config {
             Value::String(config_repo_path) => {

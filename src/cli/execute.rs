@@ -2,7 +2,7 @@ use crate::cli::writer::Writer;
 use crate::cli::FsWriter;
 use crate::config::Value;
 use crate::maker::{Maker, SelectorConfig, StageValue};
-use crate::pages::{Env, FsLoader, Loader, PrintLevel};
+use crate::pages::{Env, FsLoader, Loader, PrintLevel, ROOT_PATH_KEY};
 use crate::pages_error::PagesError;
 use crate::stages::{PageGeneratorBag, PageGeneratorBagImpl, ProcessingResult};
 use std::env::current_dir;
@@ -88,7 +88,7 @@ impl Executor {
         let writer = Box::new(FsWriter::new(output_dir)?);
 
         let env = Env::default_for_level(params.print_level);
-        env.insert("root_path".to_string(), Value::String(input_dir.to_string_lossy().to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String(input_dir.to_string_lossy().to_string()));
 
         Ok(Self {
             loader,

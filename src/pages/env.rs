@@ -112,3 +112,5 @@ struct NoopPrinter;
 impl Printer for NoopPrinter {
     fn print(&self, _: &str, _: &str) {}
 }
+
+pub const ROOT_PATH_KEY: &str = "_root_path";

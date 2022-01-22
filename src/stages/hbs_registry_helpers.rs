@@ -67,6 +67,9 @@ pub struct EnvHelper<'a> {
 impl HelperDef for EnvHelper<'_> {
     fn call_inner<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
         let param1 = h.param(0).and_then(|v| v.value().as_str()).ok_or_else(|| RenderError::new("need env key"))?;
+        if param1.starts_with('_') {
+            return Err(RenderError::new(format!("{} value cannot be parsed from templates", param1)));
+        }
         let value = self.env.get(param1).ok_or_else(|| RenderError::new(format!("key {} not found in env", param1)))?;
         Ok(ScopedJson::Derived(serde_json::to_value(value)?))
     }

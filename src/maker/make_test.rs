@@ -2,7 +2,7 @@
 mod tests {
     use crate::config::Value;
     use crate::maker::{Maker, StageValue};
-    use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector};
+    use crate::pages::{DateQuery, Env, ExtSelector, Logical, PathSelector, PublishingDateSelector, TagSelector, ROOT_PATH_KEY};
     use crate::stages::ComposeUnit::{CreateNewSet, ReplaceSubSet};
     use crate::stages::{AppendStage, ComposeStage, CopyCut, GitMetadata, HbsStage, IndexStage, MdStage, PathGenerator, ReplaceStage, SequenceStage, ShadowPages, Stage, UnionStage};
     use chrono::{DateTime, Utc};
@@ -15,7 +15,7 @@ mod tests {
         let git_metadata_stage_config: StageValue = serde_yaml::from_str("git_metadata").unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
         assert_eq!(git_metadata_stage.name(), "git metadata stage");
@@ -73,7 +73,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let git_metadata_stage = Maker::default().make(None, &git_metadata_stage_config, &env).unwrap();
         assert_eq!(git_metadata_stage.name(), "git metadata renamed");
@@ -153,7 +153,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -173,7 +173,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -199,7 +199,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -343,7 +343,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
         assert_eq!(stage.name(), "my sequence");
@@ -368,7 +368,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
         assert_eq!(stage.name(), "my union");
@@ -391,7 +391,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -416,7 +416,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
 
@@ -468,7 +468,7 @@ mod tests {
         .unwrap();
 
         let env = Env::test();
-        env.insert("root_path".to_string(), Value::String("a/b/c".to_string()));
+        env.insert(ROOT_PATH_KEY.to_string(), Value::String("a/b/c".to_string()));
 
         let stage = Maker::default().make(None, &config, &env).unwrap();
         assert_eq!(stage.name(), "my compose");
