@@ -1,5 +1,5 @@
 use crate::pages::{BundleIndex, Env, Metadata, Page, PageIndex};
-use crate::stages::{BundleArchiveHelper, BundleQueryHelper, DateFormatHelper, ForUriHelper};
+use crate::stages::{BundleArchiveHelper, BundleQueryHelper, DateFormatHelper, EnvHelper, ForUriHelper};
 use serde::Serialize;
 use std::io::{Cursor, Read};
 
@@ -39,9 +39,10 @@ impl Page for HbsAsset {
         self.metadata.as_ref()
     }
 
-    fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, _: &Env) -> anyhow::Result<Box<dyn Read>> {
+    fn open(&self, output_page: &PageIndex, output_index: &BundleIndex, env: &Env) -> anyhow::Result<Box<dyn Read>> {
         let mut local_registry = self.registry.clone();
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
+        local_registry.register_helper("env", Box::new(EnvHelper { env }));
         local_registry.register_helper("bundle_archive_query", Box::new(BundleArchiveHelper { output_index }));
         local_registry.register_helper("date_format", Box::new(DateFormatHelper));
         local_registry.register_helper("uri_string", Box::new(ForUriHelper));

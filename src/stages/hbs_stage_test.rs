@@ -1027,6 +1027,98 @@ mod tests {
     }
 
     #[test]
+    fn apply_env_helper() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
+            p: vec![
+                Arc::new(TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: None,
+                    content: "some content".to_string(),
+                }),
+            ],
+        });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![
+                    FileNode::File {
+                        name: "page.hbs".to_string(),
+                        content: "{{env \"var_1\"}} {{env \"var_2\"}} {{page_content}}".as_bytes().to_vec(),
+                        open_options: None,
+                    },
+                    FileNode::File {
+                        name: "asset.index.html.hbs".to_string(),
+                        content: indoc! {"{{env \"var_1\"}} {{env \"var_2\"}}"}
+                            .as_bytes()
+                            .to_vec(),
+                        open_options: None,
+                    },
+                ],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let env = Env::test();
+        env.insert("var_1".to_string(), Value::I32(10));
+        env.insert("var_2".to_string(), Value::Vec(vec![Value::I32(20), Value::String("thirty".to_string())]));
+        let result_bundle = hb_stage.process(&bundle, &env, &page_generator_bag).unwrap();
+        assert_eq!(
+            TestProcessingResult::from(&result_bundle.1),
+            TestProcessingResult {
+                stage_name: "hb stage".to_string(),
+                sub_results: vec![]
+            }
+        );
+
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let actual = result_bundle.0.pages().iter().map(|p| TestPage::from((&env,p))).collect::<Vec<_>>();
+        assert_eq!(
+            actual,
+            &[
+                TestPage {
+                    path: vec!["f1".to_string()],
+                    metadata: None,
+                    content: "10 [20, thirty, ] some content".to_string(),
+                },
+            ]
+        );
+
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let mut actual_generated = generated
+            .iter()
+            .map(|p| {
+                let mut content: String = "".to_string();
+                p.open(&PageIndex::from(p), &bundle_index, &env).unwrap().read_to_string(&mut content).unwrap();
+
+                TestPage {
+                    path: p.path().to_vec(),
+                    metadata: p.metadata().cloned(),
+                    content,
+                }
+            })
+            .collect::<Vec<_>>();
+        actual_generated.sort_by_key(|f| f.path.join("/"));
+        assert_eq!(
+            actual_generated,
+            &[TestPage {
+                path: vec!["index.html".to_string()],
+                metadata: Some(Metadata {
+                    title: None,
+                    summary: None,
+                    authors: Default::default(),
+                    tags: Default::default(),
+                    publishing_date: None,
+                    last_edit_date: None,
+                    data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
+                }),
+                content: indoc! {"10 [20, thirty, ]"
+                }.to_string()
+            },]
+        );
+    }
+
+    #[test]
     fn apply_bundle_query_helper() {
         let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
             p: vec![

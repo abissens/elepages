@@ -1,5 +1,5 @@
 use crate::pages::{BundleIndex, Env, Metadata, Page, PageIndex};
-use crate::stages::{BundleArchiveHelper, BundleQueryHelper, DateFormatHelper, ForUriHelper, PageContentHelper};
+use crate::stages::{BundleArchiveHelper, BundleQueryHelper, DateFormatHelper, EnvHelper, ForUriHelper, PageContentHelper};
 use serde::Serialize;
 use std::io::{Cursor, Read};
 use std::sync::Arc;
@@ -32,6 +32,7 @@ impl Page for HbsPage {
             }),
         );
         local_registry.register_helper("bundle_query", Box::new(BundleQueryHelper { output_index }));
+        local_registry.register_helper("env", Box::new(EnvHelper { env }));
         local_registry.register_helper("bundle_archive_query", Box::new(BundleArchiveHelper { output_index }));
         local_registry.register_helper("date_format", Box::new(DateFormatHelper));
         local_registry.register_helper("uri_string", Box::new(ForUriHelper));

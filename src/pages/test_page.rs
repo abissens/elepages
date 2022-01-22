@@ -16,8 +16,8 @@ impl PartialOrd for TestPage {
     }
 }
 
-impl From<&Arc<dyn Page>> for TestPage {
-    fn from(p: &Arc<dyn Page>) -> Self {
+impl From<(&Env, &Arc<dyn Page>)> for TestPage {
+    fn from((env, p): (&Env, &Arc<dyn Page>)) -> Self {
         let mut content: String = "".to_string();
         p.open(
             &PageIndex::from(p),
@@ -28,16 +28,22 @@ impl From<&Arc<dyn Page>> for TestPage {
                 pages_by_author: Default::default(),
                 pages_by_tag: Default::default(),
             },
-            &Env::test(),
+            env,
         )
-        .unwrap()
-        .read_to_string(&mut content)
-        .unwrap();
+            .unwrap()
+            .read_to_string(&mut content)
+            .unwrap();
         TestPage {
             path: p.path().to_vec(),
             metadata: p.metadata().cloned(),
             content,
         }
+    }
+}
+
+impl From<&Arc<dyn Page>> for TestPage {
+    fn from(p: &Arc<dyn Page>) -> Self {
+        From::from((&Env::test(), p))
     }
 }
 
