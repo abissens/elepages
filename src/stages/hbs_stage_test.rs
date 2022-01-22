@@ -5,6 +5,7 @@ mod tests {
     use crate::pages::{Author, BundleIndex, Env, Metadata, Page, PageBundle, PageIndex, VecBundle};
     use crate::stages::test_stage::TestProcessingResult;
     use crate::stages::{HbsStage, PageGeneratorBagImpl, Stage};
+    use handlebars::RenderError;
     use indoc::indoc;
     use rustassert::fs::{FileNode, TmpTestFolder};
     use std::array::IntoIter;
@@ -1027,15 +1028,44 @@ mod tests {
     }
 
     #[test]
+    fn fails_when_env_not_found() {
+        let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle { p: vec![] });
+        let test_folder = TmpTestFolder::new().unwrap();
+        test_folder
+            .write(&FileNode::Dir {
+                name: "templates".to_string(),
+                sub: vec![FileNode::File {
+                    name: "asset.index.html.hbs".to_string(),
+                    content: indoc! {"{{env \"var_1\"}}"}.as_bytes().to_vec(),
+                    open_options: None,
+                }],
+            })
+            .unwrap();
+        let hb_stage = HbsStage::new("hb stage".to_string(), test_folder.get_path().join("templates")).unwrap();
+        let page_generator_bag = PageGeneratorBagImpl::new();
+        let env = Env::test();
+        let result_bundle = hb_stage.process(&bundle, &env, &page_generator_bag).unwrap();
+        let bundle_index = BundleIndex::from(&result_bundle.0);
+        let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
+        let first_page = generated.get(0).unwrap();
+        let result_open = first_page.open(&PageIndex::from(first_page), &bundle_index, &env);
+
+        if let Err(err) = result_open {
+            let render_err = err.downcast_ref::<RenderError>().unwrap();
+            assert_eq!(render_err.desc, "key var_1 not found in env");
+            return;
+        }
+        panic!("should raise an error");
+    }
+
+    #[test]
     fn apply_env_helper() {
         let bundle: Arc<dyn PageBundle> = Arc::new(VecBundle {
-            p: vec![
-                Arc::new(TestPage {
-                    path: vec!["f1".to_string()],
-                    metadata: None,
-                    content: "some content".to_string(),
-                }),
-            ],
+            p: vec![Arc::new(TestPage {
+                path: vec!["f1".to_string()],
+                metadata: None,
+                content: "some content".to_string(),
+            })],
         });
         let test_folder = TmpTestFolder::new().unwrap();
         test_folder
@@ -1049,9 +1079,7 @@ mod tests {
                     },
                     FileNode::File {
                         name: "asset.index.html.hbs".to_string(),
-                        content: indoc! {"{{env \"var_1\"}} {{env \"var_2\"}}"}
-                            .as_bytes()
-                            .to_vec(),
+                        content: indoc! {"{{env \"var_1\"}} {{env \"var_2\"}}"}.as_bytes().to_vec(),
                         open_options: None,
                     },
                 ],
@@ -1072,16 +1100,14 @@ mod tests {
         );
 
         let bundle_index = BundleIndex::from(&result_bundle.0);
-        let actual = result_bundle.0.pages().iter().map(|p| TestPage::from((&env,p))).collect::<Vec<_>>();
+        let actual = result_bundle.0.pages().iter().map(|p| TestPage::from((&env, p))).collect::<Vec<_>>();
         assert_eq!(
             actual,
-            &[
-                TestPage {
-                    path: vec!["f1".to_string()],
-                    metadata: None,
-                    content: "10 [20, thirty, ] some content".to_string(),
-                },
-            ]
+            &[TestPage {
+                path: vec!["f1".to_string()],
+                metadata: None,
+                content: "10 [20, thirty, ] some content".to_string(),
+            },]
         );
 
         let generated: Vec<Arc<dyn Page>> = page_generator_bag.all().unwrap().iter().flat_map(|g| g.yield_pages(&bundle_index, &Env::test()).unwrap()).collect();
@@ -1113,7 +1139,8 @@ mod tests {
                     data: HashMap::from_iter(IntoIter::new([("isRaw".to_string(), Value::Bool(true)), ("isHidden".to_string(), Value::Bool(true))])),
                 }),
                 content: indoc! {"10 [20, thirty, ]"
-                }.to_string()
+                }
+                .to_string()
             },]
         );
     }

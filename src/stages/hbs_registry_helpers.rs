@@ -60,15 +60,13 @@ impl HelperDef for BundleQueryHelper<'_> {
     }
 }
 
-pub struct EnvHelper <'a> {
+pub struct EnvHelper<'a> {
     pub env: &'a Env,
 }
 
 impl HelperDef for EnvHelper<'_> {
     fn call_inner<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>, _: &'rc Context, _: &mut RenderContext<'reg, 'rc>) -> Result<ScopedJson<'reg, 'rc>, RenderError> {
-        let param1 = h.param(0)
-                        .and_then(|v| v.value().as_str())
-                        .ok_or_else(|| RenderError::new("need env key"))?;
+        let param1 = h.param(0).and_then(|v| v.value().as_str()).ok_or_else(|| RenderError::new("need env key"))?;
         let value = self.env.get(param1).ok_or_else(|| RenderError::new(format!("key {} not found in env", param1)))?;
         Ok(ScopedJson::Derived(serde_json::to_value(value)?))
     }

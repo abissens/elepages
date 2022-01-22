@@ -30,9 +30,9 @@ impl From<(&Env, &Arc<dyn Page>)> for TestPage {
             },
             env,
         )
-            .unwrap()
-            .read_to_string(&mut content)
-            .unwrap();
+        .unwrap()
+        .read_to_string(&mut content)
+        .unwrap();
         TestPage {
             path: p.path().to_vec(),
             metadata: p.metadata().cloned(),
